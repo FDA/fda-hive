@@ -1,0 +1,36 @@
+{
+    "95": {
+        "_id": "$upsert()",
+        "_type": "wpage",
+        "name": "html",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

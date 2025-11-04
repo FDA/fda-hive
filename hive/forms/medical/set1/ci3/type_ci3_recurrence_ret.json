@@ -1,0 +1,95 @@
+{
+    "373": {
+        "_id": "$type.ci3_recurrence_ret",
+        "_type": "type",
+        "name": "ci3_recurrence_ret",
+        "title": "Post-op outcomes and recurrence",
+        "fields": {
+            "1.1": {
+                "field_name": "height",
+                "field_title": "Height",
+                "field_type": "string",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "weight",
+                "field_title": "Weight",
+                "field_type": "integer",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "bmi",
+                "field_title": "BMI",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "follow_up_duretion",
+                "field_title": "Follow-up duration (days)",
+                "field_type": "integer",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "hospital_major_complicatioons",
+                "field_title": "In-hospital major complications",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "intraabdominal infections|intestinal perforation/leak|myocardial infarction|stroke|pneumonia|DVT/PA|Sepsis|Clavien Dindo|Death"
+            },
+            "1.6": {
+                "field_name": "post_procedure_days",
+                "field_title": "Post-procedure Length of stay (days)",
+                "field_type": "integer",
+                "field_order": 6
+            },
+            "1.7": {
+                "field_name": "recurrence_sbo",
+                "field_title": "Recurrence of SBO?",
+                "field_type": "bool",
+                "field_order": 7
+            },
+            "1.8": {
+                "field_name": "obstruction_days",
+                "field_title": "Time to recurrence of obstruction (days)",
+                "field_type": "integer",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(recurrence_sbo)=='true'"
+            },
+            "1.9": {
+                "field_name": "procedure_sbo",
+                "field_title": "Need for repeat procedure for SBO",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "Percutaneous, Cut-down, Endoscopy|laparoscopy|laparotomy|other\r\n>is_shown_fg=$(recurrence_sbo)=='true'"
+            },
+            "1.10": {
+                "field_name": "procedure_sbo_other",
+                "field_title": "specify",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(procedure_sbo)=='other'&&$(recurrence_sbo)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_shared_ret"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

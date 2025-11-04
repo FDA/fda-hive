@@ -1,0 +1,29 @@
+{
+    "530": {
+        "_id": "$type.med_set2",
+        "_type": "type",
+        "name": "med_set2",
+        "title": "Medical Set 2",
+        "parent": {
+            "7": "$type.med_form"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

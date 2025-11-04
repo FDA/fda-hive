@@ -1,0 +1,1445 @@
+{
+    "578": {
+        "_id": "$type.hep_adjudication_eligibility_form",
+        "_type": "type",
+        "name": "hep_adjudication_eligibility_form",
+        "title": "Adjudication/Eligibility Form",
+        "fields": {
+            "1.1": {
+                "field_name": "site",
+                "field_title": "Site",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "Georgetown University|Maine Medical Center|Mayo Clinic|Mid-Atlantic Epilepsy Sleep Center|Minnesota Epilepsy Group|Monash University|New York University|Northwell Health|St. Barnabas Medical Center|University of California San Francisco|University of Miami|University of Pennsylvania|University of Texas Health Science Center at San Antonio|Washington University|Yale University|John Hopkins|University of Utah|Mount Sinai"
+            },
+            "1.2": {
+                "field_name": "pi_name",
+                "field_title": "PI Name:",
+                "field_type": "string",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "name_title_completing_form",
+                "field_title": "Name of Individual & Title Completing this Form:",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "Name_investigator_reviewed_form",
+                "field_title": "Name of Investigator Who Reviewed this Form Prior to Submission:",
+                "field_type": "string",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "current_age",
+                "field_title": "Current age:",
+                "field_type": "string",
+                "field_order": 5
+            },
+            "1.6": {
+                "field_name": "age_first_seizure:",
+                "field_title": "Age at First Seizure:",
+                "field_type": "string",
+                "field_order": 6
+            },
+            "1.7": {
+                "field_name": "all_eeg_reports",
+                "field_title": "What EEG has been completed (please submit all EEG reports)?",
+                "field_type": "text",
+                "field_order": 7
+            },
+            "1.8": {
+                "field_name": "routine_no",
+                "field_title": "Routine #",
+                "field_type": "string",
+                "field_order": 8
+            },
+            "1.9": {
+                "field_name": "ambulatory_no",
+                "field_title": "Ambulatory #",
+                "field_type": "string",
+                "field_order": 9
+            },
+            "1.10": {
+                "field_name": "video_no",
+                "field_title": "Video #",
+                "field_type": "string",
+                "field_order": 10
+            },
+            "1.11": {
+                "field_name": "inter_ictal_eeg",
+                "field_title": "Inter-Ictal EEG",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_description": "subtitle"
+            },
+            "1.12": {
+                "field_name": "screenshot_typical_atypical_clip",
+                "field_title": "Please provide screen shot of typical and atypical clip",
+                "field_type": "file",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.13": {
+                "field_name": "subtitle",
+                "field_title": "PDR",
+                "field_type": "string",
+                "field_order": 13
+            },
+            "1.14": {
+                "field_name": "pdr_variants",
+                "field_type": "string",
+                "field_order": 13.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Normal EEG|Abnormal (Epileptiform)|Not available"
+            },
+            "1.15": {
+                "field_name": "abnormal_epileptiform",
+                "field_title": "Abnormal (Epileptiform)",
+                "field_type": "string",
+                "field_order": 14,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(pdr_variants)=='Abnormal (Epileptiform)'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.16": {
+                "field_name": "abnormal_focal",
+                "field_title": "Focal spikes",
+                "field_type": "bool",
+                "field_order": 14.1,
+                "field_constraint_data": "is_shown_fg=$(pdr_variants)=='Abnormal (Epileptiform)'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.17": {
+                "field_name": "abnormal_gen_epileptiform",
+                "field_title": "Generalized epileptiform discharges",
+                "field_type": "bool",
+                "field_order": 14.2,
+                "field_constraint_data": "is_shown_fg=$(pdr_variants)=='Abnormal (Epileptiform)'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.18": {
+                "field_name": "discharges_bilateral_sync_symmetric",
+                "field_title": "Are discharges bilateral, synchronous and symmetric?",
+                "field_type": "bool",
+                "field_order": 14.3,
+                "field_constraint_data": "is_shown_fg=$(abnormal_gen_epileptiform)=='true'&&$(pdr_variants)=='Abnormal (Epileptiform)'",
+                "field_description": "(NOTE: NO may still be acceptable for inclusion)"
+            },
+            "1.19": {
+                "field_name": "discharges_bilateral_sync_symmetric_describe",
+                "field_title": "Please describe",
+                "field_type": "text",
+                "field_order": 14.4,
+                "field_constraint_data": "is_shown_fg=$(discharges_bilateral_sync_symmetric)=='false'&&$(abnormal_gen_epileptiform)=='true'&&$(pdr_variants)=='Abnormal (Epileptiform)'"
+            },
+            "1.20": {
+                "field_name": "clinical_eeg_focal_features",
+                "field_title": "Are there clinical or EEG focal features even with the diagnosis of generalized epilepsy?",
+                "field_type": "bool",
+                "field_order": 14.5,
+                "field_constraint_data": ">is_shown_fg=$(abnormal_gen_epileptiform)=='true'&&$(pdr_variants)=='Abnormal (Epileptiform)'"
+            },
+            "1.21": {
+                "field_name": "clinical_eeg_focal_features_describe",
+                "field_title": "Please describe",
+                "field_type": "text",
+                "field_order": 14.6,
+                "field_constraint_data": "is_shown_fg=$(clinical_eeg_focal_features)=='true'&&$(abnormal_gen_epileptiform)=='true'&&$(pdr_variants)=='Abnormal (Epileptiform)'"
+            },
+            "1.22": {
+                "field_name": "abnormal_electrographic",
+                "field_title": "Electrographic seizures",
+                "field_type": "bool",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(pdr_variants)=='Abnormal (Epileptiform)'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.23": {
+                "field_name": "abnormal_other",
+                "field_title": "Other",
+                "field_type": "bool",
+                "field_order": 16,
+                "field_constraint_data": "is_shown_fg=$(pdr_variants)=='Abnormal (Epileptiform)'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.24": {
+                "field_name": "other_specify",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "is_shown_fg=$(abnormal_other)=='true'&&$(pdr_variants)=='Abnormal (Epileptiform)'"
+            },
+            "1.25": {
+                "field_name": "neuroimaging",
+                "field_title": "Neuroimaging",
+                "field_type": "string",
+                "field_order": 20,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "CT|MRI|Not performed|Unknown|Other"
+            },
+            "1.26": {
+                "field_name": "neuroimaging_other_specify",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint_data": "is_shown_fg=$(neuroimaging)=='Other'"
+            },
+            "1.27": {
+                "field_name": "results_mri",
+                "field_title": "MRI results",
+                "field_type": "string",
+                "field_order": 22,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Normal|Abnormal"
+            },
+            "1.28": {
+                "field_name": "results_ct",
+                "field_title": "CT results ",
+                "field_type": "string",
+                "field_order": 22.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Normal|Abnormal"
+            },
+            "1.29": {
+                "field_name": "source",
+                "field_title": "Source",
+                "field_type": "text",
+                "field_parent": "seizire_description_parent",
+                "field_order": 112
+            },
+            "1.30": {
+                "field_name": "seizure_lasted_period",
+                "field_title": "How long does the seizure last? ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 113
+            },
+            "1.31": {
+                "field_name": "loss_of_awareness",
+                "field_title": "Is there loss of awareness during the seizure? ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 114,
+                "field_constraint_data": "true///Yes|false///No|Unknown"
+            },
+            "1.32": {
+                "field_name": "warning",
+                "field_title": "Does the patient have a warning?   ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 115,
+                "field_constraint_data": "true///Yes|false///No|Unknown"
+            },
+            "1.33": {
+                "field_name": "warning_description",
+                "field_title": "If yes, describe: ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 116,
+                "field_constraint_data": "is_shown_fg=$(warning)=='true'"
+            },
+            "1.34": {
+                "field_name": "age_at_onset",
+                "field_title": "Age at onset of this seizure type: ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 117
+            },
+            "1.35": {
+                "field_name": "frequency",
+                "field_title": "Frequency: ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 118
+            },
+            "1.36": {
+                "field_name": "seizures_count",
+                "field_title": "How many seizures have occurred: ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 119
+            },
+            "1.37": {
+                "field_name": "does_this_occur",
+                "field_title": "Does this occur: ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 120,
+                "field_constraint_data": "out of sleep|during the day|both|unknown"
+            },
+            "1.38": {
+                "field_name": "injuries_from_suizure",
+                "field_title": "Has there been an injury/injuries as a result of this seizure? ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 121,
+                "field_constraint_data": "true///Yes|false///No|Unknown"
+            },
+            "1.39": {
+                "field_name": "injuries_from_suizure_description",
+                "field_title": "If yes, describe: ",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 122,
+                "field_constraint_data": "is_shown_fg=$(injuries_from_suizure)=='true'"
+            },
+            "1.40": {
+                "field_name": "classification_of_seizure",
+                "field_title": "Please check/tick the classification of the seizure described above",
+                "field_type": "string",
+                "field_parent": "seizire_description_parent",
+                "field_order": 123,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Absence|Myoclonic (not otherwise specified)|Clonic|Tonic|Atonic|Tonic clonic|Other",
+                "field_description": "Include all symptoms. Only reporting a tonic-clonic seizure does not give our reviewer enough information. Be sure to specify if there is bilateral stiffening followed by bilateral shaking.\r\n"
+            },
+            "1.41": {
+                "field_name": "subtitle_1",
+                "field_title": "Focal",
+                "field_type": "string",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(results_ct)=='Abnormal'||$(results_mri)=='Abnormal'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.42": {
+                "field_name": "focal_specify_findings_mri",
+                "field_title": "Specify findings on MRI",
+                "field_type": "string",
+                "field_order": 24,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(results_mri)=='Abnormal'"
+            },
+            "1.43": {
+                "field_name": "focal_specify_findings_ct",
+                "field_title": "Specify findings on CT",
+                "field_type": "string",
+                "field_order": 25,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(results_ct)=='Abnormal'"
+            },
+            "1.44": {
+                "field_name": "subtitle_2_diffuse",
+                "field_title": "Diffuse",
+                "field_type": "string",
+                "field_order": 26,
+                "field_constraint_data": "is_shown_fg=$(results_ct)=='Abnormal'||$(results_mri)=='Abnormal'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.45": {
+                "field_name": "focal_diffuse_findings_mri",
+                "field_title": "Specify findings on MRI",
+                "field_type": "string",
+                "field_order": 27,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(results_mri)=='Abnormal'"
+            },
+            "1.46": {
+                "field_name": "focal_diffuse_findings_ct",
+                "field_title": "Specify findings on CT",
+                "field_type": "string",
+                "field_order": 28,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(results_ct)=='Abnormal'"
+            },
+            "1.47": {
+                "field_name": "subtitle_3_nsi",
+                "field_title": "Non-specific or incidental (e.g. small white matter changes, mild atrophy, arachnoid cyst)",
+                "field_type": "string",
+                "field_order": 29,
+                "field_constraint_data": "is_shown_fg=$(results_ct)=='Abnormal'||$(results_mri)=='Abnormal'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.48": {
+                "field_name": "focal_incidental_findings_mri",
+                "field_title": "Specify findings on MRI",
+                "field_type": "string",
+                "field_order": 30,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(results_mri)=='Abnormal'"
+            },
+            "1.49": {
+                "field_name": "focal_incidental_findings_ct",
+                "field_title": "Specify findings on CT",
+                "field_type": "string",
+                "field_order": 31,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(results_ct)=='Abnormal'"
+            },
+            "1.50": {
+                "field_name": "anything_else",
+                "field_title": "Is there anything else you would like to add that convinces you this patient has idiopathic generalized epilepsy?",
+                "field_type": "text",
+                "field_order": 32,
+                "field_is_optional_fg": true
+            },
+            "1.51": {
+                "field_name": "developmentally_delayed",
+                "field_title": "Is the subject developmentally delayed?",
+                "field_type": "bool",
+                "field_order": 33
+            },
+            "1.52": {
+                "field_name": "iq_documented",
+                "field_title": "Is IQ documented?",
+                "field_type": "bool",
+                "field_order": 34
+            },
+            "1.53": {
+                "field_name": "iq_results",
+                "field_title": "Please provide IQ results:",
+                "field_type": "real",
+                "field_order": 35,
+                "field_constraint_data": "is_shown_fg=$(iq_documented)=='true'"
+            },
+            "1.54": {
+                "field_name": "date_obtained",
+                "field_title": "Date Obtained:",
+                "field_type": "date",
+                "field_order": 36,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(iq_documented)=='true'"
+            },
+            "1.55": {
+                "field_name": "other_neurologic_dysfunctions",
+                "field_title": "Please specify other Neurologic Dysfunctions",
+                "field_type": "text",
+                "field_order": 37,
+                "field_is_optional_fg": true,
+                "field_description": "(For example: cerebral palsy, aphasia, visual disturbance)"
+            },
+            "1.56": {
+                "field_name": "subtitle_2",
+                "field_title": "Etiology Classification",
+                "field_type": "string",
+                "field_order": 38,
+                "field_constraint_description": "subtitle"
+            },
+            "1.57": {
+                "field_name": "genetic",
+                "field_title": "Genetic or presumed genetic",
+                "field_type": "bool",
+                "field_order": 39,
+                "field_is_optional_fg": false,
+                "field_constraint_description": "checkbox"
+            },
+            "1.58": {
+                "field_name": "unknown",
+                "field_title": "Epilepsy of unknown cause",
+                "field_type": "bool",
+                "field_order": 40,
+                "field_constraint_description": "checkbox"
+            },
+            "1.59": {
+                "field_name": "structural",
+                "field_title": "Structural",
+                "field_type": "bool",
+                "field_order": 41,
+                "field_constraint_description": "checkbox"
+            },
+            "1.60": {
+                "field_name": "metabolic",
+                "field_title": "Metabolic",
+                "field_type": "bool",
+                "field_order": 42,
+                "field_constraint_description": "checkbox"
+            },
+            "1.61": {
+                "field_name": "subtitle_3",
+                "field_title": "Specific Etiologies",
+                "field_type": "string",
+                "field_order": 43,
+                "field_constraint_description": "subtitle"
+            },
+            "1.62": {
+                "field_name": "specific_etiologies_a",
+                "field_title": "a) Viral, bacterial and parasitic infections",
+                "field_type": "string",
+                "field_order": 44,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.63": {
+                "field_name": "specific_etiologies_b",
+                "field_title": "b) Traumatic brain injury",
+                "field_type": "string",
+                "field_order": 45,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.64": {
+                "field_name": "specific_etiologies_c",
+                "field_title": "c) Stroke",
+                "field_type": "string",
+                "field_order": 46,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.65": {
+                "field_name": "specific_etiologies_d",
+                "field_title": "d) Intraventricular hemorrhage",
+                "field_type": "string",
+                "field_order": 47,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.66": {
+                "field_name": "specific_etiologies_e",
+                "field_title": "e) Hypoxic-ischemic encephalopathy",
+                "field_type": "string",
+                "field_order": 48,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.67": {
+                "field_name": "specific_etiologies_f",
+                "field_title": "f) Other metabolic or toxic insults",
+                "field_type": "string",
+                "field_order": 49,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.68": {
+                "field_name": "specific_etiologies_g",
+                "field_title": "g) Neurocutaneous syndromes",
+                "field_type": "string",
+                "field_order": 50,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.69": {
+                "field_name": "specific_etiologies_h",
+                "field_title": "h) Inborn errors of metabolism",
+                "field_type": "string",
+                "field_order": 51,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.70": {
+                "field_name": "specific_etiologies_i",
+                "field_title": "i) Genetic and chromosomal development encephalopathies",
+                "field_type": "string",
+                "field_order": 52,
+                "field_constraint_data": "Definite|Possible|No",
+                "field_description": "E.g., Rett, Down, Angelman, and Fragile X syndromes."
+            },
+            "1.71": {
+                "field_name": "specific_etiologies_j",
+                "field_title": "j) Developmental encephalopathy of unknown cause as evidenced by the presence of mental retardation, cerebral palsy, or autism with no evidence of a specific insult of disorder to which cause can be attributed preceding the onset of epilepsy",
+                "field_type": "string",
+                "field_order": 53,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.72": {
+                "field_name": "specific_etiologies_k",
+                "field_title": "k) Malformations of cortical or other brain development with or without known genetic determinants",
+                "field_type": "string",
+                "field_order": 54,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.73": {
+                "field_name": "specific_etiologies_l",
+                "field_title": "l) Neoplasia",
+                "field_type": "string",
+                "field_order": 55,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.74": {
+                "field_name": "specific_etiologies_m",
+                "field_title": "m) Mesial temporal sclerosis",
+                "field_type": "string",
+                "field_order": 56,
+                "field_constraint_data": "Definite|Possible|No",
+                "field_description": "Where evidence is lacking that the structural pathology precedes the onset of epilepsy, it is not assumed that such pathology causes epilepsy."
+            },
+            "1.75": {
+                "field_name": "specific_etiologies_n",
+                "field_title": "n) Dementia",
+                "field_type": "string",
+                "field_order": 57,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.76": {
+                "field_name": "specific_etiologies_o",
+                "field_title": "o) Other degenerative neurologic diseases",
+                "field_type": "string",
+                "field_order": 58,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.77": {
+                "field_name": "specific_etiologies_p",
+                "field_title": "p) Genetic or presumed genetic",
+                "field_type": "string",
+                "field_order": 59,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.78": {
+                "field_name": "specific_etiologies_p_spec",
+                "field_title": "If known specify",
+                "field_type": "text",
+                "field_order": 60,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(specific_etiologies_p)=='Definite'||$(specific_etiologies_p)=='Possible'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.79": {
+                "field_name": "specific_etiologies_q",
+                "field_title": "q) Epilepsy of unknown cause, without relevant abnormalities on examination, cognition, history, or imaging",
+                "field_type": "string",
+                "field_order": 61,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.80": {
+                "field_name": "specific_etiologies_r",
+                "field_title": "r) Other",
+                "field_type": "string",
+                "field_order": 62,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.81": {
+                "field_name": "specific_etiologies_r_spec",
+                "field_title": "Specify",
+                "field_type": "text",
+                "field_order": 63,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subquestion"
+            },
+            "1.82": {
+                "field_name": "primary_cause",
+                "field_title": "If more than one specific etiology is selected, please specify the most likely primary cause of epilepsy. Primary Cause",
+                "field_type": "string",
+                "field_order": 64,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r",
+                "field_constraint_description": "checkbox"
+            },
+            "1.83": {
+                "field_name": "comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 65,
+                "field_is_optional_fg": true
+            },
+            "1.84": {
+                "field_name": "subtitle_31",
+                "field_title": "CLASSIFICATION OF SEIZURES",
+                "field_type": "string",
+                "field_order": 65.5,
+                "field_constraint_description": "subtitle"
+            },
+            "1.85": {
+                "field_name": "subtitle_6_1",
+                "field_title": "GENERALIZED SEIZURE SUBTYPES",
+                "field_type": "string",
+                "field_order": 66,
+                "field_constraint_description": "subtitle"
+            },
+            "1.86": {
+                "field_name": "subtitle_6_2",
+                "field_title": "1. Clearly generalized seizures, but unable to further classify",
+                "field_type": "string",
+                "field_order": 67,
+                "field_constraint_description": "subtitle"
+            },
+            "1.87": {
+                "field_name": "current_clearly_generalized_seizures",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 68
+            },
+            "1.88": {
+                "field_name": "past_clearly_generalized_seizures",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 69
+            },
+            "1.89": {
+                "field_name": "subtitle_7",
+                "field_title": "1.1 Tonic clonic (in any combination)",
+                "field_type": "string",
+                "field_order": 70,
+                "field_constraint_description": "subtitle"
+            },
+            "1.90": {
+                "field_name": "current_tonic_clonic",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 71
+            },
+            "1.91": {
+                "field_name": "past_tonic_clonic",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 72
+            },
+            "1.92": {
+                "field_name": "subtitle_8",
+                "field_title": "1.2 Absence",
+                "field_type": "string",
+                "field_order": 73,
+                "field_constraint_description": "subtitle"
+            },
+            "1.93": {
+                "field_name": "current_absence",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 74
+            },
+            "1.94": {
+                "field_name": "past_absence",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 75
+            },
+            "1.95": {
+                "field_name": "subtitle_8_2",
+                "field_title": "1.2.1 Typical",
+                "field_type": "string",
+                "field_order": 75.1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.96": {
+                "field_name": "current_typical",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 75.2
+            },
+            "1.97": {
+                "field_name": "past_typical",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 75.3
+            },
+            "1.98": {
+                "field_name": "subtitle_9",
+                "field_title": "1.2.2 Eyelid myoclonia",
+                "field_type": "string",
+                "field_order": 76,
+                "field_constraint_description": "subtitle"
+            },
+            "1.99": {
+                "field_name": "current_eyelid_myoclonia",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 77
+            },
+            "1.100": {
+                "field_name": "past_eyelid_myoclonia",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 78
+            },
+            "1.101": {
+                "field_name": "subtitle_10",
+                "field_title": "1.3 Myoclonic ",
+                "field_type": "string",
+                "field_order": 79,
+                "field_constraint_description": "subtitle"
+            },
+            "1.102": {
+                "field_name": "current_myoclonic ",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 80
+            },
+            "1.103": {
+                "field_name": "past_myoclonic ",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 81
+            },
+            "1.104": {
+                "field_name": "subtitle_11",
+                "field_title": "FOCAL SEIZURES (according to degree of impairment)",
+                "field_type": "string",
+                "field_order": 82,
+                "field_constraint_description": "subtitle"
+            },
+            "1.105": {
+                "field_name": "subtitle_12",
+                "field_title": "2. Clearly focal seizures, but unable to further classify",
+                "field_type": "string",
+                "field_order": 83,
+                "field_constraint_description": "subtitle"
+            },
+            "1.106": {
+                "field_name": "current_clearly_focal_seizures",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 84
+            },
+            "1.107": {
+                "field_name": "past_clearly_focal_seizures",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 85
+            },
+            "1.108": {
+                "field_name": "subtitle_13",
+                "field_title": "2.1 Without impairment of consciousness or responsiveness ",
+                "field_type": "string",
+                "field_order": 86,
+                "field_constraint_description": "subtitle"
+            },
+            "1.109": {
+                "field_name": "current_without_impairment",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 87
+            },
+            "1.110": {
+                "field_name": "past_without_impairment",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 88
+            },
+            "1.111": {
+                "field_name": "subtitle_14",
+                "field_title": "2.1.1 With observable motor or autonomic component  (roughly corresponds to the concept of “simple partial seizures”) ",
+                "field_type": "string",
+                "field_order": 89,
+                "field_constraint_description": "subtitle"
+            },
+            "1.112": {
+                "field_name": "current_with_observable_motor",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 90
+            },
+            "1.113": {
+                "field_name": "past_with_observable_motor",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 91
+            },
+            "1.114": {
+                "field_name": "subtitle_15",
+                "field_title": "2.1.2 Involving subjective sensory or psychic phenomena only (corresponds to the concept of \"aura\")",
+                "field_type": "string",
+                "field_order": 92,
+                "field_constraint_description": "subtitle"
+            },
+            "1.115": {
+                "field_name": "current_involving_subjective_sensory",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 93
+            },
+            "1.116": {
+                "field_name": "past_involving_subjective_sensory",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 94
+            },
+            "1.117": {
+                "field_name": "subtitle_16",
+                "field_title": "2.2 With impairment of consciousness or responsiveness (roughly corresponds to       the concept of \"focal seizures with dyscognitive features\")",
+                "field_type": "string",
+                "field_order": 95,
+                "field_constraint_description": "subtitle"
+            },
+            "1.118": {
+                "field_name": "current_with_impairment ",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 96
+            },
+            "1.119": {
+                "field_name": "past_with_impairment ",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 97
+            },
+            "1.120": {
+                "field_name": "subtitle_17",
+                "field_title": "2.3 Evolving to a bilateral, convulsive seizure (involving tonic, clonic, or tonic and       clonic components; replaces the term \"secondarily generalized seizure\")",
+                "field_type": "string",
+                "field_order": 98,
+                "field_constraint_description": "subtitle"
+            },
+            "1.121": {
+                "field_name": "current_evolving_to_bilateral",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 99
+            },
+            "1.122": {
+                "field_name": "past_evolving_to_bilateral",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 100
+            },
+            "1.123": {
+                "field_name": "subtitle_18",
+                "field_title": "3. UNCLASSIFIED SEIZURE TYPE",
+                "field_type": "string",
+                "field_order": 101,
+                "field_constraint_description": "subtitle"
+            },
+            "1.124": {
+                "field_name": "subtitle_19",
+                "field_title": "Seizure type is unclassified",
+                "field_type": "string",
+                "field_order": 102,
+                "field_constraint_description": "subtitle",
+                "field_description": "If a seizure cannot be adequately classified, it should not be fit into a category to which it does not belong."
+            },
+            "1.125": {
+                "field_name": "current_seizure_type_unclassified",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 103
+            },
+            "1.126": {
+                "field_name": "past_seizure_type_unclassified",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 104
+            },
+            "1.127": {
+                "field_name": "subtitle_20",
+                "field_title": " 4. UNCONFIRMED SEIZURE TYPE",
+                "field_type": "string",
+                "field_order": 105,
+                "field_constraint_description": "subtitle"
+            },
+            "1.128": {
+                "field_name": "subtitle_21",
+                "field_title": "This category should be used for patients with confirmed epilepsy who have some  events for which the Primary Investigator does not have >80% certainty that they are seizures.",
+                "field_type": "string",
+                "field_order": 106,
+                "field_constraint_description": "subtitle",
+                "field_description": "Every unconfirmed seizure will need to be re-visited at the 12 month visit."
+            },
+            "1.129": {
+                "field_name": "current_unconfirmed_seizure_type",
+                "field_title": "Current  Seizure Type",
+                "field_type": "bool",
+                "field_order": 107
+            },
+            "1.130": {
+                "field_name": "past_unconfirmed_seizure_type",
+                "field_title": "Past Seizure Type, no longer present",
+                "field_type": "bool",
+                "field_order": 108,
+                "field_constraint_description": "subtitle"
+            },
+            "1.131": {
+                "field_name": "subtitle_22",
+                "field_title": "Instructions for completing the Seizure Identification Form",
+                "field_type": "string",
+                "field_order": 109,
+                "field_constraint_description": "subtitle"
+            },
+            "1.132": {
+                "field_name": "description_1",
+                "field_type": "string",
+                "field_order": 110,
+                "field_constraint_description": "description",
+                "field_description": "Provide as much detail as possible for each seizure. Indicate the source (description in office note, from provider, etc). Please note that final description for seizure diary should come from DISCOVER form and seizure semiology form). "
+            },
+            "1.133": {
+                "field_name": "seizure_description",
+                "field_title": "Description:",
+                "field_type": "text",
+                "field_parent": "seizire_description_parent",
+                "field_order": 112.5,
+                "field_is_hidden_fg": false
+            },
+            "1.134": {
+                "field_name": "seizire_description_parent",
+                "field_title": "Seizure Description",
+                "field_type": "array",
+                "field_order": 110.5,
+                "field_is_multi_fg": true
+            },
+            "1.135": {
+                "field_name": "classification_of_seizure_other",
+                "field_title": "Please comment",
+                "field_type": "text",
+                "field_parent": "seizire_description_parent",
+                "field_order": 123.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(classification_of_seizure)=='Other'"
+            },
+            "1.136": {
+                "field_name": "cohort",
+                "field_title": "Which cohort is the patient in?",
+                "field_type": "string",
+                "field_order": 124,
+                "field_constraint_data": "Cohort 1|Cohort 2|Cohort 3"
+            },
+            "1.137": {
+                "field_name": "when_asm_treatment_initiated",
+                "field_title": "Approximately when was ASM treatment initiated?",
+                "field_type": "text",
+                "field_order": 124.1,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\""
+            },
+            "1.138": {
+                "field_name": "last_tc_seizure",
+                "field_title": "When was the last tonic-clonic seizure?",
+                "field_type": "text",
+                "field_order": 126,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 2\"||$(cohort)==\"Cohort 3\""
+            },
+            "1.139": {
+                "field_name": "last_am_seizure",
+                "field_title": "If the subject has myoclonic or absence seizures, when did the last absence/myoclonic seizure occur? ",
+                "field_type": "text",
+                "field_order": 127,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 2\""
+            },
+            "1.140": {
+                "field_name": "why_consider_nd",
+                "field_title": "If this occurred in the last 2 years, explain why you consider it non-disabling?",
+                "field_type": "text",
+                "field_order": 128,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 2\""
+            },
+            "1.141": {
+                "field_name": "asms_failed",
+                "field_title": "Has the subject failed at least 2 appropriately chosen ASMs? (Please select 2 ASMs that this subject has received and failed. This can include current ASMs)",
+                "field_type": "string",
+                "field_order": 129,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\"",
+                "field_constraint_description": "subtitle"
+            },
+            "1.142": {
+                "field_name": "first_asm_failed",
+                "field_title": "1st ASM failed",
+                "field_type": "text",
+                "field_order": 130,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\""
+            },
+            "1.143": {
+                "field_name": "faf_how_long",
+                "field_title": "Approximately how long was this ASM taken for?",
+                "field_type": "text",
+                "field_order": 131,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\"",
+                "field_constraint_description": "subquestion"
+            },
+            "1.144": {
+                "field_name": "faf_dose",
+                "field_title": "Maximum dose taken",
+                "field_type": "text",
+                "field_order": 132,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\"",
+                "field_constraint_description": "subquestion"
+            },
+            "1.145": {
+                "field_name": "second_asm_failed",
+                "field_title": "2nd ASM failed",
+                "field_type": "text",
+                "field_order": 133,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\""
+            },
+            "1.146": {
+                "field_name": "saf_how_long",
+                "field_title": "Approximately how long was this ASM taken for?",
+                "field_type": "text",
+                "field_order": 134,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\"",
+                "field_constraint_description": "subquestion"
+            },
+            "1.147": {
+                "field_name": "saf_dose",
+                "field_title": "Maximum dose taken",
+                "field_type": "text",
+                "field_order": 135,
+                "field_constraint_data": "is_shown_fg=$(cohort)==\"Cohort 3\"",
+                "field_constraint_description": "subquestion"
+            },
+            "1.148": {
+                "field_name": "reviewer_group",
+                "field_title": "To be completed by adjudication reviewer only",
+                "field_type": "array",
+                "field_order": 136,
+                "field_is_multi_fg": true
+            },
+            "1.149": {
+                "field_name": "reviewer",
+                "field_title": "REVIEWER #",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 124.5,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_is_hidden_fg": false
+            },
+            "1.150": {
+                "field_name": "subtitle_24",
+                "field_title": "Please check one below:",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 125,
+                "field_constraint_description": "subtitle"
+            },
+            "1.151": {
+                "field_name": "subtitle_39",
+                "field_title": "To be completed by adjudication reviewer only",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 125,
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.152": {
+                "field_name": "generalized_epilepsy_greater_80",
+                "field_title": "Generalized epilepsy > 80% likelihood (ACCEPT)",
+                "field_type": "bool",
+                "field_parent": "reviewer_group",
+                "field_order": 126,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "if($(generalized_50_80)=='true' || $(not_greater_50)=='true'){value_fg='false'};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.153": {
+                "field_name": "generalized_epilepsy_greater_80_text",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 126.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_epilepsy_greater_80)=='true'"
+            },
+            "1.154": {
+                "field_name": "generalized_epilepsy_greater_80_eeg",
+                "field_title": "Describe EEG",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 126.2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_epilepsy_greater_80)=='true'"
+            },
+            "1.155": {
+                "field_name": "generalized_50_80",
+                "field_title": "Generalized 50-80% likelihood with atypical features (ACCEPT)",
+                "field_type": "bool",
+                "field_parent": "reviewer_group",
+                "field_order": 127,
+                "field_constraint_data": "if($(generalized_epilepsy_greater_80)=='true' || $(not_greater_50)=='true'){value_fg='false'};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.156": {
+                "field_name": "onset_age",
+                "field_title": "Age of onset",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 128,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_50_80)=='true'"
+            },
+            "1.157": {
+                "field_name": "subtitle_25",
+                "field_title": "Seizure types",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 129,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_50_80)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.158": {
+                "field_name": "seizure_types",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 130,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_50_80)=='true'"
+            },
+            "1.159": {
+                "field_name": "subtitle_26",
+                "field_title": "Other clinical features",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 131,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_50_80)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.160": {
+                "field_name": "other_clinical_features",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 132,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_50_80)=='true'"
+            },
+            "1.161": {
+                "field_name": "subtitle_27",
+                "field_title": "EEG",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 133,
+                "field_constraint_data": "is_shown_fg=$(generalized_50_80)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.162": {
+                "field_name": "eeg",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 134,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(generalized_50_80)=='true'"
+            },
+            "1.163": {
+                "field_name": "not_greater_50",
+                "field_title": "Not >50% (Less than) certainty of generalized epilepsy (REJECT)",
+                "field_type": "bool",
+                "field_parent": "reviewer_group",
+                "field_order": 135,
+                "field_constraint_data": "if($(generalized_epilepsy_greater_80)=='true' || $(generalized_50_80)=='true'){value_fg='false'};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.164": {
+                "field_name": "not_greater_50_onset_age",
+                "field_title": "Age of onset",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 136,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(not_greater_50)=='true'"
+            },
+            "1.165": {
+                "field_name": "subtitle_28",
+                "field_title": "Seizure types",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 137,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(not_greater_50)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.166": {
+                "field_name": "not_greater_50_seizure_types",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 138,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(not_greater_50)=='true'"
+            },
+            "1.167": {
+                "field_name": "subtitle_29",
+                "field_title": "Other clinical features",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 139,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(not_greater_50)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.168": {
+                "field_name": "not_greater_50_clinical_features",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 140,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(not_greater_50)=='true'"
+            },
+            "1.169": {
+                "field_name": "subtitle_30",
+                "field_title": "EEG",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 141,
+                "field_constraint_data": "is_shown_fg=$(not_greater_50)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.170": {
+                "field_name": "not_greater_50_eeg",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_parent": "reviewer_group",
+                "field_order": 142,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(not_greater_50)=='true'"
+            },
+            "1.171": {
+                "field_name": "consensus",
+                "field_title": "CONSENSUS",
+                "field_type": "string",
+                "field_order": 143,
+                "field_constraint_description": "subtitle"
+            },
+            "1.172": {
+                "field_name": "subtitle_32",
+                "field_title": "Please check one below:",
+                "field_type": "string",
+                "field_order": 144,
+                "field_constraint_description": "subtitle"
+            },
+            "1.173": {
+                "field_name": "consensus_generalized_epilepsy_greater_80",
+                "field_title": "Generalized epilepsy > 80% likelihood (ACCEPT)",
+                "field_type": "bool",
+                "field_order": 145,
+                "field_constraint_data": "if($(consensus_generalized_50_80)=='true' || $(consensus_not_greater_50)=='true'){value_fg='false'};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.174": {
+                "field_name": "consensus_generalized_epilepsy_greater_80_text",
+                "field_type": "string",
+                "field_order": 146,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_epilepsy_greater_80)=='true'"
+            },
+            "1.175": {
+                "field_name": "consensus_generalized_epilepsy_greater_80_eeg",
+                "field_title": "Describe EEG",
+                "field_type": "string",
+                "field_order": 147,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_epilepsy_greater_80)=='true'"
+            },
+            "1.176": {
+                "field_name": "consensus_generalized_50_80",
+                "field_title": "Generalized 50-80% likelihood with atypical features (ACCEPT)",
+                "field_type": "bool",
+                "field_order": 148,
+                "field_constraint_data": "if($(consensus_generalized_epilepsy_greater_80)=='true' || $(consensus_not_greater_50)=='true'){value_fg='false'};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.177": {
+                "field_name": "consensus_onset_age",
+                "field_title": "Age of onset",
+                "field_type": "string",
+                "field_order": 149,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_50_80)=='true'"
+            },
+            "1.178": {
+                "field_name": "subtitle_33",
+                "field_title": "Seizure types",
+                "field_type": "string",
+                "field_order": 150,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_50_80)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.179": {
+                "field_name": "consensus_seizure_types",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_order": 151,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_50_80)=='true'"
+            },
+            "1.180": {
+                "field_name": "subtitle_34",
+                "field_title": "Other clinical features",
+                "field_type": "string",
+                "field_order": 152,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_50_80)=='true'"
+            },
+            "1.181": {
+                "field_name": "consensus_other_clinical_features",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_order": 153,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_50_80)=='true'"
+            },
+            "1.182": {
+                "field_name": "subtitle_35",
+                "field_title": "EEG",
+                "field_type": "string",
+                "field_order": 154,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_50_80)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.183": {
+                "field_name": "consensus_eeg",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_order": 155,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_generalized_50_80)=='true'"
+            },
+            "1.184": {
+                "field_name": "consensus_not_greater_50",
+                "field_title": "Not >50% (Less than) certainty of generalized epilepsy (REJECT)",
+                "field_type": "bool",
+                "field_order": 156,
+                "field_constraint_data": "if($(consensus_generalized_epilepsy_greater_80)=='true' || $(consensus_generalized_50_80)=='true'){value_fg='false'};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.185": {
+                "field_name": "consensus_not_greater_50_onset_age",
+                "field_title": "Age of onset",
+                "field_type": "string",
+                "field_order": 157,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_not_greater_50)=='true'"
+            },
+            "1.186": {
+                "field_name": "subtitle_36",
+                "field_title": "Seizure types",
+                "field_type": "string",
+                "field_order": 158,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_not_greater_50)=='true'"
+            },
+            "1.187": {
+                "field_name": "consensus_not_greater_50_seizure_type",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_order": 159,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_not_greater_50)=='true'"
+            },
+            "1.188": {
+                "field_name": "subtitle_37",
+                "field_title": "Other clinical features",
+                "field_type": "string",
+                "field_order": 160,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_not_greater_50)=='true'"
+            },
+            "1.189": {
+                "field_name": "consensus_not_greater_50_clinical_features",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_order": 161,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_not_greater_50)=='true'"
+            },
+            "1.190": {
+                "field_name": "subtitle_38",
+                "field_title": "EEG",
+                "field_type": "string",
+                "field_order": 162,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_not_greater_50)=='true'"
+            },
+            "1.191": {
+                "field_name": "consensus_not_greater_50_eeg",
+                "field_title": "Describe what is atypical:",
+                "field_type": "string",
+                "field_order": 163,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consensus_not_greater_50)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

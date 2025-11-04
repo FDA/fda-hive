@@ -1,0 +1,29 @@
+{
+    "370": {
+        "_id": "$type.ci3_eqol_3m_ret",
+        "_type": "type",
+        "name": "ci3_eqol_3m_ret",
+        "title": "EuroQoL (3 months)",
+        "parent": {
+            "3": "$type.ci3_health_questionnaire_ret"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

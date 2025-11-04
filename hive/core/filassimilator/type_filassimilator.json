@@ -1,0 +1,72 @@
+{
+    "1": {
+        "_id": "type.1015",
+        "_type": "type",
+        "name": "filassimilator",
+        "title": "File assimilator",
+        "parent": {
+            "1": "type.910"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "path",
+                "field_type": "string",
+                "field_is_optional_fg": false,
+                "field_is_hidden_fg": false
+            },
+            "1.2": {
+                "field_name": "splitOnFrontEnd",
+                "field_type": "bool",
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": false,
+                "field_is_hidden_fg": true
+            },
+            "1.3": {
+                "field_name": "keep_source",
+                "field_title": "Keep source files",
+                "field_type": "bool",
+                "field_role": "parameter",
+                "field_default_value": "false",
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": false,
+                "field_is_hidden_fg": true
+            },
+            "1.4": {
+                "field_name": "objid",
+                "field_title": "output object(s)",
+                "field_type": "obj",
+                "field_role": "output"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

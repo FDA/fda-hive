@@ -1,0 +1,42 @@
+{
+    "124": {
+        "_id": "$type.u-tqs",
+        "_type": "type",
+        "name": "u-tqs",
+        "title": "TQS File Type",
+        "description": "// Table Query Service TQS File Type\nlocation: hive.app.system.tblqryx4\n\n",
+        "parent": {
+            "1": "$type.u-file"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

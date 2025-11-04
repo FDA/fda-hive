@@ -1,0 +1,42 @@
+{
+    "182": {
+        "_id": "$type.algorithm-alignment-dnaseq",
+        "_type": "type",
+        "name": "algorithm-alignment-dnaseq",
+        "title": "DNA-seq Alignment Algorithms",
+        "description": "//DNA-seq Alignment Algorithms\nlocation:hive.app.dna",
+        "parent": {
+            "1": "$type.algorithm-alignment"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

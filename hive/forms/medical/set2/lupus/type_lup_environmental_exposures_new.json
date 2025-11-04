@@ -1,0 +1,71 @@
+{
+    "7047": {
+        "_id": "$type.lup_environmental_exposures_new",
+        "_type": "type",
+        "name": "lup_environmental_exposures_new",
+        "title": "Environmental Exposures",
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "type_of_work_parent",
+                "field_title": "What type of work is/was the participant involved in (enter all that apply)?",
+                "field_type": "array",
+                "field_order": "1",
+                "field_is_multi_fg": true,
+                "field_constraint_data": ""
+            },
+            "3.2": {
+                "field_name": "type_of_work",
+                "field_title": "Select type of work",
+                "field_type": "string",
+                "field_parent": "type_of_work_parent",
+                "field_order": "1.1",
+                "field_constraint_data": "Architecture and engineering occupations|Arts, design, entertainment, sports, and media occupations|Building and grounds cleaning and maintenance occupations|Business and financial operations occupations|Community and social services occupations|Computer and mathematical occupations|Construction and extraction occupations|Education, training, and library occupations|Farming, fishing, and forestry occupations|Food preparation and serving related occupations|Healthcare practitioners and technical occupations|Healthcare support occupations|Installation, maintenance, and repair occupations|Legal occupations|Life, physical, and social science occupations|Management occupations|Military specific occupations|Office and administrative support occupations|Personal care and service occupations|Production occupations|Protective service occupations|Sales and related occupations|Transportation and material moving occupations"
+            },
+            "3.3": {
+                "field_name": "how_many_years",
+                "field_title": "How many years was the participant involved in this type of work?",
+                "field_type": "integer",
+                "field_parent": "type_of_work_parent",
+                "field_order": "1.2",
+                "field_is_optional_fg": true
+            },
+            "3.4": {
+                "field_name": "cosmetics",
+                "field_title": "Does the participant use semi-permanent and/or permanent cosmetics?",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "Yes, for personal use|Yes, as a professional user|No",
+                "field_description": "e.g. nail polish remover; hair dyes, straighteners, or permanents; cosmetic or traditional tattooing, etc."
+            },
+            "3.5": {
+                "field_name": "type_of_cosmetics",
+                "field_title": "Please specify the type of cosmetics",
+                "field_type": "string",
+                "field_order": "3",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Hair dye|Hair straightener or relaxer|Hair permanent|Nail polish remover|Gel nail polish|Acrylic nail polish|Permanent make-up|Permanent tatoo\r\n>is_shown_fg=$(cosmetics)=='Yes, for personal use'||$(cosmetics)=='Yes, as a professional user'"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

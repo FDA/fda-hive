@@ -1,0 +1,76 @@
+<id>hlp.svc-popul.html</id>
+<title>HIVE Hexahedron</title>
+<definition>Coordinated Clonal Analysis</definition>
+<description>
+The HIVE <span class='toolname'>Hexahedron Coordinated 
+Clonal Analysis</span> tool renders visualization of 
+all possible subclones contained in a single sample. 
+Subclones are computed by reconstruction of an 
+arbitrary number of haplotypes from NGS data and 
+reported with corresponding relative frequencies. This 
+analysis is ideal for application to viral samples, 
+particularly RNA viruses. This workflow may also be 
+useful to distinguish between subclonal populations 
+of tumors.
+
+<br/>
+<br/><br/>
+<span class='heading'>Basic inputs and parameters</span>:
+<ul style="padding-left:4%">
+<dl>
+    <dt><span class='pn'>Name</span></dt>
+        <dd>
+            Specify a name for the analysis output object.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment(s)</span></dt>
+        <dd>
+            Here you must specify the previously-computed 
+            alignment file for the reads (as discussed in 
+            the previous section).
+        </dd>
+<br/>
+    <dt><span class='pn'>Paired End Reads</span></dt>
+        <dd>
+            Specify whether the data are in the form of 
+            paired-end or single reads by choosing the 
+            appropriate option from the dropdown menu. Use 
+            of paired-end reads allows the algorithm to 
+            quickly identify regions of high similarity 
+            when assigning members of pairs. Note that 
+            order is important; pairs must be organized 
+            such that the first reads of each pair are 
+            listed together followed by the list of all 
+            the second reads of each pair in the same 
+            order of pairs.
+        </dd>
+<br>
+    <dt><span class='pn'>Threshold for Bifurcation Call (percentage)</span></dt>
+        <dd>
+            Define a frequency above which a mutation constitutes 
+            a separate clone. Default is set to 5 percent.
+        </dd>
+<br/>
+    <dt><span class='pn'>Reference Genome Alignment File</span></dt>
+        <dd>
+            Here, you must specify the previously-computed 
+            multiple-alignment file for the reference (as 
+            discussed in the previous section).
+        </dd>
+<br/>        
+    <dt><span class='pn'>Batch Service</span></dt>
+        <dd>
+            Choose "Batch Mode" from the dropdown menu 
+            to launch multiple Hexahedron computations 
+            simultaneously. By default, all proceses are 
+            launched in single computation mode. For more 
+            information, please see the specific batch help 
+            documentation.
+        </dd>
+<br/>
+</dl>
+</ul>
+<br/>
+<a href="hlp.svc-popul-advanced.html">To view Hexahedron Advanced Parameters, click here</a>.<br/>
+<br/>
+</description>

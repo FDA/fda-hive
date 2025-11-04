@@ -1,0 +1,173 @@
+{
+    "84": {
+        "_id": "$type.form-list",
+        "_type": "type",
+        "name": "form-list",
+        "title": "Form list",
+        "description": "Form list object",
+        "fields": {
+            "1.1": {
+                "field_name": "unique-name",
+                "field_title": "Unique name",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_key_fg": true,
+                "field_brief": "$_(v)"
+            },
+            "1.2": {
+                "field_name": "readable_name",
+                "field_title": "Readable name",
+                "field_type": "string",
+                "field_order": 0.5,
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "description",
+                "field_title": "Description",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "sl_order",
+                "field_title": "Order",
+                "field_type": "integer",
+                "field_order": 1.5,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "survey",
+                "field_title": "Survey",
+                "field_type": "array",
+                "field_order": 2,
+                "field_is_key_fg": false,
+                "field_is_multi_fg": true
+            },
+            "1.6": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "obj",
+                "field_parent": "survey",
+                "field_order": 1,
+                "field_is_multi_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "type"
+            },
+            "1.7": {
+                "field_name": "dependencies",
+                "field_title": "Dependencies",
+                "field_type": "obj",
+                "field_parent": "survey",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "type"
+            },
+            "1.8": {
+                "field_name": "order",
+                "field_title": "Order",
+                "field_type": "integer",
+                "field_parent": "survey",
+                "field_order": 3
+            },
+            "1.9": {
+                "field_name": "items-per-page",
+                "field_title": "Items per page",
+                "field_type": "integer",
+                "field_parent": "survey",
+                "field_order": 4
+            },
+            "1.10": {
+                "field_name": "activate_delay",
+                "field_title": "Activation delay (Days)",
+                "field_type": "integer",
+                "field_parent": "survey",
+                "field_order": 5
+            },
+            "1.11": {
+                "field_name": "expiration_time",
+                "field_title": "Expiration Time (Days)",
+                "field_type": "integer",
+                "field_parent": "survey",
+                "field_order": 6
+            },
+            "1.12": {
+                "field_name": "enforce_check",
+                "field_title": "Enforce dependency check",
+                "field_type": "bool",
+                "field_parent": "survey",
+                "field_order": 7
+            },
+            "1.13": {
+                "field_name": "multiple_records",
+                "field_title": "Allow multiple records",
+                "field_type": "bool",
+                "field_parent": "survey",
+                "field_order": 8
+            },
+            "1.14": {
+                "field_name": "optional_fields",
+                "field_title": "Make all fields optional",
+                "field_type": "integer",
+                "field_parent": "survey",
+                "field_order": 9,
+                "field_default_value": "0"
+            },
+            "1.15": {
+                "field_name": "group-tag",
+                "field_title": "Group Tag",
+                "field_type": "string",
+                "field_parent": "survey",
+                "field_order": 10,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "context",
+                "field_title": "Context",
+                "field_type": "string",
+                "field_parent": "survey",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.17": {
+                "field_name": "comment",
+                "field_title": "Comments",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "4": "$type.eForm"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

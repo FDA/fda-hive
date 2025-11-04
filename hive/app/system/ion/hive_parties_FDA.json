@@ -1,0 +1,90 @@
+
+{
+	"$root.users" : [
+	
+		{
+		
+			"_type" : "hc_user",
+			"_id" : "$newid()",
+					
+			"fst_name" : "First Name ",
+			"lst_name" : "Last Name",
+			"email" : "first.last@fda.hhs.gov",
+			"passwd" : "encrypted-password", 
+			
+			"ctime" : "2015-12-14 08:25:31 - better yet in linux format", 
+			"mtime" : "2015-12-14 08:25:31", 
+			"log_time" : "2015-12-14 08:25:31",
+			"sessions": "5" 
+		},
+		{
+		
+			"_type" : "hc_user",
+			"_id" : "$newid()",
+					
+			"fst_name" : "First Name ",
+			"lst_name" : "Last Name",
+			"email" : "first.last@fda.hhs.gov",
+			"passwd" : "encrypted-password", 
+			
+			"ctime" : "2015-12-14 08:25:31 - better yet in linux format", 
+			"mtime" : "2015-12-14 08:25:31", 
+			"log_time" : "2015-12-14 08:25:31",
+			"sessions": "5" 
+		},
+		{
+		
+			"_type" : "hc_user",
+			"_id" : "$newid()",
+					
+			"fst_name" : "First Name ",
+			"lst_name" : "Last Name",
+			"email" : "first.last@fda.hhs.gov",
+			"passwd" : "encrypted-password", 
+			
+			"ctime" : "2015-12-14 08:25:31 - better yet in linux format", 
+			"mtime" : "2015-12-14 08:25:31", 
+			"log_time" : "2015-12-14 08:25:31",
+			"sessions": "5" 
+		}
+		
+	],
+	
+		
+	"$root.groups" : [ 
+	
+		{ 
+			"_type" : "hc_group",
+			"_id" : "$newid()",
+			
+			"name" : "group name - not mandatory",
+			"title" : "Group Title",
+			
+			"ctime" : "2015-12-14 08:25:31",
+			"mtime" : "2015-12-14 08:25:31", 
+			
+			"members" : [
+				"---$ionql(a=find.rel(atr='_id',val='type construct');body(a.sub))"
+			]
+		},
+		
+		{ 
+			"_type" : "hc_group",
+			"_id" : "$newid()",
+			
+			"name" : "group name - not mandatory",
+			"title" : "Group Title Parent",
+			
+			"ctime" : "2015-12-14 08:25:31",
+			"mtime" : "2015-12-14 08:25:31", 
+			
+			"members" : [
+				"---$root.users.UPUser:124._id",
+				"---$root.groups.UPGrp:234._id",
+				"---$root.users.UPUser:125._id"
+			]
+		}
+	]
+	
+
+}

@@ -1,0 +1,65 @@
+"acts" : {
+	
+	"browse" : { 
+	
+		"_type" : "hc_perm",
+		"_id" : "$newid()",
+		
+		"name" : "browse", 
+		"descr" : "browsing permission"
+	},
+	
+	"read" : { 
+	
+		"_type" : "hc_perm",
+		"_id" : "$newid()",
+				
+		"name" : "read",
+		"descr" : "reading permission"
+	},
+	
+	"download" : { 
+	
+		"_type" : "hc_perm",
+		"_id" : "$newid()",
+		
+		"name" : "download",
+		"descr" : "downloadng permission"
+	},
+	
+	"write" : { 
+	
+		"_type" : "hc_perm",
+		"_id" : "$newid()",
+		
+		"name" : "write",
+		"descr" : "modification permission"
+	},
+	
+	"remove" : { 
+	
+		"_type" : "hc_perm",
+		"_id" : "$newid()",
+		
+		"name" : "remove",
+		"descr" : "removal permission"
+	},
+	
+	"execute" : { 
+	
+		"_type" : "hc_perm",
+		"_id" : "$newid()",
+		
+		"name" : "execute",
+		"descr" : "execution permission"
+	},
+	
+	"share" : { 
+	
+		"_type" : "hc_perm",
+		"_id" : "$newid()",
+		
+		"name" : "share",
+		"descr" : "sharing permission"
+	}
+}

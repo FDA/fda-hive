@@ -1,0 +1,64 @@
+{
+    "4703": {
+        "_id": "$type.svc-dna-kmer",
+        "_type": "type",
+        "name": "svc-dna-kmer",
+        "title": "k-Mer utility",
+        "singleton": 0,
+        "fields": {
+            "1.0": {
+                "field_name": "genome",
+                "field_title": "Genome",
+                "field_type": "obj",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.2": {
+                "field_name": "kmerSize",
+                "field_title": "K-mer Size",
+                "field_type": "integer",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice",
+                "field_constraint_data": "8///8 letters|9///9 letters|10///10 letters|11///11 letters|12///12 letters|14///14 letters|-8///16 letters|-9///18 letters|-10///20 letters|-11///22 letters|-12///24 letters|-14///28 letters"
+            }
+        },
+        "parent": {
+            "7": "$type.svc-dna"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,227 @@
+
+
+
+/*
+
+{
+	// simple attrribute operations in json
+	
+	"atr" : "value", 
+	"atr" : {
+	
+	},
+	"atr" : [
+		"value1",
+		"value2"
+	],
+	
+	
+	// attribute can be a reference path where to attach the underlying value 
+	"$root.users.qpride.email" : "user@domain.com",
+	"$root.groups.queens.members" : [ 12,23,33 ],
+	"$root.groups.guests" : { 12,23,33 },
+	
+	// attribute can be an ionql 
+	"$ionql(a=find.rel(atr=title,val='type construct');body(a.sub))._field._id._vital" : "value",
+	
+	
+	// value can be a reference path 
+	"atr_to_val" : "$root.users.qpride.email", 
+	"atr_to_obj" : "$ionql(a=find.rel(atr=title,val='type construct');body(a.sub))._field",     
+	
+	
+	// include files can be used
+	#include : "another.json",
+	"array" : [
+		#include:another.csv,
+		value2,
+		value3
+		],
+		
+		
+	// any reference to a value can be compute time , not compile time
+	// this is signified by double dollar sign $$   
+	"atr" : "$$root.users.qpride.email"		
+	
+	
+	// operations with nodes: general synthaxis 
+	"start+cnt-atr" : "value or $del",
+	"start-last-atr" : "value or $del",
+	// default for start is the first element  
+	// default for last is the last element in subelements list or last inserted position during operations
+	// if the sign is + then lastcnt is the count , otherwise its the number of last element  
+	
+	// inset a single element at the end without modifying elements before  
+	"+atr"  : "value",
+	// insert a elements after 5th   
+	"5+atr" : "value1",
+	"+atr" : "value2",
+	"+atr" : "value3",
+		
+	// deletion of elements 5,6,7,8 
+	"5-8atr" : $del
+	"5+4atr" : $del
+	
+	// deletion of all the atr entry in its entirety  
+	"atr" : $del
+	// deletion of all subelements of atr 
+	"+atr" : $del
+	
+	// inserts a value or object but does not modify the existing one 
+	"+atr" : "appended value"
+
+	start-endAtr : "val or $del()"
+	start+cnt :  "val or $del()"
+	0-13a: 'b'
+	
+	
+	atr
+	
+	1
+	2
+	3
+	4 start 
+	5
+	6 cnt+start
+	7
+	8
+	
+	
+	+atr:val
+	
+	5+0atr:val
+	5-5atr: val
+	5+atr:val
+
+
+	0-0atr:val
+	a:[
+	12,
+	34,
+	34
+	]
+	
+	"0+0a":val
+	"0+a":val
+	
+	
+	5+1atr:val
+	  
+	 
+	
+	
+}
+
+
+  
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ styles of usages beyond JSON 
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+//kkk:"$groupSystem.members[1].first_name",
+// kkk : "$$$groupSystem.members[1].first_name"  - this is compute runtime ... not compile time
+//a:$newid(),
+//ooo:"$ionql(a=find.rel(atr=title,val='type construct'),blob(a.sub))._field._id._vital",
+// test: {
+//	arr : [  
+//		#include : hive_arr.csv
+//	],
+//	#include :  hive_services.json 
+//}
+
+// eval-c/c++
+// eval-memory
+// evall shell
+
+// not yet implemented
+//kkk:"$ionbr("_type" :$hcType, title:'Base system type').descr",
+
+
+
+/home/vsim/code/debug-Linux-x86_64/bin/i.cgi "cmd=brgetjson&sub=%24root&brCnt=1000&brStart=0&raw=1"
+&brSearcsh=type
+&brFrame=0
+ 
+creation of the ionHoneycomb 
+./debug-Linux-x86_64/bin/ionapp -hcCreate /home/vsim/hcTypes/ion -hcParse /home/vsim/code/hive/app/ion/system.json
+
+linking in ionHoneycomb
+./debug-Linux-x86_64/bin/ionapp -hcWrite /home/vsim/hcTypes/ion -hcLink '$ionql(a=find.rel(atr="_type",val="hc_group");b=find.rel(sub=a.sub,atr="name", val="systems" );body(a.sub);)' 'v' 'vahan'
+
+
+// LAUNCH THIS FOR RECOMILATION
+
+./debug-Linux-x86_64/bin/ionapp \
+-hcCreate /home/vsim/work/sysion/hc \
+-hcParse /home/vsim/code/hive/app/ion/hive_system.json \
+-hcParse hive/app/ion/hive_FDA_groups.json \
+-hcParse hive/app/ion/hive_test.json \ 
+-hcRoot '$root.system_last' \
+-hcParse hive/app/ion/how_to_use.json \
+-hcDemoRegisterType \
+-hcLink '$root.system_last.dodo' 'edited' 'Vahan1'\
+-hcLink '$root.rules' 'a' 'c1' -hcLink '$root.rules' 'a' 'c2' -hcLink '$root.rules' 'a' 'c3' -hcLink '$root.rules' 'a' 'c4' -hcLink '$root.rules' 'a' 'c5'
+
+
+
+
+./debug-Linux-x86_64/bin/ionapp -hcWrite /home/vsim/hcTypes/ion -hcLink '$root.rules' '1+2a' 'c2-3'
+
+/home/vsim/prj/debug-Linux-x86_64/bin/ionapp -hcWrite /home/vsim/hcTypes/ion -hcRule 'a,b,c' 'do,mo,ro' '123,234' 'ip1,ip2' 'io1,io2,io3'
+
+ 
+*/
+
+
+
+ 
+
+
+
+{
+	"dodo" : { 
+		"a": "b",
+		"$$ionql(a=find.rel(atr=title,val='type construct');body(a.sub))._field._id._vital": "123" , 
+		"atr" : "$root.users.qpride.email"
+	}
+}
+
+
+/*
+{
+
+	// how attach to a node 
+	//
+	// ./debug-Linux-x86_64/bin/ionapp -hcWrite /home/vsim/hcTypes/ion -hcParse /home/vsim/code/hive/app/ion/how_to_use.json
+
+	 "dodo" : { 
+		_type : "type",
+		_id : "$newid()" ,
+		_fields : {
+			name : { 
+				_type: "string"
+			},
+			title : { 
+				_type: "string" 
+			},
+		 	descr : { 
+		 		_type: "text" 
+			},
+			created : { 
+				_type : "datetime",
+				_vital : true
+			},
+			modified : { 
+				_type : "datetime" 
+			},
+			_id : {
+				_type: "hiveid"
+			}
+		}
+
+}
+*/
+
+

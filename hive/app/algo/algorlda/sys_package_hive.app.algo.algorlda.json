@@ -1,0 +1,20 @@
+{
+    "331": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "algorlda",
+                "dir": "$(HIVE.repo)/hive/app/algo/algorlda",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.algo.algorlda",
+        "description": "ALGORLDA implements regularized linear discriminant analysis for massively parallel datasets",
+        "authors": {
+            "3": "V.Simonyan"
+        }
+    }
+}

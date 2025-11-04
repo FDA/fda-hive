@@ -1,0 +1,268 @@
+{
+    "190": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Burrow Wheeler Algorithm",
+        "icon": "img-algo/svc-align-bwa.gif",
+        "title": "BWA",
+        "version": "0.7.3a",
+        "name": "svc-align-bwa",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "189": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Bow Tie 2 Algorithm developed for Nex-gen Analysis",
+        "icon": "img-algo/svc-align-bowtie.gif",
+        "title": "Bow-Tie2",
+        "version": "2.1.0",
+        "name": "svc-align-bowtie2",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "188": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Bow Tie Algorithm developed for Nex-gen Analysis",
+        "icon": "img-algo/svc-align-bowtie.gif",
+        "title": "Bow-Tie",
+        "version": "4.1.2",
+        "name": "svc-align-bowtie",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "187": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Standalone UCSC BLAT-35x1 fast sequence search command line tool",
+        "icon": "img-algo/svc-align-blat.gif",
+        "title": "Blat",
+        "version": "35x1",
+        "name": "svc-align-blat",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "186": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "NCBI Blastx algorithm developped by National Center for Biotechnology information",
+        "icon": "img-algo/svc-align-blast.gif",
+        "title": "NCBI-BlastX",
+        "version": "2.2.30",
+        "name": "svc-align-blastx",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "185": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "NCBI tblastx algorithm developped by National Center for Biotechnology information",
+        "icon": "img-algo/svc-align-blast.gif",
+        "title": "NCBI-TblastX",
+        "version": "2.2.30",
+        "name": "svc-align-tblastx",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "184": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "NCBI blast algorithm developped by National Center for Biotechnology information",
+        "icon": "img-algo/svc-align-blast.gif",
+        "title": "NCBI-blast",
+        "version": "2.2.30",
+        "name": "svc-align-blast",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

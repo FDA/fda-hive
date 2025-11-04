@@ -1,0 +1,252 @@
+{
+    "type.207": {
+        "_id": "type.207",
+        "_type": "type",
+        "name": "plugin_tblqry",
+        "title": "Table Query Plugin",
+        "description": "DEfinition of Pluging input parameters and dynamic load lib",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "argumentButton",
+                "field_title": "Argument Button",
+                "field_type": "string",
+                "field_parent": "argumentObj",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_is_summary_fg": true
+            },
+            "1.2": {
+                "field_name": "argumentDesc",
+                "field_title": "Argument Description",
+                "field_type": "string",
+                "field_parent": "argumentObj",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "argumentName",
+                "field_title": "Argument Name",
+                "field_type": "string",
+                "field_parent": "argumentObj",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "argumentObj",
+                "field_title": "Argument",
+                "field_type": "array",
+                "field_parent": "argumentsArr",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.5": {
+                "field_name": "argumentPath",
+                "field_title": "Argument Path",
+                "field_type": "string",
+                "field_parent": "argumentObj",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "argumentsArr",
+                "field_title": "Arguments for Panel",
+                "field_type": "list",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "argumentSize",
+                "field_title": "Size of Field",
+                "field_type": "integer",
+                "field_parent": "argumentObj",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "argumentType",
+                "field_title": "Argument Type",
+                "field_type": "string",
+                "field_parent": "argumentObj",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "int|bool|real|string|row|rows|col|cols|color row|color col|color cell|formula|select|checkbox|file"
+            },
+            "1.9": {
+                "field_name": "argumentValue",
+                "field_title": "Argument Value",
+                "field_type": "string",
+                "field_parent": "argumentObj",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "keyWord",
+                "field_title": "Key Word",
+                "field_type": "string",
+                "field_parent": "keyWordArr",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.11": {
+                "field_name": "keyWordArr",
+                "field_title": "Key Words Array",
+                "field_type": "array",
+                "field_order": 10,
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "notUpdatePage",
+                "field_title": "Will the Page NOT be updated",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "panelDesc",
+                "field_title": "Panel Description",
+                "field_type": "text",
+                "field_order": 3
+            },
+            "1.14": {
+                "field_name": "panelIcon",
+                "field_title": "Panel Icon",
+                "field_type": "string",
+                "field_order": 4
+            },
+            "1.15": {
+                "field_name": "panelName",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_key_fg": true
+            },
+            "1.16": {
+                "field_name": "panelObjQry",
+                "field_title": "Object Query Data",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_optional_fg": true
+            },
+            "1.17": {
+                "field_name": "panelPath",
+                "field_title": "Path of Plugin",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_optional_fg": true
+            },
+            "1.18": {
+                "field_name": "panelTitle",
+                "field_title": "Title of Panel (what users see)",
+                "field_type": "string",
+                "field_order": 2,
+                "field_brief": "$_(v)"
+            },
+            "1.19": {
+                "field_name": "panelUrl",
+                "field_title": "URL to submit",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_optional_fg": true
+            },
+            "1.20": {
+                "field_name": "toPrint",
+                "field_title": "What to print to Operation Log",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_optional_fg": true
+            },
+            "1.21": {
+                "field_name": "tqsToUseOnApply",
+                "field_title": "TQS to Use upon Apply",
+                "field_type": "text",
+                "field_order": 13,
+                "field_is_optional_fg": true
+            },
+            "1.22": {
+                "field_name": "transformsOrNot",
+                "field_title": "Input table transformed",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "visualizationArr",
+                "field_title": "Visualizations",
+                "field_type": "list",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.24": {
+                "field_name": "visualizationFileArr",
+                "field_title": "Array of Visulazation Files",
+                "field_type": "list",
+                "field_parent": "visualizationObj",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.25": {
+                "field_name": "visualizationObj",
+                "field_title": "Visulatization Instance",
+                "field_type": "array",
+                "field_parent": "visualizationArr",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.26": {
+                "field_name": "visualizationType",
+                "field_title": "Visulization Type",
+                "field_type": "string",
+                "field_parent": "visualizationObj",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "Scatter Graph|Line Graph|Pie Graph|Column Graph|Heatmap|Tree|Som|RLDA"
+            },
+            "1.27": {
+                "field_name": "visulizationFile",
+                "field_title": "File",
+                "field_type": "string",
+                "field_parent": "visualizationFileArr",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

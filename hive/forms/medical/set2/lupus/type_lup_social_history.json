@@ -1,0 +1,307 @@
+{
+    "574": {
+        "_id": "$type.lup_social_history",
+        "_type": "type",
+        "name": "lup_social_history",
+        "title": "Social History/Determinants of Health",
+        "fields": {
+            "1.1": {
+                "field_name": "family_members_count",
+                "field_title": "How many family members, including themself, does the participant currently live with?",
+                "field_type": "integer",
+                "field_order": 1,
+                "field_constraint_data": "1-20\r\n>is_disabled_fg=$(family_members_count_pna)=='true';if($(family_members_count_pna)=='true'){value_fg='';is_required_fg=false}else{is_required_fg=true;}"
+            },
+            "1.2": {
+                "field_name": "family_members_count_pna",
+                "field_title": "Preferred not to answer",
+                "field_type": "bool",
+                "field_order": 2,
+                "field_constraint_description": "checkbox,subquestion"
+            },
+            "1.3": {
+                "field_name": "housing_situation",
+                "field_title": "What is the participant's housing situation today?",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "Participant has housing|Participant does not have housing|Preferred not to answer",
+                "field_description": "Participant does not have housing: staying with others, in a hotel, in a shelter, living outside on the street, on a beach, in a car, or in a park"
+            },
+            "1.4": {
+                "field_name": "worry_losing_housing",
+                "field_title": "Does the participant worry about losing housing?",
+                "field_type": "string",
+                "field_order": 3.5,
+                "field_constraint_data": "Yes|No|Preferred not to answer"
+            },
+            "1.5": {
+                "field_name": "level_of_school",
+                "field_title": "What is the highest level of school that the participant has finished?",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "Less than high school degree|High school diploma or GED |Some college, no degree|Associate degree|Bachelors degree |Masters degree|Doctoral degree|Preferred not to answer"
+            },
+            "1.6": {
+                "field_name": "work_situation",
+                "field_title": "What is the participant's current work situation?",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "Unemployed|Part-time or temporary work|Full-time work|Otherwise unemployed but not seeking work|Preferred not to answer",
+                "field_description": "Otherwise unemployed but not seeking work: student, retired, disabled, unpaid primary care giver"
+            },
+            "1.7": {
+                "field_name": "unemployed_specify",
+                "field_title": "If \"Otherwise unemployed\", specify:",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "{\"maxlength\":\"50\"}\r\n>is_shown_fg=$(work_situation)=='Otherwise unemployed but not seeking work'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.8": {
+                "field_name": "main_insurance",
+                "field_title": "What is the participant's main insurance?",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "None/uninsured|Medicaid|Medicare|Medicaid and Medicare|Other public insurance (not CHIP)|Other public Insurance (CHIP)|Private insurance|Preferred not to answer"
+            },
+            "1.9": {
+                "field_name": "household_location",
+                "field_title": "Where is the participant's household located?",
+                "field_type": "string",
+                "field_order": 8.1,
+                "field_constraint_data": "US|Canada\r\n>is_shown_fg=$(family_members_count_pna)!='true'"
+            },
+            "1.10": {
+                "field_name": "household_income_1_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $29,160|$29,160 - $58,320|Above $58,320|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='1'&&$(household_location)=='US'"
+            },
+            "1.11": {
+                "field_name": "household_income_2_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $39,440|$39,440 - $78,880|Above $78,880|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='2'&&$(household_location)=='US'"
+            },
+            "1.12": {
+                "field_name": "household_income_3_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $49,720|$49,720 - $99,440|Above $99,440|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='3'&&$(household_location)=='US'"
+            },
+            "1.13": {
+                "field_name": "household_income_4_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $60,000|$60,000 - $120,000|Above $120,000|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='4'&&$(household_location)=='US'"
+            },
+            "1.14": {
+                "field_name": "household_income_5_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $70,280|$70,280 - $140,560|Above $140,560|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='5'&&$(household_location)=='US'"
+            },
+            "1.15": {
+                "field_name": "household_income_6_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $80,560|$80,560 - $161,120|Above $161,120|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='6'&&$(household_location)=='US'"
+            },
+            "1.16": {
+                "field_name": "household_income_7_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $90,840|$90,840 - $181,680|Above $181,680|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='7'&&$(household_location)=='US'"
+            },
+            "1.17": {
+                "field_name": "household_income_8_us",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.2,
+                "field_constraint_data": "Under $101,120|$101,120 - $202,240|Above $202,240|Declined to answer\r\n>is_shown_fg=parseInt('$(family_members_count)')>=8&&$(household_location)=='US'"
+            },
+            "1.18": {
+                "field_name": "household_income_1_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $26,620|$26,620 - $53,240|Above $53,240|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='1'&&$(household_location)=='Canada'"
+            },
+            "1.19": {
+                "field_name": "household_income_2_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $33,140|$33,140 - $66,280|Above $66,280|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='2'&&$(household_location)=='Canada'"
+            },
+            "1.20": {
+                "field_name": "household_income_3_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $40,742|$40,742 - $81,484|Above $81,484|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='3'&&$(household_location)=='Canada'"
+            },
+            "1.21": {
+                "field_name": "household_income_4_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $49,466|$49,466 - $98,932|Above $98,932|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='4'&&$(household_location)=='Canada'"
+            },
+            "1.22": {
+                "field_name": "household_income_5_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $56,104|$56,104 - $112,208|Above $112,208|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='5'&&$(household_location)=='Canada'"
+            },
+            "1.23": {
+                "field_name": "household_income_6_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $63,276|$63,276 - $126,552|Above $126,552|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='6'&&$(household_location)=='Canada'"
+            },
+            "1.24": {
+                "field_name": "household_income_7_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $70,448|$70,448 - $140,896|Above $140,896|Declined to answer\r\n>is_shown_fg=$(family_members_count)=='7'&&$(household_location)=='Canada'"
+            },
+            "1.25": {
+                "field_name": "household_income_8_ca",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "string",
+                "field_order": 8.3,
+                "field_constraint_data": "Under $77,620|$77,620 - $148,068|Above $148,068|Declined to answer\r\n>is_shown_fg=parseInt('$(family_members_count)')>=8&&$(household_location)=='Canada'"
+            },
+            "1.26": {
+                "field_name": "total_combined_income",
+                "field_title": "During the past year, what was the total combined income for the participant and the family members they live with?",
+                "field_type": "integer",
+                "field_order": 8.99,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Less than $10,000|Between $10,000 and $49,999|Between $50,000 and $99,999|Between $100,000 and $149,999|Between $150,000 and $199,999|More than $200,000|Preferred not to answer"
+            },
+            "1.27": {
+                "field_name": "unable_to_get_title",
+                "field_title": "In the past year, has the participant or any family members they live with been unable to get any of the following when it was really needed? Check all that apply.",
+                "field_type": "string",
+                "field_order": 10,
+                "field_is_multi_fg": false,
+                "field_constraint_description": "description",
+                "field_description": "In the past year, has the participant or any family members he lives with been unable to get any of the following when it was really needed? Check all that apply."
+            },
+            "1.28": {
+                "field_name": "unable_to_get_food",
+                "field_title": "Food",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "Yes|No|Preferred not to answer",
+                "field_constraint_description": "subquestion"
+            },
+            "1.29": {
+                "field_name": "unable_to_get_clothing",
+                "field_title": "Clothing",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "Yes|No|Preferred not to answer",
+                "field_constraint_description": "subquestion"
+            },
+            "1.30": {
+                "field_name": "unable_to_get_utilities",
+                "field_title": "Utilities",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "Yes|No|Preferred not to answer",
+                "field_constraint_description": "subquestion"
+            },
+            "1.31": {
+                "field_name": "unable_to_get_child_care",
+                "field_title": "Child Care",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "Yes|No|Preferred not to answer",
+                "field_constraint_description": "subquestion"
+            },
+            "1.32": {
+                "field_name": "unable_to_get_health_care",
+                "field_title": "Medicine or Any Health Care (Medical, Dental, Mental Health, Vision)",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "Yes|No|Preferred not to answer",
+                "field_constraint_description": "subquestion"
+            },
+            "1.33": {
+                "field_name": "unable_to_get_phone",
+                "field_title": "Phone",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_data": "Yes|No|Preferred not to answer",
+                "field_constraint_description": "subquestion"
+            },
+            "1.34": {
+                "field_name": "unable_to_get_other",
+                "field_title": "Other: specify",
+                "field_type": "text",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\"maxlength\":\"100\"}",
+                "field_constraint_description": "subquestion"
+            },
+            "1.35": {
+                "field_name": "lack_of_transportation",
+                "field_title": "Has lack of transportation kept the participant from medical appointments, meetings, work, or from getting things needed for daily living?",
+                "field_type": "string",
+                "field_order": 18,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Yes, it has kept the participant from medical appointments|Yes, it has kept the participant from non-medical meetings|No|Preferred not to answer\r\n>$(this);if(!surveyState.answer.includes(surveyState.triggeredAnswer)){surveyState.triggeredAnswer=null;};if(surveyState.triggeredAnswer == surveyState.question.answers.filter(y=>y.value == 'Preferred not to answer')[0].id||surveyState.triggeredAnswer == surveyState.question.answers.filter(y=>y.value == 'No')[0].id){value_fg='';surveyState.answer=[surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].id];}else if(surveyState.triggeredAnswer){surveyState.answer.push(surveyState.triggeredAnswer);surveyState.answer=surveyState.answer.filter(x=>(x!=surveyState.question.answers.filter(y=>y.value== 'No')[0].id)&&(x!=surveyState.question.answers.filter(y=>y.value == 'Preferred not to answer')[0].id));surveyState.answer=[...new Set(surveyState.answer)];}",
+                "field_description": "Non-medical meetings: appointments, work, or from getting things that the participant needs"
+            },
+            "1.36": {
+                "field_name": "how_often_see_talk_people",
+                "field_title": "How often does the participant see or talk to people that they care about and feel close to? ",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint_data": "Less than once a week |1 or 2 times a week|3 to 5 times a week|6 or more times a week|Preferred not to answer",
+                "field_description": "For example: talking to friends on the phone, visiting friends or family, going to church or club meetings"
+            },
+            "1.37": {
+                "field_name": "how_stressed_is_participant",
+                "field_title": "Stress is when someone feels tense, nervous, anxious, or can’t sleep at night because their mind is troubled. How stressed is the participant?",
+                "field_type": "string",
+                "field_order": 20,
+                "field_constraint_data": "Not at all|A little bit|Somewhat|Quite a bit|Very much|Preferred not to answer"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "type.84": {
+        "_id": "type.84",
+        "_type": "type",
+        "name": "base_system_type",
+        "title": "Base type for all system objects",
+        "description": "Type from which all system level types are inherited",
+        "parent": {
+            "1": "type.13"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

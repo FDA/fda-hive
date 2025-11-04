@@ -1,0 +1,41 @@
+{
+    "312": {
+        "_id": "$type.svc-spectral-base",
+        "_type": "type",
+        "name": "svc-spectral-base",
+        "title": "Spectral Core",
+        "description": "// Base type for all Spectral computations\nlocation: hive.app.spectral",
+        "parent": {
+            "10": "$type.svc-computations-base"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

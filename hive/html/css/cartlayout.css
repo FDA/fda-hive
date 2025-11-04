@@ -1,0 +1,901 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.cart-block {
+    display: block;
+}
+
+.cart-label {
+    display: inline-block;
+    width: 100px;
+    vertical-align: top;
+    margin: 5px;
+    word-wrap: break-word;
+}
+
+.cell-label {
+    display: inline-block;
+    width: 120px;
+    vertical-align: top;
+    margin: 5px;
+    word-wrap: break-word;
+    text-align: right;
+    font-weight: bold;
+}
+
+.cart-button {
+    margin: 5px;
+}
+
+.cart-collapsed::before {
+    content: '\25B8';
+}
+
+.cart-open::before {
+    content: "\25BE";    
+}
+
+.cart-collapsible {
+    border: none;
+    outline: none;
+    text-align: left;
+    background: #FFFFFF;
+}
+
+h2 {
+    font: 14px Arial, sans-serif;
+    color: #000000;
+    padding: 10px;
+    text-align: center;
+}
+
+p {
+    display: inline-block !important;
+    font-family: "Times New Roman", Times, serif;
+    text-align: center !important;
+    margin-left:3px;
+}
+
+.subplot {
+    width: 45%;
+    height: 450px;
+    float:left;
+    margin: 10px;
+
+}
+
+.patientsubplot {
+    width: 95%;
+    height: 350px;
+    float:left;
+    margin: 10px;
+
+}
+
+.singleplot {
+    width: 95%;
+    height: 95%;
+    margin: 15px;
+}
+
+#cartHomeTest {
+    width:100%;
+    height:700px;
+    position: relative;
+    margin: 2px;
+    top:15px;
+}
+
+.header {
+    background-color:#1E90FF;
+    cursor: pointer;
+    border: 1px solid black;
+    width:99%;
+    margin-top:3px;
+    margin-bottom:3px;
+    maring-left:1px;
+    font-family: "Times New Roman", Times, serif;
+}
+
+*[class^='queryHeader']{
+    background-color:#1E90FF;
+    cursor: pointer;
+    border: 1px solid black;
+    width:100%;
+    font-family: "Times New Roman", Times, serif;
+}
+
+*[class^='queryHeader'] button{
+    float:right;
+    background-color:#1E90FF;
+    position: relative;
+    bottom: 0.5px;
+    border: 1px solid blue;
+}
+
+
+/*.deleteQuery {
+    float:right;
+    background-color:#1E90FF;
+    position: relative;
+    bottom: 1px;
+}
+
+.queryNumber {
+    float:left;
+    background-color:#1E90FF;
+}*/
+
+
+.queryContent {
+    border: 1px solid black;
+    margin-top:10px;
+    margin-botton:15px;
+    width:98%;
+    margin:2px;
+}
+
+.removeConfig{
+    float:right;
+    position:relative;
+    bottom:2px;
+}
+.lm_content {
+    position: relative;
+    background: #ffffff !important;
+}
+
+.lm_items {
+    border: 1px solid black
+}
+
+div.carthome {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%)
+}
+
+.button {
+    position: absolute;
+    bottom: 30px;
+    right: 16px;
+}
+
+#graphArea {
+    width:100%;
+    height:95%;
+}
+
+
+#middle {
+    width:98%;
+    height:100%;
+    margin:10px;
+    display: inline-block;
+    border: 1px solid black;
+}
+
+/*#center {
+    width:76%;
+    height:100%;
+    float:left;
+    display: inline-block;
+}*/
+label {
+    font-family: "Times New Roman", Times, serif;;
+    font-size: 13px;
+    margin:3px;
+}
+
+.yFieldHeader label {
+    font-family: "Times New Roman", Times, serif;;
+    font-size: 13px;
+    margin-left:15px; !important;
+}
+
+.queryName {
+    float:left;
+    position:relative;
+    left: 55px;
+}
+
+.dataStatus{
+    float:left;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16px;
+    position: relative;
+    left: 25px;
+    margin: 3px;
+}
+
+.queryinfo{
+    border: 1px solid black;
+    margin: 2px;
+    margin-bottom: 10px;
+}
+
+.generalFilter {
+    display: inline-block;
+    border: 1px solid black;
+    margin-bottom: 5px;
+    margin-top:10px;
+    margin-left:2px;
+    width:98%;
+}
+
+.title{
+    float:left;
+    margin:3px;
+}
+
+.multiselect {
+    width: 40%;
+    float:left;
+    margin:5px;
+}
+
+.rescale {
+    border: 1px solid black;
+    margin: 5px;
+}
+
+.rescaleTypes{
+    margin-bottom: 10px;
+}
+
+.rescaletitle{
+    float:left;
+    font-family: "Times New Roman", Times, serif;;
+    font-size: 13px;
+}
+
+.rescaleOption{
+    margin: 10px;
+    margin-left: 42px;
+    width: 170px;
+}
+
+.queryType {
+    display: inline-block;
+    border: 1px solid black;
+    margin-bottom: 3px;
+    margin-top:10px;
+    margin-left:2px;
+    width:98%;
+    float: left;
+}
+
+.studies{
+    margin:5px;
+}
+
+.queryCategories{
+    border: 1px solid black;
+    margin: 2px;
+    margin-bottom: 10px;
+    margin-top:5px;
+    width:98%;
+}
+
+/*
+.rectangle{
+    display: inline-block;
+    width:15px;
+    height:15px;
+    background-color:red;
+    margin-left: 3px;
+}
+*/
+
+.radioContent{
+    display:inline-block;
+    text-align: left;
+    border: 1px solid black;
+    width: 98%;
+    height: 40px;
+    margin: 3px;
+}
+.customTests{
+    display:inline-block;
+    width:98%;
+    margin:3px;
+}
+
+.timeQueryYField{
+    display:inline-block;
+    width:98%;
+    margin:3px;
+}
+
+.graphControlField {
+    margin-top:7px;
+    margin-bottom:7px;
+    margin-left: 5px;
+}
+
+.graphControlField label {
+    width: 70px;
+}
+
+.categorycontent {
+    display: inline-block;
+    border: 1px solid black;
+    width: 98%;
+    margin:3px;
+}
+
+.controlcontent {
+    display: inline-block;
+    border: 1px solid black;
+    width: 97%;
+    margin-left:7px;
+    margin-top:10px;
+}
+
+.graphControl {
+    height:90%;
+}
+
+.graphControlArea{
+    overflow: scroll;
+    width:99%;
+    height: 90%;
+}
+
+.testinput {
+    display: block;
+    float:left;
+    margin:3px
+}
+
+.binStart {
+    display: block;
+    float: left;
+    width:3em;
+    margin:3px
+}
+
+.binCollection {
+    display:inline-block;
+    float:left;
+    margin: 3px;
+}
+div[class$="TestCollection"] {
+    width:80%
+}
+
+.addConfigurationButton{
+    margin:5px;
+}
+
+.addConfiguration {
+    float:right;
+    margin:6px;
+    margin-right:0;
+    color: #1E90FF;
+}
+
+.configContent {
+    border: 1px solid black;
+    margin-top:5px;
+    margin-bottom:5px;
+    width:99%;
+    font-family: "Times New Roman", Times, serif;
+    display: inline-block;
+}
+
+.timeBin {
+    display:inline-block;
+}
+
+.binEnd {
+    display: block;
+    float: left;
+    width:3em;
+    margin:3px
+}
+
+.addTestButton {
+    float:left;
+    margin:1.5px;
+}
+
+.addBinButton {
+    float:right;
+}
+
+.customBin {
+    display: inline-block;
+    border:1px solid black;
+    margin: 2px;
+    width: 98%;
+    text-align: left;
+}
+
+.removebutton {
+    display: block;
+    float:left;
+    margin: 3px;
+}
+
+.categoryFunction {
+    display: inline-block; margin:3px;
+    border:1px solid black;
+    margin-top: 2px;
+    margin-bottom: 5px;
+    width: 98%;
+    height:35px;
+    text-align: left;
+
+}
+
+.interpolationFunction {
+    display: inline-block; margin:3px;
+    border:1px solid black;
+    margin-top: 2px;
+    margin-bottom: 5px;
+    width: 98%;
+    height:35px;
+    text-align: left;
+
+}
+
+.categorySelect {
+    display: inline-block;
+    border:1px solid black;
+    margin: 2px;
+    width: 98%;
+    height: 35px;
+    text-align: left;
+}
+
+.sectionCategorySelect {
+    margin: 8px;
+}
+
+.sectionFunction {
+    margin: 8px;
+}
+
+.categoryTests {
+    display: inline-block;
+    border:1px solid black;
+    margin: 2px;
+    width: 98%;
+    text-align: left;
+}
+
+.categoryFilterCols {
+    display: inline-block;
+    border:1px solid black;
+    margin: 2px;
+    width: 98%;
+    text-align: left;
+}
+
+.lab {
+    white-space: pre;
+}
+
+.fetchDataButton {
+    float: right;
+    margin: 5px;
+}
+
+.fetchData {
+    color:#1E90FF;
+}
+
+#center {
+    width:99%;
+    height:100%;
+    float:left;
+    display: inline-block;
+    /*
+    position: relative;
+    */
+    padding-bottom: 5px !important;
+    padding-right: 0px !important;
+    overflow:scroll !important;
+}
+
+#drawingConfig{
+    float:right;
+    width: 1%;
+    height: 100%;
+    background-color: black;
+    position:relative;
+
+}
+
+#right {
+    width:23%;
+    height:100%;
+    display: inline-block;
+    text-align: center;
+    float:right
+}
+
+/*#drawingConfigContext {
+    width:23%;
+    height:100%;
+    display: inline-block;
+    text-align: center;
+    !*    border: 1px solid black;
+        margin-left: 3px;*!
+}*/
+
+#colorby {
+    width:240px !important;
+    height:5% !important;
+    text-align: left;
+    float: left;
+    margin-left: 5px !important;
+    margin-top: 10px;
+    overflow: scroll !important;
+}
+
+#colorByField{
+    width: 230px;
+}
+
+#splitByField{
+    width: 230px;
+}
+
+#splitby {
+    width:240px;
+    height:5%;
+    text-align: left;
+    float:left;
+    margin-left:5px;
+    margin-top: 2px;
+    margin-bottom: 15px;
+}
+
+/*#patientIDDiv {
+    width:300px;
+    height:15%;
+    text-align: center;
+    margin: 2px;
+    float: left;
+    margin-left:22px;
+}*/
+
+/*#timeSeriesFieldDiv {
+    width:300px;
+    height:15%;
+    text-align: center;
+    margin: 2px;
+    float: left;
+    margin-left:33px;
+}*/
+
+#displayTypeDiv {
+    width:300px;
+    height:15%;
+    text-align: center;
+    margin: 2px;
+    float: left;
+    margin-left:26px;
+}
+
+#top {
+    top: 25px;
+    width:100%;
+    height:10%;
+    display: inline-block;
+    text-align:left;
+    margin-left: 15px;
+}
+
+#timeSeriesConfig{
+    float:left;
+}
+
+#YFieldCategory{
+    float:left;
+}
+
+#summaryField{
+    float:left;
+}
+
+#removeParent {
+  margin-left: 5px;
+}
+
+input[name="field"] {
+    width: 80px;
+    margin-top: 6px;
+    margin-left: 2px;
+}
+
+input[name="fieldType"] {
+    width: 80px;
+    margin-top: 6px;
+    margin-left: 5px;
+}
+
+.timeField{
+    float:left;
+    margin-top: 10px;
+    margin-left: 5px;
+}
+
+#yFieldSelection{
+    float:left;
+}
+
+#canvas{
+    height:90% !important;
+    weight:100% !important;
+}
+
+#statinfo {
+    width:100%;
+    height:10%;
+    text-align: center;
+    margin: 2px;
+}
+
+#addTimeFieldButton{
+    margin: 7px;
+    float: right;
+}
+
+#breakdown {
+    width:100% !important;
+    height:50% !important;
+    text-align: center;
+    margin: 2px;
+    overflow: scroll !important;
+}
+
+#breakdown table{
+    position: relative;
+    top: 20%;
+    margin: 0 auto;
+}
+
+.optionContext{
+    border: 1px solid black;
+    width: 98%;
+    margin-left: 3px;
+}
+
+
+.convert{
+    margin:5px;
+    margin-bottom: 10px;
+    border: 1px solid black;
+}
+
+#queryStatus {
+    text-align: center;
+}
+
+#infotable {
+    width:100%;
+    bottom: 5px;
+}
+
+#bottom {
+    bottom: 20px;
+    width:100%;
+    height:8%;
+    text-align:left;
+    margin-left: 15px;
+}
+
+*[id^='queryArea']{
+    border: 1px solid black;
+    width: 100%;
+    margin-top:5px;
+    margin-bottom:5px;
+}
+
+#graphButton {
+    margin-right: 2px;
+    color: #1E90FF;
+    bottom: 30px;
+}
+
+
+#refreshButton {
+    margin-right: 150px;
+    color: #1E90FF;
+    bottom: 30px;
+}
+
+/*#querySection {
+    width: 50% !important;
+    height: 45% !important;
+    padding-top: 30px;
+    padding-left: 10px;
+    overflow: scroll !important;
+}*/
+
+#querySection {
+    width: 100% !important;
+    height: 92% !important;
+    overflow: scroll !important;
+    margin-top:5px;
+}
+
+#scrollbox2 p {
+    width: 600px;
+}
+
+.vertical-track2 {
+    width: 10px;
+    background: rgba(0, 0, 0, 0);
+    margin-right: 2px;
+    border-radius: 10px;
+    -webkit-transition: background 250ms linear;
+    transition: background 250ms linear;
+}
+
+.vertical-handle2 {
+    width: 11px;
+    right: 0;
+    background: #999;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 7px;
+    -webkit-transition: width 250ms;
+    transition: width 250ms;
+}
+
+/*
+.vertical-handle2 .top {
+    width: 17px;
+    height: 17px;
+    background: url(http://enscrollplugin.com/images/green-vert-scrollbar.png) no-repeat;
+}
+
+.vertical-handle2 .bottom {
+    width: 17px;
+    height: 100%;
+    position: absolute;
+    bottom: 0;
+    clip: rect(17px 17px 9999px 0);
+    background: url(http://enscrollplugin.com/images/green-vert-scrollbar.png) no-repeat 0 bottom;
+}
+*/
+
+.horizontal-track2 {
+    height: 10px;
+    background: rgba(0, 0, 0, 0);
+    margin-right: 2px;
+    border-radius: 10px;
+    -webkit-transition: background 250ms linear;
+    transition: background 250ms linear;
+}
+.horizontal-track2:hover,
+.horizontal-handle2 {
+    height: 7px;
+    right: 0;
+    background: #999;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 7px;
+    -webkit-transition: width 250ms;
+    transition: width 250ms;
+}
+.horizontal-track2:hover .horizontal-handle2,
+.horizontal-track2.dragging .horizontal-handle2 {
+    width: 10px;
+}
+/*.horizontal-handle2 .left {
+    width: 17px;
+    height: 17px;
+    background: url(http://enscrollplugin.com/images/green-horiz-scrollbar.png) no-repeat;
+}
+
+.horizontal-handle2 .right {
+    width: 100%;
+    height: 17px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    clip: rect(0 9999px 17px 17px);
+    background: url(http://enscrollplugin.com/images/green-horiz-scrollbar.png) no-repeat right 0;
+}*/
+
+.corner2 {
+    width: 17px;
+    height: 17px;
+    background: #e4e6e3;
+    border: 1px solid #dfdfdd;
+}
+
+#addNewQuery {
+    position:relative;
+    top:0;
+    right:0;
+    float: right;
+    margin-right:20px;
+    margin-top: 5px;
+    color:#1E90FF;
+}
+
+#querybottom{
+    height:10%;
+}
+
+.downloadLink{
+    float: right;
+    margin-right: 50px;
+    margin-top: 2px;
+}
+
+#cartgraph{
+    top:28% !important;
+    width: 100% !important;
+    height:50% !important;
+}
+
+#datapreview{
+    height:100% !important;
+    width: 100% !important;
+    top: 50px !important;
+}
+
+#t1{
+    height: 100% !important;
+}
+/* For vertical blocks */
+.cart-container {
+    display: flex;
+    margin-bottom: 10vh;
+}
+
+.cart-item {
+    /*height: 400px; */
+    margin-right: 20px;
+    /*background-color: rgb(212, 230, 248);*/
+    flex: 1;
+    border: 1px solid;
+}
+
+.cart-sub-item {
+    height: 400px;
+    /*margin-right: 10px;
+    margin-left: 10px;
+    size: 20% ;*/
+    background-color: rgb(247, 168, 94);
+    flex: 1;
+    border: 1px solid;
+}
+
+.rectangle {
+    height: 300px;
+    width: 350px;
+    background-color: rgba(246, 247, 234, 0.801);
+}

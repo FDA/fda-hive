@@ -1,0 +1,58 @@
+{
+    "380": {
+        "_id": "$type.tasct_current_medications",
+        "_type": "type",
+        "name": "tasct_current_medications",
+        "title": "Current Medications",
+        "fields": {
+            "1.1": {
+                "field_name": "current_medications",
+                "field_title": "What medications are you currently taking?",
+                "field_type": "string"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

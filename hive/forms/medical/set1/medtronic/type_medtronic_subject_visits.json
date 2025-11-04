@@ -1,0 +1,228 @@
+{
+    "187": {
+        "_id": "$type.medtronic_subject_visits",
+        "_type": "type",
+        "name": "medtronic_subject_visits",
+        "title": "Subject Visits",
+        "fields": {
+            "1.2": {
+                "field_name": "visit_occur",
+                "field_title": "Did the visit occur?",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "NO|YES",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.3": {
+                "field_name": "visit_date",
+                "field_title": "What is the visit date?",
+                "field_type": "date",
+                "field_order": "3",
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "used_tobacco _since_last_visit",
+                "field_title": "Has the subject used tobacco since last visit?",
+                "field_type": "string",
+                "field_order": "4",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES"
+            },
+            "1.5": {
+                "field_name": "pregnancies_since_last_visit",
+                "field_title": "Has the subject had any pregnancies since last visit?",
+                "field_type": "string",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES|NOT APPLICABLE"
+            },
+            "1.6": {
+                "field_name": "currently_using_external_orthosis",
+                "field_title": "Is the subject currently using any external orthosis (i.e. corset and/or brace)?",
+                "field_type": "string",
+                "field_order": "6",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES"
+            },
+            "1.7": {
+                "field_name": "currently_using_an_abdominal_strengthening_program",
+                "field_title": "Is the subject currently using an abdominal strengthening program?",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES"
+            },
+            "1.8": {
+                "field_name": "subject_awareness_of_randomization",
+                "field_title": "Subject Awareness of Randomization",
+                "field_type": "string",
+                "field_order": "8",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.10": {
+                "field_name": "received_treatment",
+                "field_title": "Does the subject know what treatment he/she received (i.e. investigational vs. control)?",
+                "field_type": "string",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "NO|YES|SUBJECT PREVIOUSLY UNBLINDED"
+            },
+            "1.11": {
+                "field_name": "subject_to_know_the_recieved_treatment",
+                "field_title": "Describe how the subject knows what treatment they received",
+                "field_type": "string",
+                "field_order": "10",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "is_shown_fg=$(received_treatment)=='YES'"
+            },
+            "1.12": {
+                "field_name": "subject_unblinded_via_a_code_break",
+                "field_title": "Was the subject unblinded via a code break from the Investigator?",
+                "field_type": "string",
+                "field_order": "11",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "NO|YES"
+            },
+            "1.13": {
+                "field_name": "code_break_reason",
+                "field_title": "Code break reason",
+                "field_type": "string",
+                "field_order": "12",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "is_shown_fg=$(subject_unblinded_via_a_code_break)=='YES'"
+            },
+            "1.15": {
+                "field_name": "spine_work_status",
+                "field_title": "Spine Work Status",
+                "field_type": "string",
+                "field_order": "13",
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.16": {
+                "field_name": "return_to_work_since_last_visit",
+                "field_title": "Did the subject return to work or start work since last visit?",
+                "field_type": "string",
+                "field_order": "14",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES"
+            },
+            "1.17": {
+                "field_name": "provide_date_started_to_work_after_surgery",
+                "field_title": "Provide first date started to work after surgery",
+                "field_type": "date",
+                "field_order": "15",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(return_to_work_since_last_visit)=='YES'"
+            },
+            "1.19": {
+                "field_name": "first_date_to_work_after_surgery_previously_reported",
+                "field_title": "First date started to work after surgery previously reported",
+                "field_type": "string",
+                "field_order": "16",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(provide_date_started_to_work_after_surgery)==''&&$(return_to_work_since_last_visit)=='YES'"
+            },
+            "1.21": {
+                "field_name": "mark_applied_below",
+                "field_title": "Mark all that apply below",
+                "field_type": "string",
+                "field_order": "17",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Not working due to problems with treatment area|Not currently employed|On medical leave|Disabled|Retired|Student|Homemaker|Other\n>is_shown_fg=$(return_to_work_since_last_visit)=='NO'"
+            },
+            "1.23": {
+                "field_name": "other,_specify",
+                "field_title": "Specify",
+                "field_type": "string",
+                "field_order": "18",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(mark_applied_below)=='Other'&&$(return_to_work_since_last_visit)=='NO'"
+            },
+            "1.24": {
+                "field_name": "doctor_perception_of_results",
+                "field_title": "Doctor Perception of Results",
+                "field_type": "string",
+                "field_order": "19",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.25": {
+                "field_name": "doctors_perception_of_results",
+                "field_title": "Doctor's Perception of Results",
+                "field_type": "string",
+                "field_order": "20",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "EXCELLENT|GOOD|FAIR|POOR"
+            },
+            "1.27": {
+                "field_name": "sv_procedures_and_radiographic_image_review_payments",
+                "field_title": "Radiology Fee per X Ray Procedures and Radiographic Image Review Payments Derivation",
+                "field_type": "string",
+                "field_order": "21",
+                "field_is_hidden_fg": true
+            },
+            "1.29": {
+                "field_name": "xray_2_view_procedures_payments_derivation",
+                "field_title": "XRAY 2 View Procedures Payments Derivation",
+                "field_type": "string",
+                "field_order": "22",
+                "field_is_hidden_fg": true
+            },
+            "1.31": {
+                "field_name": "xray_4_view_procedures_payments_derivation",
+                "field_title": "XRAY 4 View Procedures Payments Derivation",
+                "field_type": "string",
+                "field_order": "23",
+                "field_is_hidden_fg": true
+            },
+            "1.33": {
+                "field_name": "ct_scan_procedures_payments_derivation",
+                "field_title": "CT SCAN Procedures Payments Derivation",
+                "field_type": "string",
+                "field_order": "24",
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,43 @@
+{
+    "156": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "name": "cast2csv",
+        "order": 14,
+        "path": "/Convert/cast2csv",
+        "required_permission": 4,
+        "target": "ajax",
+        "type_name": "csv-table+",
+        "url": "?cmdr=scast&type=csv-table&ids=$(ids)",
+        "title": "Convert to CSV",
+        "description": "Convert to CSV-table",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

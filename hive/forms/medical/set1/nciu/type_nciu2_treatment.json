@@ -1,0 +1,303 @@
+{
+    "33579": {
+        "_id": "$type.nciu2_treatment",
+        "_type": "type",
+        "name": "nciu2_treatment",
+        "title": "Treatment",
+        "fields": {
+            "1.0": {
+                "field_name": "date_to_treatment_end",
+                "field_title": "Treatment end date",
+                "field_type": "date",
+                "field_parent": "treatment_parent",
+                "field_order": "3",
+                "field_description": "Number of days between the date used for index and the date the treatment ended."
+            },
+            "1.2": {
+                "field_name": "date_to_treatment_start",
+                "field_title": "Treatment start date",
+                "field_type": "date",
+                "field_parent": "treatment_parent",
+                "field_order": "2",
+                "field_description": "Number of days between the date used for index and the date the treatment started."
+            },
+            "1.4": {
+                "field_name": "therapeutic_agents",
+                "field_title": "Name of drug",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "10",
+                "field_is_multi_fg": false,
+                "field_constraint": "search",
+                "field_constraint_data": "{\n\"fetch\":[\"drug\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/nciu_drugs.csv&raw=1&start=0\",\n\"inline\":[\n\t{\"name\":\"drug\",\"title\":\"drug\",\"display\":\"title\",\"search\":\"true\"}\n],\n\"outline\":[\n\t{\"name\":\"drug\",\"title\":\"drug\"}\n]\n}\n>is_shown_fg=$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "Text identification of the individual agent(s) used as part of a treatment regimen."
+            },
+            "1.6": {
+                "field_name": "treatment_anatomic_site",
+                "field_title": "Anatomic Site of Treatment",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_data": "Trachea/Major Bronchi|Bronchus|Lung|Liver|Brain|Lymph nodes\n>is_shown_fg=$(treatment_type)=='Ablation, Cryo'||$(treatment_type)=='Ablation, Microwave'||$(treatment_type)=='Ablation, NOS'||$(treatment_type)=='Ablation, Radiofrequency'||$(treatment_type)=='Cryoablation'||$(treatment_type)=='Embolization'||$(treatment_type)=='Surgery'||$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The anatomic site or field targeted by a treatment regimen or single agent therapy."
+            },
+            "1.8": {
+                "field_name": "treatment_arm",
+                "field_title": "Treatment Arm",
+                "field_type": "string",
+                "field_order": "5",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "A081105|E4512|EA5142",
+                "field_description": "Text term used to describe the treatment arm assigned to a patient at the time eligibility is determined."
+            },
+            "1.10": {
+                "field_name": "initial_disease_status",
+                "field_title": "initial_disease_status",
+                "field_type": "string",
+                "field_order": "1",
+                "field_constraint_data": "Initial Diagnosis|Progressive Disease|Recurrent Disease|Residual Disease|Unknown|Not Reported",
+                "field_description": "The text term used to describe the status of the patient's malignancy when the treatment began."
+            },
+            "1.12": {
+                "field_name": "reason_treatment_ended",
+                "field_title": "reason_treatment_ended",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Adverse Event|Course of Therapy Completed|Death|Disease Progression|Recovery|Improvement|Without changes|Transferred to another hospital|Other|Withdrawal by Subject\n>is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The text term used to describe the reason a specific treatment or regimen ended."
+            },
+            "1.14": {
+                "field_name": "number_of_cycles",
+                "field_title": "number_of_cycles",
+                "field_type": "integer",
+                "field_parent": "treatment_parent",
+                "field_order": "4",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The numeric value used to describe the number of cycles of a specific treatment or regimen the patient received."
+            },
+            "1.16": {
+                "field_name": "regimen_or_line_of_therapy",
+                "field_title": "Regimen or line of therapy",
+                "field_type": "string",
+                "field_order": "13",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The text term used to describe the regimen or line of therapy."
+            },
+            "1.18": {
+                "field_name": "treatment_dose",
+                "field_title": "Single dose",
+                "field_type": "integer",
+                "field_parent": "treatment_parent",
+                "field_order": "11",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The numeric value used to describe the dose of an agent the patient received."
+            },
+            "1.20": {
+                "field_name": "treatment_dose_units",
+                "field_title": "Dose units",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "12",
+                "field_constraint_data": "cGy|Gy|mg\n>is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The text term used to describe the dose units of an agent the patient received."
+            },
+            "1.22": {
+                "field_name": "treatment_effect",
+                "field_title": "Treatment Effect",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "13",
+                "field_constraint_data": "Complete Necrosis (No Viable Tumor)|Incomplete Necrosis (Viable Tumor Present)|No Necrosis|No Known Treatment Effect|Unknown|Not Reported|N/A\n>is_shown_fg=$(treatment_type)=='Ablation, Cryo'||$(treatment_type)=='Ablation, Microwave'||$(treatment_type)=='Ablation, NOS'||$(treatment_type)=='Ablation, Radiofrequency'||$(treatment_type)=='Cryoablation'||$(treatment_type)=='Embolization'||$(treatment_type)=='Surgery'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The text term used to describe the pathologic effect a treatment(s) had on the tumor."
+            },
+            "1.24": {
+                "field_name": "treatment_effect_indicator",
+                "field_title": "treatment_effect_indicator",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "14",
+                "field_constraint_data": "Yes|No|Not Reported|Unknown|N/A\n>is_shown_fg=$(treatment_type)=='Ablation, Cryo'||$(treatment_type)=='Ablation, Microwave'||$(treatment_type)=='Ablation, NOS'||$(treatment_type)=='Ablation, Radiofrequency'||$(treatment_type)=='Cryoablation'||$(treatment_type)=='Embolization'||$(treatment_type)=='Surgery'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "The text term used to indicate whether the treatment had an effect on the patient."
+            },
+            "1.26": {
+                "field_name": "treatment_frequency",
+                "field_title": "treatment_frequency",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "14",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Every Hour|Five Times Daily|Four Times Daily|Three Times Daily|Twice Daily|Every 24 Hours|Every Other Day|Twice Weekly|Once Weekly|Every two weeks|Every three weeks|Every four weeks|Unknown|Not Reported",
+                "field_description": "The text term used to describe the frequency the patient received an agent or regimen."
+            },
+            "1.28": {
+                "field_name": "treatment_intent_type",
+                "field_title": "Indication of Regimen",
+                "field_type": "string",
+                "field_order": "2",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Adjuvant|Androgen Deprivation Therapy (ADT)|Cancer Control|Cure|Maintenance Therapy|Neoadjuvant|Palliative|Prevention|Unknown|Not Reported\n>is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "Text term to identify the reason for the administration of a treatment regimen. [Manually-curated]"
+            },
+            "1.30": {
+                "field_name": "chemo_concurrent_to_radiation",
+                "field_title": "Chemo concurrent to radiation",
+                "field_type": "string",
+                "field_order": "19",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The text term used to describe whether the patient was receiving chemotherapy concurrent to radiation."
+            },
+            "1.32": {
+                "field_name": "treatment_or_therapy",
+                "field_title": "Did patient receive ANY treatment prior to date specimen was collected?",
+                "field_type": "string",
+                "field_order": "16",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported\n>is_shown_fg=$(treatment_type)=='Ablation, Cryo'||$(treatment_type)=='Ablation, Microwave'||$(treatment_type)=='Ablation, NOS'||$(treatment_type)=='Ablation, Radiofrequency'||$(treatment_type)=='Cryoablation'||$(treatment_type)=='Embolization'||$(treatment_type)=='Surgery'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "A yes/no/unknown/not applicable indicator related to the administration of therapeutic agents received."
+            },
+            "1.34": {
+                "field_name": "treatment_outcome",
+                "field_title": "Treatment Outcome",
+                "field_type": "string",
+                "field_order": "6",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Complete Response|Mixed Response|No Measurable Disease|No Response|Partial Response|Persistent Disease|Progressive Disease|Stable Disease|Treatment Ongoing|Treatment Stopped Due to Toxicity|Very Good Partial Response|Unknown|Not Reported\n>is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'",
+                "field_description": "Text term that describes the patient's final outcome after the treatment was administered."
+            },
+            "1.36": {
+                "field_name": "treatment_type",
+                "field_title": "Treatment Type",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "0.5",
+                "field_is_multi_fg": false,
+                "field_constraint_data": "Ablation, Cryo|Ablation, Ethanol Injection|Ablation, Microwave|Ablation, NOS|Ablation, Radiofrequency|Ablation, Radiosurgical|Ancillary Treatment|Antiseizure Treatment|Bisphosphonate Therapy|Blinded Study, Treatment Unknown|Brachytherapy, High Dose|Brachytherapy, Low Dose|Brachytherapy, NOS|Chemoembolization|Chemoprotectant|Chemotherapy|Concurrent Chemoradiation|Cryoablation|Embolization|Ethanol Injection Ablation|External Beam Radiation|Hormone Therapy|I-131 Radiation Therapy|Immunotherapy (Including Vaccines)|Internal Radiation|Other|Pharmaceutical Therapy, NOS|Radiation Therapy, NOS|Radiation, 2D Conventional|Radiation, 3D Conformal|Radiation, Combination|Radiation, Cyberknife|Radiation, External Beam|Radiation, Hypofractionated|Radiation, Implants|Radiation, Intensity-Modulated Radiotherapy|Radiation, Internal|Radiation, Mixed Photon Beam|Radiation, Photon Beam|Radiation, Proton Beam|Radiation, Radioisotope|Radiation, Stereotactic/Gamma Knife/SRS|Radiation, Systemic|Radioactive Iodine Therapy|Radioembolization|Radiosensitizing Agent|Stereotactic Radiosurgery|Steroid Therapy|Surgery|Targeted Molecular Therapy|Unknown|Not Reported",
+                "field_description": "Text term that describes the kind of treatment administered."
+            },
+            "1.38": {
+                "field_name": "treatment_parent",
+                "field_title": "Treatment",
+                "field_type": "array",
+                "field_order": "3",
+                "field_is_multi_fg": true
+            },
+            "1.40": {
+                "field_name": "pathological_general",
+                "field_title": "Pathological general",
+                "field_type": "string",
+                "field_order": "8",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\n\"fetch\":[\"code\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/ICD-codes.csv&raw=1&start=0\",\n\"inline\":[\n\t{\"name\":\"code\",\"title\":\"code\",\"display\":\"title\",\"search\":\"true\"},\n\t{\"name\":\"title\",\"title\":\"title\",\"display\":\"title\",\"search\":\"true\"}\n],\n\"outline\":[\n\t{\"name\":\"code\",\"title\":\"code\"},\n\t{\"name\":\"title\",\"title\":\"title\"}\n]\n}\n>is_shown_fg=$(reason_treatment_ended)=='Death'"
+            },
+            "1.41": {
+                "field_name": "pathological_adverse",
+                "field_title": "Pathological adverse",
+                "field_type": "string",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\n\"fetch\":[\"code\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/ICD-codes.csv&raw=1&start=0\",\n\"inline\":[\n\t{\"name\":\"code\",\"title\":\"code\",\"display\":\"title\",\"search\":\"true\"},\n\t{\"name\":\"title\",\"title\":\"title\",\"display\":\"title\",\"search\":\"true\"}\n],\n\"outline\":[\n\t{\"name\":\"code\",\"title\":\"code\"},\n\t{\"name\":\"title\",\"title\":\"title\"}\n]\n}\n>is_shown_fg=$(reason_treatment_ended)=='Death'"
+            },
+            "1.42": {
+                "field_name": "pathological_commorbidity",
+                "field_title": "Pathological commorbidity",
+                "field_type": "string",
+                "field_order": "10",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\n\"fetch\":[\"code\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/ICD-codes.csv&raw=1&start=0\",\n\"inline\":[\n\t{\"name\":\"code\",\"title\":\"code\",\"display\":\"title\",\"search\":\"true\"},\n\t{\"name\":\"title\",\"title\":\"title\",\"display\":\"title\",\"search\":\"true\"}\n],\n\"outline\":[\n\t{\"name\":\"code\",\"title\":\"code\"},\n\t{\"name\":\"title\",\"title\":\"title\"}\n]\n}\n>is_shown_fg=$(reason_treatment_ended)=='Death'"
+            },
+            "1.44": {
+                "field_name": "match_pathological_and_clinic",
+                "field_title": "Match pathological and clinic",
+                "field_type": "bool",
+                "field_order": "11",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Ablation, Cryo'||$(treatment_type)=='Ablation, Microwave'||$(treatment_type)=='Ablation, NOS'||$(treatment_type)=='Ablation, Radiofrequency'||$(treatment_type)=='Cryoablation'||$(treatment_type)=='Embolization'||$(treatment_type)=='Surgery'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            },
+            "1.45": {
+                "field_name": "discrepancy_pathological_and_clinic",
+                "field_title": "Discrepancy pathological and clinic",
+                "field_type": "string",
+                "field_order": "12",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "General|Commorbidity|Adverse|Complete discrepancy\n>is_shown_fg=$(treatment_type)=='Ablation, Cryo'||$(treatment_type)=='Ablation, Microwave'||$(treatment_type)=='Ablation, NOS'||$(treatment_type)=='Ablation, Radiofrequency'||$(treatment_type)=='Cryoablation'||$(treatment_type)=='Embolization'||$(treatment_type)=='Surgery'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            },
+            "1.47": {
+                "field_name": "other_treatment_name",
+                "field_title": "Other treatment name",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "5",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            },
+            "1.48": {
+                "field_name": "surgery_name",
+                "field_title": "Surgery name",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "6",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Ablation, Cryo'||$(treatment_type)=='Ablation, Microwave'||$(treatment_type)=='Ablation, NOS'||$(treatment_type)=='Ablation, Radiofrequency'||$(treatment_type)=='Cryoablation'||$(treatment_type)=='Embolization'||$(treatment_type)=='Surgery'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            },
+            "1.49": {
+                "field_name": "radiation_type_tnm",
+                "field_title": "Radiation type TNM",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "7",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            },
+            "1.50": {
+                "field_name": "radiation_site",
+                "field_title": "Radiation site",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "8",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Trachea/Major Bronchi|Bronchus|Lung|Brain\n>is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            },
+            "1.51": {
+                "field_name": "radiation_type",
+                "field_title": "Radiation type",
+                "field_type": "string",
+                "field_parent": "treatment_parent",
+                "field_order": "9",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            },
+            "1.53": {
+                "field_name": "treatment_dose_total",
+                "field_title": "Total dose",
+                "field_type": "integer",
+                "field_parent": "treatment_parent",
+                "field_order": "11.5",
+                "field_constraint_data": "is_shown_fg=$(treatment_type)=='Brachytherapy, High Dose'||$(treatment_type)=='Brachytherapy, Low Dose'||$(treatment_type)=='Brachytherapy, NOS'||$(treatment_type)=='External Beam Radiation'||$(treatment_type)=='I-131 Radiation Therapy'||$(treatment_type)=='Internal Radiation'||$(treatment_type)=='Radiation Therapy, NOS'||$(treatment_type)=='Radiation, 2D Conventional'||$(treatment_type)=='Radiation, 3D Conformal'||$(treatment_type)=='Radiation, Combination'||$(treatment_type)=='Radiation, External Beam'||$(treatment_type)=='Radiation, Hypofractionated'||$(treatment_type)=='Radiation, Implants'||$(treatment_type)=='Radiation, Intensity-Modulated Radiotherapy'||$(treatment_type)=='Radiation, Internal'||$(treatment_type)=='Radiation, Mixed Photon Beam'||$(treatment_type)=='Radiation, Photon Beam'||$(treatment_type)=='Radiation, Proton Beam'||$(treatment_type)=='Radiation, Radioisotope'||$(treatment_type)=='Radiation, Stereotactic/Gamma Knife/SRS'||$(treatment_type)=='Radiation, Systemic'||$(treatment_type)=='Radioactive Iodine Therapy'||$(treatment_type)=='Stereotactic Radiosurgery'||$(treatment_type)=='Radiation, Cyberknife'||$(treatment_type)=='Antiseizure Treatment'||$(treatment_type)=='Bisphosphonate Therapy'||$(treatment_type)=='Chemoembolization'||$(treatment_type)=='Chemoprotectant'||$(treatment_type)=='Chemotherapy'||$(treatment_type)=='Hormone Therapy'||$(treatment_type)=='Immunotherapy (Including Vaccines)'||$(treatment_type)=='Pharmaceutical Therapy, NOS'||$(treatment_type)=='Radiosensitizing Agent'||$(treatment_type)=='Steroid Therapy'||$(treatment_type)=='Targeted Molecular Therapy'||$(treatment_type)=='Ablation, Ethanol Injection'||$(treatment_type)=='Ablation, Radiosurgical'||$(treatment_type)=='Concurrent Chemoradiation'||$(treatment_type)=='Ethanol Injection Ablation'||$(treatment_type)=='Radioembolization'||$(treatment_type)=='Ancillary Treatment'||$(treatment_type)=='Blinded Study, Treatment Unknown'||$(treatment_type)=='Other'||$(treatment_type)=='Unknown'||$(treatment_type)=='Not Reported'"
+            }
+        },
+        "parent": {
+            "8": "$type.nciu"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

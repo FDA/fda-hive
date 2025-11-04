@@ -1,0 +1,50 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+ <script src="js-obj-new/svc_slicer3D.js"></script>
+
+<script type="application/javascript">
+
+
+
+    setLocationTitle("Slicer3D Backend Engine: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "slicer3D", "svc-slicer3D");
+    algoProcess.visibleParameters=["name", "widgetID"];
+    algoProcess.submitButtonName="Run Slicer3D";
+    
+    algoProcess.inputLoaded = function (viewer, elem){
+        
+        algoProcess.inputChanged(viewer, elem);
+    }
+    algoProcess.inputChanged= function (viewer, elem){
+        algoProcess.activateSubmitButton(true);
+    }
+    
+    
+    gInitList += "slicer3DInit();";
+    function slicer3DInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-slicer3D',
+            algoTitle: "Slicer3D Engine"
+        });
+        
+    };
+</script>
+

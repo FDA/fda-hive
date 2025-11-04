@@ -1,0 +1,315 @@
+{
+    "233": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAssra",
+        "order": 7,
+        "path": "/Convert/Reprocess/TreatAssra",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": false,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)&ext=sra",
+        "title": "Treat as sra file (.sra)",
+        "description": "Process file compressed as sra",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "232": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2fasta",
+        "order": 12,
+        "path": "/Convert/To Reads/convert2fasta",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&objtype=nuc-read&ids=$(ids)&datatype=fasta",
+        "title": "Treat as FastA file",
+        "description": "Convert file formatted as fastA to Reads object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "231": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2fastq",
+        "order": 12,
+        "path": "/Convert/To Reads/convert2fastq",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&objtype=nuc-read&ids=$(ids)&datatype=fastq",
+        "title": "Treat as FastQ file",
+        "description": "Convert file formatted as fastQ to Reads object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "230": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2genome",
+        "order": 12,
+        "path": "/Convert/convert2genome",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&category=genomic&objtype=genome&ids=$(ids)&datatype=fasta",
+        "title": "To Genome as FastA file",
+        "description": "Convert file formatted as fastA to Genome object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "229": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2sam",
+        "order": 12,
+        "path": "/Convert/To Reads/convert2sam",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&objtype=nuc-read&ids=$(ids)&datatype=sam",
+        "title": "Treat as SAM File",
+        "description": "Convert file formatted as SAM to Reads object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "228": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2genome",
+        "order": 12,
+        "path": "/Convert/cast2genome",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "nuc-read",
+        "url": "?cmd=scast&type=genome&ids=$(ids)",
+        "title": "Convert to Genome",
+        "description": "Convert from Reads to Genome",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "227": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2nuc-read",
+        "order": 12,
+        "path": "/Convert/cast2nuc-read",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "genome",
+        "url": "?cmd=scast&type=nuc-read&ids=$(ids)",
+        "title": "Convert to Reads",
+        "description": "Convert from Genome to Reads",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

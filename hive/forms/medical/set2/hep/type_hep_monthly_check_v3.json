@@ -1,0 +1,29 @@
+{
+    "510": {
+        "_id": "$type.hep_monthly_check_v3",
+        "_type": "type",
+        "name": "hep_monthly_check_v3",
+        "title": "Monthly Check-In",
+        "parent": {
+            "3": "$type.hep_monthly_check"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

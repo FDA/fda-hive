@@ -1,0 +1,42 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script src="js/vjIFrameView.js"></script>
+
+
+<script type="application/javascript">
+
+    vjHO.register('svc-modular' , {icon : 'process',inherit: 'svc'});
+
+    setLocationTitle("Modular 21.0: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "modular", "svc-modular");
+    algoProcess.visibleParameters=["name","cmd","package","sourceFile"];
+    algoProcess.submitButtonName="Submit";
+    
+    gInitList += "modularInit();";
+    function modularInit () {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-modular',
+            algoTitle: "Modular utility"
+        });
+        
+    };
+</script>
+

@@ -1,0 +1,45 @@
+{
+    "241": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "hive-hexagon",
+        "is_obj_action": true,
+        "name": "hexagon_nuc_read",
+        "order": -2,
+        "required_permission": 2,
+        "target": "true",
+        "type_name": "nuc-read",
+        "url": "?cmd=dna-hexagon&query=$(ids)",
+        "title": "Hive-hexagon",
+        "description": "Align using hive-hexagon",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

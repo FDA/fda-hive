@@ -1,0 +1,175 @@
+
+
+"hc_alignment" : { 
+	"name": "alignment services",
+	"_id": "$newid()",
+	
+	"_fields": {
+		"acceptNNNQuaTrheshold: {"
+			"_type":"integer"
+			"_limit: {"
+				"choice": [
+					{
+						"title": "do not filer",
+						"value" : 0
+					},
+					{
+						"title": "filter Ns only",
+						"value" : 1
+					},
+					{
+						"title": "filter low qualities only",
+						"value" : 20
+					},
+															
+			     ]
+			}
+		}', 
+		"complexity" : {
+			"entropy": {
+				_type: "real"
+			}
+		},
+		"query": {
+			_type: hc_nuc-read
+			_plural: true
+			_role: input
+		}
+		
+		alignment : {
+			format : {
+				_type: string
+			}
+			name : {
+				_type:string
+			}
+			_role: output
+		}
+	},
+	
+	"_inherit" : [
+        "hc_uproc"
+	]
+	
+}
+	
+hc_switchcase : { 
+	"name": "hc_switch_case ",
+	"_id": "$newid()",
+		
+	"_fields": {
+		counter: { 
+			_type: integer
+		}
+		condition: {
+			eval_statement : {
+				variable: "dodo"
+				statement: "obj1.acceptNNNQuaTrheshold==1"
+			}
+			_plural : true
+		}
+	}
+}
+	
+	
+hc_workflow_element : { 
+	
+	
+	_fields: {
+		process: {
+			{
+				type : { 
+					_type: string
+				}
+				id { 
+					_type: hc_uproc
+				}
+			}
+		},
+		status : { 
+			_type: string
+			_limit : { 
+				choice : [running, suspended, completed, waiting, processing, none ]
+			}
+		}
+		form : { 
+			
+		},
+		
+		points: { 
+			_plural : true,
+			
+			name : {
+				_type: string
+			},
+			title : {
+				_type: string
+			}
+			form : {
+				,,,,
+			}, 
+			state: { 
+				_type:String (disabled, error, )
+			}
+			
+			
+		}
+		
+		
+	}
+}
+
+
+
+al1 : { 
+	_id: 222123
+	acceptNNNQuaTrheshold : 20
+	complexity : { 
+		entropy : -1
+	}
+	query : [123,234]
+	alignment :  { 
+		format : ".sam"
+		name : file1.sam
+	}
+	
+},
+
+obj1 : { 
+	type: hc_workflow_element,
+	
+	process: { 
+		type: "hc_alignment"
+		id:"123"
+				
+	}
+	status : "done",
+	points: [
+			 {
+				name:"query"
+				tile: " Input Query Strings"
+				form: {
+					x: 10
+					y: eval:obj2.points.query.form.x
+					shape: triangle
+					cx : 20
+					cy : eval:gx 
+				}
+			 },
+			 { 
+				 	 name : alignment
+					 uid: "$process:alignment"
+			 }
+	]
+		
+	
+	
+}
+
+link: {
+	points: [ 
+			 {
+			start: obj1.query 
+			 }
+			 ]
+}

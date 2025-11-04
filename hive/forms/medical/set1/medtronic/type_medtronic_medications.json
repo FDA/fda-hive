@@ -1,0 +1,143 @@
+{
+    "177": {
+        "_id": "$type.medtronic_medications",
+        "_type": "type",
+        "name": "medtronic_medications",
+        "title": "Medications",
+        "fields": {
+            "1.2": {
+                "field_name": "used_drugs_since_the_last_visit",
+                "field_title": "Has the subject used any nonsteroidal anti-inflammatory drugs since the last study visit?",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.4": {
+                "field_name": "drug_used_longer_2_weeks",
+                "field_title": "Was the nonsteroidal anti-inflammatory drug used longer than 2 weeks?",
+                "field_type": "string",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(used_drugs_since_the_last_visit)=='YES'"
+            },
+            "1.6": {
+                "field_name": "corticosteroids_since_the_last_study_visit",
+                "field_title": "Has the subject had any corticosteroids since the last study visit?",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.7": {
+                "field_name": "corticosteroid_used_longer_2_weeks",
+                "field_title": "Was the corticosteroid used longer than 2 weeks?",
+                "field_type": "string",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(corticosteroids_since_the_last_study_visit)=='YES'"
+            },
+            "1.8": {
+                "field_name": "anti-coagulants_since_last_study_visit",
+                "field_title": "Has the subject had any anti-coagulants since the last study visit?",
+                "field_type": "string",
+                "field_order": "6",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.9": {
+                "field_name": "anti-coagulant_used_longer_2_weeks",
+                "field_title": "Was the anti-coagulant used longer than 2 weeks?",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(anti-coagulants_since_last_study_visit)=='YES'"
+            },
+            "1.10": {
+                "field_name": "bisphosphonates_since_last_study_visit",
+                "field_title": "Has the subject had any bisphosphonates since the last study visit?",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.11": {
+                "field_name": "bisphosphonate_used_longer_2_weeks",
+                "field_title": "Was the bisphosphonate used longer than 2 weeks?",
+                "field_type": "string",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(bisphosphonates_since_last_study_visit)=='YES'"
+            },
+            "1.12": {
+                "field_name": "chemotherapy_since_last_study_visit",
+                "field_title": "Has the subject had any chemotherapy since the last study visit?",
+                "field_type": "string",
+                "field_order": "10",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.14": {
+                "field_name": "non-narcotic_pain_medications_in_the_last_7_days",
+                "field_title": "Has subject used non-narcotic over the counter pain medications in the last 7 days (e.g., Ibuprofen (Motrin, Advil), Naproxen (Aleve), Aspirin, or Acetaminophen (Tylenol))?",
+                "field_type": "string",
+                "field_order": "11",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.15": {
+                "field_name": "non-narcotic_prescription_medications_in_the_last_7_days",
+                "field_title": "Has subject used any non-narcotic prescription medications in the last 7 days (e.g., Celebrex or Gabapentinoids (Neurontin or Lyrica))?",
+                "field_type": "string",
+                "field_order": "12",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.16": {
+                "field_name": "weak_narcotic_medications_in_the_last_7_days",
+                "field_title": "Has subject used any weak narcotic medications in the last 7 days (e.g., Tylenol 3, Darvocet, Darvon, Vicodin, Lorcet, or Norco)?",
+                "field_type": "string",
+                "field_order": "13",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.17": {
+                "field_name": "strong_narcotic_medications_in_the_last_7_days",
+                "field_title": "Has subject used strong narcotic medications in the last 7 days (e.g., Percocet, Percodan, Dilaudid, Duragesic, Actiq, Oxycontin, Demerol, or Kadian)?",
+                "field_type": "string",
+                "field_order": "14",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.18": {
+                "field_name": "muscle_relaxants_in_the_last_7_days",
+                "field_title": "Has subject used any muscle relaxants in the last 7 days (e.g., Flexeril, Parafon Forte, or Robaxin)?",
+                "field_type": "string",
+                "field_order": "15",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

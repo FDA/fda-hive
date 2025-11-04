@@ -1,0 +1,38 @@
+{
+    "7925": {
+        "_id": "$type.ho",
+        "_type": "type",
+        "name": "ho",
+        "title": "Health Outlook",
+        "parent": {
+            "3": "$type.med_set2"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "date_completed",
+                "field_title": "Date completed",
+                "field_type": "date",
+                "field_order": "0.1",
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,331 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+import React, { Component } from "react";
+import "antd/dist/antd.css";
+import "@ag-grid-community/all-modules/dist/styles/ag-grid.css";
+import "@ag-grid-community/all-modules/dist/styles/ag-theme-balham.css";
+import { LogIn } from './login_container';
+import { HeaderContainer } from '../hivelib/Header/index';
+import controllers from '../hivelib/controller/controller_collector';
+import { FooterContainer } from '../hivelib/Footer/footer_container';
+import * as UrlModal from '../hivelib/modal/url_modal';
+import { Changelog } from "./changelog";
+
+export class HiveAbout extends Component {
+  UrlPrefix = UrlModal.getPrefix();
+  UrlPrefixPlain = UrlModal.getPrefixPlain();
+
+  constructor(props){
+    super(props)
+    let { CookieConstructor } = controllers
+    let cookie = new CookieConstructor()
+    this.username = cookie.getCookie("user_name");
+    let footer_config = {data: {"data-theme": 'light'}}
+    sessionStorage.setItem('footer' , JSON.stringify(footer_config))
+    this.state = {
+      reloadExplorerCounter: 0, // increment this when we need to reload the FileExplorer, i.e. on project change
+    };
+  }
+  render(){
+    if(this.username === "Guest"){
+        return <LogIn /> ;
+    }else{
+      return (
+        <>
+          <HeaderContainer selected={this.props.selected}/>
+          <title>About HIVE</title>
+          <div className="main-container">
+            <div className="centered-text">
+              <div>
+                <div style={{display:'inline-block'}}><img style={{marginBottom:'45px'}} src={`${this.UrlPrefixPlain}/img/hive_logo.gif`} width="64" alt='hive_logo.gif' /></div>
+                <div style={{marginLeft:'10px', fontSize: '30px', fontWeight: 650, display:'inline-block'}}>About HIVE
+                    <p style={{color: '#0275d8', fontSize: '13px'}}>High-performance Integrated Virtual Environment</p>
+                </div>
+              </div>
+              <div>
+                  <p>The <span className='toolname'>High-performance Integrated Virtual Environment (HIVE)</span> is a specialized platform developed by CBER's High Performance Computing Core staff
+                  containing a sequence read archive linked directly to the high-performance cluster. This environment provides web access for authorized users to deposit, retrieve, annotate and
+                  compute on next-generation sequencing (NGS) data, and to analyze the outcomes using web-interface visual environments built in collaboration with research scientists and
+                  regulatory personnel.  HIVE has additional applications for analysis of post market, adverse events, and metagenomic data.</p>
+
+                  <span className='heading'>ARCHITECTURE:</span><br />
+                  <p>HIVE is a multicomponent cloud infrastructure for storage and computations, and it is comprised of two main logical elements:</p>
+                  <ul>
+                      <li><span className='pn'>Distributed Storage Library</span> - A unified, standardized, secure NGS storage infrastructure based on the NIH/NCBI SRA model</li>
+                      <li><span className='pn'>Distributed Computational Powerhouse</span> - Highly parallelized cloud computing environment of virtualized services and algorithms designed to perform bioinformatics analysis of sequence data</li>
+                  </ul>
+
+                  <p>The HIVE infrastructure allows FDA researchers and their collaborators to perform big data analysis in a manner both efficient and secure. HIVE pipeline steps which facilitate this increased efficiency include:</p>
+                  <ul>
+                      <li><span className='pn'>Experimental metadata</span> - The HIVE portal allows researchers to create experiment, sample, protocol, and other important metadata records. Using customizable web pages, a researcher can document specific details pertinent to any experiment, including scientific protocols and biological sample descriptions directly in the HIVE interface. During this process, identification numbers/names are assigned to metadata records. The scientist can then append those identifiers to the related samples prior to submission for in-house or out-house sequencing. When the resulting NGS data are available, HIVE pipelines can pick up the files through a secure channel from the data file providers and upload them into the HIVE system staging location.</li>
+                      <li><span className='pn'>Deposition</span>- Data is then verified, validated, parsed, and subjected to appropriate quality control procedures, which render diagrams available for inspection by the bioinformatics professional and/or the data owner. Once approved and encrypted, data are then split into smaller pieces and migrated into the distributed storage system. After the submission is indexed and registered in the metadata archive, the researcher is notified and given the opportunity to define security credentials and permission profiles for the data in accordance with institution standards. At this point, data is considered to be integrated into HIVE storage, and can therefore subsequently be searched, downloaded, or subjected to biocuration, depending on privacy settings.</li>
+                      <li><span className='pn'>Bioinformatics </span> - Using web-driven visual interfaces, the scientist can search and select one or many datasets for computations. A number of tools have been created by HIVE specifically for NGS data analysis, and an additional pool of existing, widely known tools have been optimized for and adapted to the parallelized HIVE infrastructure: these tools can be used to run computations on selected datasets. The scope and number of these tools are not limited and will be updated based on needs and requests from the scientific user community.</li>
+                  </ul>
+                  <p>HIVE developments and deliverables can be described in terms of three major components: 1) novel, massively parallel infrastructure; 2) custom software for Big Data analysis; and 3) interfaces combining the two.</p>
+                  <br />
+
+                  <span className='heading' id="infrastructure">INFRASTRUCTURE:</span><br />
+                  <ul>
+                      <li><span className='pn'>User registration/accounting and permission access control system</span> - The advanced permissions model utilized by HIVE allows simple, yet powerful, control of both user data and algorithmic elements in accordance with the hierarchical organization of the institution. This model provides capabilities of controlling and auditing all actions on every object in the system. The security models employed have been designed for sensitive data in accordance with the standards defined by NIH and the system is designated as FISMA Moderate.</li>
+                      <li><span className='pn'>Distributed storage system</span> - This layer of software and drivers is the key component for file/archive management and the backbone for the deposition pipeline. </li>
+                      <li><span className='pn'>Data deposition backend</span> - This feature provides the capability to automatically download, upload, and update external datasets to HIVE data repositories.</li>
+                      <li><span className='pn'>Database of metadata </span> - Metadata is an important part of all experiments and analyses. For example, metadata capture can extract significant characteristics from short read data obtained from NGS technologies. This database houses all experiment- and study-specific information collected and classified into categories designed as part of the metadata.</li>
+                      <li><span className='pn'>Uniprot data parser backend processes</span> - This parser allows users to retrieve specific information from the Protein Information Resource (PIR). Information can be filtered and retrieved based on a specific user query.</li>
+                  </ul>
+
+                  <span className='heading' id="algorithms">ALGORITHMICS:</span><br />
+                  <span id="classic">Next Generation Sequencing Classical Analysis Tools:</span>
+                  <ul>
+                    <li>
+                          <span className='pn'>HIVE-hexagon reference guided alignment</span> - This massively parallel,
+                          efficient algorithm was specifically designed to compute NGS alignments to reference genomes.
+                          NSG data has represented an explosion of biological genomic data that is being produced by
+                          today's scientists. This data is difficult to manage and even more difficult to analyze due
+                          to its size requiring new algorithms to process. A linearized diagonal adaptation of
+                          Smith-Waterman optimization and modifications to conventional heuristic seeding algorithms
+                          contribute to the enhanced performance of this tool with respect to other industry standard
+                          aligners. This algorithm is comparable in its quantitative and qualitative outcome with other
+                          well-received alignment algorithms, but is superior to competing tools with respect to speed
+                          and sensitivity.
+                              <br/><br/>
+                                  <a href={`${this.UrlPrefixPlain}/img/HIVE_Hexagon_Results.png`} data-lightbox="HIVE-results"
+                                              data-title="These are the Hexagon results for 100,000 Influenza reads against the
+                                          `    Influenza A genome. On the left is the pie chart showing the distribution of the
+                                              five matched segments. The right shows the alignments. Additional visualizations
+                                              are available.">
+                                                  <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_Hexagon_Results_thumb.png`} alt='' />
+                                  </a>
+                              <br/><br/>
+                      </li>
+                    <li>
+                          <span className='pn'>HIVE-heptagon base-calling and SNP-profiling algorithm</span> - After aligning
+                          millions and millions of reads to a reference genome, individual variations which meet certain
+                          criteria need to be determined. This utility performs base-calling and SNP-calling, reports
+                          statistical significance, and produces a quality and sequencing noise profile with respect to a
+                          genomic reference position. Since Hexagon alignments are in a highly compressed format, Heptagon
+                          can optimize HIVE's infrastructure to quickly and accurately perform these operations. Other tools
+                          are restricted to command line interfaces or written as memory intensive Java applications that
+                          make it difficult to perform these operations on Big Data.
+                              <br/><br/>
+                              <a href={`${this.UrlPrefixPlain}/img/HIVE_Heptagon_Results.png`} data-lightbox="HIVE-results"
+                                      data-title="These are the Heptagon results for the previous alignment. On the left, the
+                                      summary results are shown for the alignment. On the right, three graphs have been
+                                      selected including a visualization of the forward and backwards coverage at any given
+                                      position on the reference (mousover information also shown); the disbalance graph for
+                                      the alignment; and the cumulative SNP frequency graph. Additional visualizations are
+                                      available.">
+                                      <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_Heptagon_Results_thumb.png`} alt='' />
+                                  </a>
+                            <br/><br/>
+                      </li>
+                      <li>
+                          <span className='pn'>Pipeline for NGS data quality control</span> - NGS data received from sequencing
+                          centers or external collaborators may or may not be of high quality. Researchers are required to analyze
+                          the data to determine different quality metrics, but this process can be time consuming and tedious with
+                          large data sets. HIVE automates this process by analyzing various quality-related measures of genome
+                          sequencing data, such as
+                              <ul>
+                                  <li type='a'>Base read quality versus position in the read (with standard deviations)</li>
+                                  <li type='a'>Base count versus position in the read</li>
+                                  <li type='a'>Average base quality in the read</li>
+                                  <li type='a'>Total number of bases in the read</li>
+                                  <li type='a'>Read length distribution</li>
+                                  <li type='a'>Dependence of the read quality on the length</li>
+                              </ul>
+                              <br/>
+                                  <a href={`${this.UrlPrefixPlain}/img/HIVE_Reads_QC_Results.png`} data-lightbox="HIVE-results"
+                                  data-title="These are the some of the quality control results for Influenza reads
+                                  retrieved from SRA. The first graph shows the number of bases at any given position
+                                  in the set of reads. The second graph is the average quality per reads position.">
+                                          <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_Reads_QC_Results_thumb.png`} alt='' />
+                                  </a>
+                              <br/><br/>
+                      </li>
+                      <li><span className='pn'>HIVE-octagon profile clustering</span> - This utility computes phylogenetic clustering of samples using variant profile similarity as the criterion for distance.</li>
+                      <li><span className='pn'>Batch mode</span> - Experiments are rarely done on a single subject. Often, an experiment generates data from many different samples that need to be analyzed in the same manner. The HIVE Batch mode allows many of the tools in HIVE to be automated by the user, processing tens or hundreds of repetitive analytic jobs through a single easy to use interface nearly identical to the one for the tool itself. In contrast, most other tools require the user to spend time writing shell scripts to iterate through their experiments wasting valuable research time.</li>
+                      <li><span className='pn'>Third party tools</span> - Additional third party tools such as IDBA-UD, Velvet de Novo,
+                          PathoScope, BLASTN, BLASTX, TopHat, Bowtie (1 & 2), BWA, MAFFT, Clustal and others are integrated into the HIVE
+                          system to take advantage of the massively parallel processing environment. These tools cover certain tasks and
+                          contain default parameters based on these tasks, optimized by the HIVE team. These tools are also wrapped in
+                          simplified point and click interface with all of the advantages of HIVE's metadata storage and distributed
+                          computing environment and none of the downsides of trying to remember arcane command lines to launch them.
+                              <br/><br/>
+                                  <a href={`${this.UrlPrefixPlain}/img/HIVE_IDBA-UD_Results.png`} data-lightbox="HIVE-results"
+                                      data-title="The results from running IDBA-UD in the HIVE system. Output files by
+                                      the program are shown on the left, along with links to download them directly or
+                                      ingest them into the system for further analysis. When highlighted, the contents
+                                      of the output files are shown in the right panel.">
+                                          <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_IDBA-UD_Results_thumb.png`} alt='' />
+                                  </a>
+                      </li>
+                </ul>
+
+                <div>
+                  <span id="novel">Next Generation Sequencing Novel Tools:</span>
+                  <ul>
+                      <li>
+                              <span className='pn'>HIVE-hexahedron</span> - When a sample of viral or bacteria population is recovered, it
+                              is often not an individual clone but a 'cloud' of organisms that are similar, but not exact, genomically.
+                              Traditional techniques typically involve isolating a single clone from these samples and subsequently
+                              performing analysis on that clone leaving behind valuable data related to the genomic variation in the
+                              sample. In contras this clonal population discovery tool displays bifurcations of read mappings along the
+                              specified reference following reference-assisted de novo assembly. A Sankey diagram provides a graphical
+                              visualization of all possible clones.
+                                  <br/><br/>
+                                      <a href={`${this.UrlPrefixPlain}/img/HIVE_Clonal_Results.png`} data-lightbox="HIVE-results"
+                                      data-title="The results from running Hexahedron on an alignment against Influenza A
+                                      with artificial mutations added. This is a visualization of the clones found in the
+                                      sample. Clone 1 is highlighted via mouse hover.">
+                                          <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_Clonal_Results_thumb.png`} alt='' />
+                                      </a>
+                                  <br/><br/>
+                          </li>
+                      <li>
+                              <span className='pn'>Reference Recombination Tool</span> - This tool facilitates discovery of genetic recombination
+                              and allows resolution of subgroupings in viral, microbial, and other complex populations of environmental samples.
+                                  <br/><br/>
+                                      <a href={`${this.UrlPrefixPlain}/img/HIVE_Recombination_Results.png`} data-lightbox="HIVE-results"
+                                      data-title="In the Recombination results view, you can clearly see regions where
+                                      sample reads more closely resemble a particular genome among a set of related
+                                      genomes based on a previously computed multiple alignment. In this example, you can
+                                      see the majority of the sample corresponds to the Sabin 3 genome, but the range
+                                      from about 4400 to 5900 corresponds to the Sabin 2 genome.">
+                                          <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_Recombination_Results_thumb.png`}  alt='' />
+                                      </a>
+                                  <br/><br/>
+                          </li>
+                      <li>
+                              <span className='pn'>CensuScope</span> - Metagenomic samples that are collected from soil, human gut, or other
+                              diverse areas can be sequenced with current technologies reducing the need to culture individual bacteria for
+                              species discovery. However, the genomic information that is produced is often many hundreds of millions, or
+                              more, of short read sequences. Sifting through this data is computationally difficult even with large
+                              computational resources. The CensuScope program uses a robust subsampling-based algorithm that detects the
+                              taxonomic composition of metagenomic datasets quickly and efficiently.
+                                  <br/><br/>
+                                      <a href={`${this.UrlPrefixPlain}/img/HIVE_Censuscope_Results.png`} data-lightbox="HIVE-results"
+                                          data-title="These are sample results from the CensuScope program.">
+                                              <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_Censuscope_Results_thumb.png`}  alt='' />
+                                      </a>
+                                  <br/><br/>
+                          </li>
+                      <li>
+                              <span className='pn'>Genome Randomizer</span> - After new pipelines are generated, rigorous testing needs to take
+                              place in order to validate these pipelines as effective for their intended purpose. The Genome Randomizer is
+                              a tool in HIVE that allows users to generate artificial read data from a reference genome quickly and easily.
+                              This data can be of any length required by the user and can include simulated mutation information. Paired-end
+                              reads can also be simulated. Other tools that exist are difficult to use while the Genome Randomizer offers a
+                              simple point and click interface for users.
+                          </li>
+                      <li>
+                              <span className='pn'>Annotation Mapper</span> - Often the results of NGS analysis generate large data sets of
+                              information dumped into specifically formatted files. Wading through this information is a nightmare for researchers
+                              due to the extremely high computational demand of searching and matching. Given two or more datasets, the Annotation
+                              Mapper tool can quickly and efficiently cross-map annotation or profile files against each other. This tool report
+                              overlaps or exclusions among the files, quickly allowing a researcher to compare their generated VCF file with dbSNP
+                              or some other database for novel discoveries. The program is extremely flexible allowing filters to be used both on
+                              the reference level and the data level.
+                                  <br/><br/>
+                                      <a href={`${this.UrlPrefixPlain}/img/HIVE_Annotation_Mapper_Results.png`} data-lightbox="HIVE-results"
+                                      data-title="These are sample results from the Annotation Mapper software where one
+                                      set of genomic functional elements was mapped against a set of cancer associated
+                                      single nucleotide variations.">
+                                          <img className="thumbborder centered" src={`${this.UrlPrefixPlain}/img/HIVE_Annotation_Mapper_Results_thumb.png`}  alt='' />
+                                      </a>
+                                  <br/><br/>
+                          </li>
+                      <li>
+                              <span className='pn'>Table query analyzer</span> - Excel and other graphical spreadsheet viewers have a difficult time
+                              opening up very large data sets for manipulation. Occasionally, researchers need to remove parts of a table before
+                              they perform statistical analysis, send it to a collaborator, or otherwise interpret the results. Table query analyzer
+                              removes these limitations and allows the researcher to view and modify data from an uploaded CSV file and perform
+                              analysis on rows/columns to produce clustering diagrams, heatmaps, and other visual or numerical data summaries.
+                          </li>
+                      <li>
+                              <span className='pn'>HIVE-Seq sequence manipulation toolkit</span> - Data received by researchers is rarely clean, and
+                              tools to clean and package data properly are difficult to use. Hive-Seq offers researchers a point and click platform
+                              to clean up NGS samples by filtering data with respect to position, quality, primer, adapter, or other characteristics.
+                              They can additionally organize data into subsets, or create synthetic reads from a genome with a defined level of noise.
+                          </li>
+                  </ul>
+                    {/*
+                      <li><span className='pn'>Novel post-alignment quality control</span> - Using a positional base-frequency entropic information content paradigm from information theory
+                        methodologies, additional quality filters can be applied to alignment and base-calling results.  This technique helps to </li>
+                      <li><span className='pn'>Metagenomic recombination analysis</span> - Traditional techniques involved isolating a single clone from these samples and then performing analysis on that clone leaving behind valuable data related to
+                        the genomic variation in the sample.  This tool can be is used study viral and bacterial population dynamics for possible recombination events and to recover some of this information from the sample.</li>
+                      <li><span className='pn'>SNV-dis SNV distribution tool</span> - Inquire about the statistically significant SNP occurrences in viruses, prokaryotes or eukaryotes. This tool
+                        is capable of analyzing either user-provided datasets or retrieving entries from dbSNP, Pfam, and UniProtKB in real time. These data are then searched for evidence of
+                      selection pressure on domains, structures, pathways, or other protein classification category provided by the user.</li>
+                      <li><span className='pn'>Sequence to structure prediction tool</span> - Expedite and simplify the study of motif occurrence distribution in the proteome with respect to secondary
+                        structure localization.</li>
+                    */}
+                </div>
+
+              <span className='heading'>INTERFACES:</span><br/>
+              <ul>
+                  <li><span className='pn'>HIVE secure web-portal home page</span> includes access to sequence datasets, user files, available algorithmic utilities, analysis pipelines, and results of
+                  computations.</li>
+                  <li><span className='pn'>User self-registration</span> web pages allow creation a new accounts, required for accessing the system resources.</li>
+                  <li><span className='pn'>Registration authentication</span> and supervisor confirmation notification system allows management of account registration through a system of confirmation
+                  emails and provides functionality for group administrators to verify joining members.</li>
+                  <li><span className='pn'>NGS HIVE-hexagon alignment web-interface</span> facilitates quick and efficient identification of millions of short reads.</li>
+                  <li><span className='pn'>NGS BLAST alignment web-interface</span> computes alignments using a parallelized adaptation of BLAST for optimal performance within HIVE.</li>
+                  <li><span className='pn'>HIVE-heptagon sequence profiling interface</span> for NGS data profiling on reference genomes performs statistically accurate base-calling and SNP
+                  discovery</li>
+                  <li><span className='pn'>Metagenomic variability poly-plot</span> renders clear visualization of quasi-species variation and speciation dynamics.</li>
+                  <li><span className='pn'>Viral and/or bacterial DNA recombination site interface</span> facilitates visualization of recombination events in a pool of viral isolates.</li>
+                  <li><span className='pn'>SNV-distribution interface</span> plots the distribution of SNPs relative to their functions, cellular localizations, and involvement in pathways.</li>
+                  <li><span className='pn'>Quality control interface</span> enables visualization of different QC procedure outputs for simple validation and verification of NGS data.</li>
+                  <li><span className='pn'>A web-based application for analyzing ELISA</span> where an imported experiment can be evaluated and the resulting graph, data, and error analysis are displayed.</li>
+              </ul>
+              </div>
+
+              <div style={{marginTop:'10px'}}>
+                <div style={{display:'inline-block'}}><img style={{marginBottom:'45px'}} src={`${this.UrlPrefixPlain}/img/admin.gif`} width="64"  alt='' /></div>
+                <div style={{marginLeft:'10px', fontSize: '30px', fontWeight: 650, display:'inline-block'}}>System Requirements
+                    <p style={{color: '#0275d8', fontSize: '13px'}}>Requirements and recommendations to get the most out of HIVE</p>
+                </div>
+                <p><b>Browser requirements:</b></p>
+                <p>Multiple browsers are supported by HIVE including Chrome, Firefox and Safari. However Chrome is preferred as it better supports the extensive visualizations generated by HIVE. </p>
+              </div>
+
+              <div style={{marginTop:'10px'}}>
+                <div style={{display:'inline-block'}}><img style={{marginBottom:'45px'}} src={`${this.UrlPrefixPlain}/img/admin.gif`} width="64"  alt='' /></div>
+                <div style={{marginLeft:'10px', fontSize: '30px', fontWeight: 650, display:'inline-block'}}>Changelog</div>
+              </div>
+
+              <Changelog />
+            </div>
+          </div>
+          <FooterContainer footerStyle={"footer"}/>
+        </>
+      )
+    }
+  }
+}

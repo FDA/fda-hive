@@ -1,0 +1,64 @@
+{
+    "522": {
+        "_id": "$type.hep_standard_hep3_eeg",
+        "_type": "type",
+        "name": "hep_standard_hep3_eeg",
+        "title": "Standard HEP3 EEG",
+        "description": "Participants should sleep at least 2 hours less than their usual sleep requirement\non the night prior to the EEG.<br>\n2. The sleep-deprived EEG should be recorded for 2 hours at standard sampling\nrate used at the site. T1 and T2 anterior temporal electrodes may also be\nincluded if usual site practice or felt to be clinically indicated, but are not required.<br>\n3. At the start of the recording, technologists should ask participants to (and\nannotate the EEG for each request):<br>\na. Open their eyes for 5 seconds<br>\nb. Close their eyes for 5 seconds<br>\n4. Five minutes of wakefulness should then be recorded.<br>\n5. Hyperventilation should be performed, according to the EEG laboratory’s\nstandard procedure.<br>\n6. Participants should then be instructed to sleep until the final 5 minutes of the 2-hour recording.<br>\n7. Photic stimulation should be performed at the end of the study, according to the\nEEG laboratory’s standard procedure.<br>\n8. Please ask the patient, \"Do you believe you had a seizure during this EEG?\" and\nrecord their response on the HEP 3 site form.",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "EEG Capabilities (please record)",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "anti_aliasing_filter_present",
+                "field_title": "1. Anti-aliasing filter present?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "used_machine_serial_number",
+                "field_title": "2. EEG machine model and serial number being used",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "used_software_version",
+                "field_title": "3. EEG software type and version being used",
+                "field_type": "string",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "files",
+                "field_title": "Files (Please choose files)",
+                "field_type": "file",
+                "field_order": 5,
+                "field_is_multi_fg": true
+            }
+        },
+        "parent": {
+            "4": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

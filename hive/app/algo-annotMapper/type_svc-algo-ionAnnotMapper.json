@@ -1,0 +1,41 @@
+{
+    "type.306": {
+        "_id": "type.306",
+        "_type": "type",
+        "name": "svc-algo-ionAnnotMapper",
+        "title": "Ion Annotation Mapper",
+        "description": "Annotation Mapper between annotation in iondb and/or profilers",
+        "parent": {
+            "1": "type.115"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

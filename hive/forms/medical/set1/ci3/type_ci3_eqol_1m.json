@@ -1,0 +1,39 @@
+{
+    "337": {
+        "_id": "$type.ci3_eqol_1m",
+        "_type": "type",
+        "name": "ci3_eqol_1m",
+        "title": "EuroQoL (1 month)",
+        "parent": {
+            "3": "$type.ci3_health_questionnaire"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

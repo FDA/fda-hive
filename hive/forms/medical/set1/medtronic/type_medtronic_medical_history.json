@@ -1,0 +1,221 @@
+{
+    "175": {
+        "_id": "$type.medtronic_medical_history",
+        "_type": "type",
+        "name": "medtronic_medical_history",
+        "title": "Medical History",
+        "fields": {
+            "1.0": {
+                "field_name": "medical-history",
+                "field_title": "Medical History",
+                "field_type": "array",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.2": {
+                "field_name": "body_system",
+                "field_title": "Body System",
+                "field_type": "string",
+                "field_parent": "medical-history",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "BLOOD AND LYMPHATIC SYSTEM DISORDERS|CARDIAC DISORDERS|CONGENITAL, FAMILIAL AND GENETIC DISORDERS|ENDOCRINE/METABOLIC DISORDERS|EYE, EAR, NOSE, AND THROAT DISORDERS|GASTROINTESTINAL DISORDERS|HEPATOBILIARY DISORDERS|IMMUNE SYSTEM DISORDERS|INFECTIONS AND INFESTATIONS|MUSCULOSKELETAL AND CONNECTIVE TISSUE DISORDERS|NEOPLASMS (INCL CYSTS AND POLYPS) BENIGN|NEOPLASMS (INCL CYSTS AND POLYPS) MALIGNANT|NEOPLASMS (INCL CYSTS AND POLYPS) UNSPECIFIED|PREGNANCY, PUERPERIUM AND PERINATAL CONDITIONS|PSYCHIATRIC DISORDERS, DEPRESSION|PSYCHIATRIC DISORDERS, OTHER|RENAL AND URINARY DISORDERS|REPRODUCTIVE SYSTEM AND BREAST DISORDERS|RESPIRATORY, THORACIC AND MEDIASTINAL DISORDERS|SKIN AND SUBCUTANEOUS TISSUE DISORDERS|SURGICAL AND MEDICAL PROCEDURES|TOXICITY AND POISONING|VASCULAR DISORDERS|OTHER"
+            },
+            "1.3": {
+                "field_name": "other_specify_body_system",
+                "field_title": "Specify Body System",
+                "field_type": "string",
+                "field_parent": "medical-history",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(body_system)=='OTHER'"
+            },
+            "1.4": {
+                "field_name": "medical_history_term",
+                "field_title": "Medical History Term",
+                "field_type": "string",
+                "field_parent": "medical-history",
+                "field_order": "3",
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "diagnosis_indications",
+                "field_title": "Diagnosis Indications",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "primary_diagnosis",
+                "field_title": "Primary Diagnosis",
+                "field_type": "string",
+                "field_order": "5",
+                "field_constraint_data": "INSTABILITY|RECURRENT DISC HERNIATION|STENOSIS"
+            },
+            "1.8": {
+                "field_name": "secondary_diagnosis",
+                "field_title": "Secondary Diagnosis",
+                "field_type": "string",
+                "field_order": "6",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Instability|Recurrent disc herniation|Stenosis"
+            },
+            "1.9": {
+                "field_name": "the_number_of_consecutive_levels",
+                "field_title": "The number of consecutive levels (from L2-S1) that will be treated",
+                "field_type": "string",
+                "field_order": "7",
+                "field_constraint_data": "1|2"
+            },
+            "1.11": {
+                "field_name": "medications",
+                "field_title": "Medications",
+                "field_type": "string",
+                "field_order": "10",
+                "field_constraint_description": "subtitle"
+            },
+            "1.13": {
+                "field_name": "subject_nonsteroidal_anti_inflammatory_drugs",
+                "field_title": "Has the subject used any nonsteroidal anti-inflammatory drugs within 30 days of the scheduled study surgical procedure?",
+                "field_type": "string",
+                "field_order": "11",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.14": {
+                "field_name": "subject_corticosteroids",
+                "field_title": "Has the subject had any corticosteroids within 30 days of the scheduled study surgical procedure?",
+                "field_type": "string",
+                "field_order": "12",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.15": {
+                "field_name": "subject_chemotherapy",
+                "field_title": "Has the subject had any chemotherapy within 30 days of the scheduled study surgical procedure?",
+                "field_type": "string",
+                "field_order": "13",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.16": {
+                "field_name": "subject_anti-coagulants",
+                "field_title": "Has the subject had any anti-coagulants within 30 days of the scheduled study surgical procedure?",
+                "field_type": "string",
+                "field_order": "14",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.17": {
+                "field_name": "subject_bisphosphonates",
+                "field_title": "Has the subject had any bisphosphonates within 30 days of the scheduled study surgical procedure?",
+                "field_type": "string",
+                "field_order": "15",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.19": {
+                "field_name": "subject_undergone_administration",
+                "field_title": "Has the subject undergone administration of any other types of anti-neoplastic, immunostimulating, or immunosuppressive agents, or medications known to interfere with the healing of bone or soft tissue within 30 days of the scheduled study surgical procedure?",
+                "field_type": "string",
+                "field_order": "16",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.20": {
+                "field_name": "subject_non_narcotic",
+                "field_title": "Has subject used non-narcotic over the counter pain medications in the last 7 days (e.g., Ibuprofen (Motrin, Advil), Naproxen (Aleve), Aspirin, or Acetaminophen (Tylenol))?",
+                "field_type": "string",
+                "field_order": "17",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.21": {
+                "field_name": "subject_non_narcotic_prescription",
+                "field_title": "Has subject used any non-narcotic prescription medications in the last 7 days (e.g., Celebrex or Gabapentinoids (Neurontin or Lyrica))?",
+                "field_type": "string",
+                "field_order": "18",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.23": {
+                "field_name": "subject _weak_narcotic",
+                "field_title": "Has subject used any weak narcotic medications in the last 7 days (e.g., Tylenol 3, Darvocet, Darvon, Vicodin, Lorcet, or Norco)?",
+                "field_type": "text",
+                "field_order": "19",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.24": {
+                "field_name": "subject _strong_narcotic",
+                "field_title": "Has subject used strong narcotic medications in the last 7 days (e.g., Percocet, Percodan, Dilaudid, Duragesic, Actiq, Oxycontin, Demerol, or Kadian)?",
+                "field_type": "string",
+                "field_order": "20",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.25": {
+                "field_name": "subject_muscle_relaxants",
+                "field_title": "Has subject used any muscle relaxants in the last 7 days (e.g., Flexeril, Parafon Forte, or Robaxin)?",
+                "field_type": "string",
+                "field_order": "21",
+                "field_constraint_data": "NOT AT ALL|RARELY (1 TO 2 DAYS A WEEK)|SOMETIMES (3 TO 5 DAYS A WEEK)|OFTEN (NEARLY EVERY DAY, 6 TO 7 DAYS A WEEK)"
+            },
+            "1.27": {
+                "field_name": "substance_use_smoking_history",
+                "field_title": "Substance Use/Smoking History",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_description": "subtitle"
+            },
+            "1.28": {
+                "field_name": "substance_usage_array",
+                "field_title": "Substance Usage",
+                "field_type": "array",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.29": {
+                "field_name": "type_of_substance",
+                "field_title": "Type of Substance",
+                "field_type": "string",
+                "field_parent": "substance_usage_array",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "TOBACCO|VAPING PRODUCTS"
+            },
+            "1.30": {
+                "field_name": "usage",
+                "field_title": "Usage",
+                "field_type": "string",
+                "field_parent": "substance_usage_array",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "CURRENT|FORMER\n>is_shown_fg=$(type_of_substance)=='TOBACCO'||$(type_of_substance)=='VAPING PRODUCTS'"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

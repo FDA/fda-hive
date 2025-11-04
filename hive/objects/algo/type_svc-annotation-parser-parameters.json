@@ -1,0 +1,128 @@
+{
+    "type.356": {
+        "_id": "type.356",
+        "_type": "type",
+        "name": "svc-annotation-parser-parameters",
+        "title": "Abstract annotation file parsing parameters",
+        "description": "Abstract type with parameters for annotation parsers",
+        "is_abstract_fg": true,
+        "fields": {
+            "1.3": {
+                "field_name": "columns_list",
+                "field_title": "Fields to Use as Annotations",
+                "field_type": "list",
+                "field_order": 4
+            },
+            "1.4": {
+                "field_name": "columnValidator",
+                "field_title": "Validation Criteria",
+                "field_type": "integer",
+                "field_parent": "id",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "2///check if the element at the specific position is the same as the reference|3///check if the element at the specific position is an variant|0///do not check"
+            },
+            "1.5": {
+                "field_name": "column_name",
+                "field_title": "Field Name",
+                "field_type": "string",
+                "field_parent": "id",
+                "field_order": 1,
+                "field_constraint": "choice+",
+                "field_description": "Required.  This is the column name from your file that you would like to ingest into the system."
+            },
+            "1.7": {
+                "field_name": "id",
+                "field_title": "Field (Check off the above checkbox or Select at least one field)",
+                "field_type": "array",
+                "field_parent": "columns_list",
+                "field_order": 3,
+                "field_is_multi_fg": true
+            },
+            "1.8": {
+                "field_name": "idType",
+                "field_title": "Rename/Match Column",
+                "field_type": "string",
+                "field_parent": "id",
+                "field_order": 2,
+                "field_description": "Optional.  If you would like to rename the column in the system from what is in the file to a new name, you can write it here."
+            },
+            "1.9": {
+                "field_name": "range",
+                "field_title": "Annotation Range or Locus",
+                "field_type": "array",
+                "field_parent": "columns_list",
+                "field_order": 1
+            },
+            "1.10": {
+                "field_name": "rangeEnd",
+                "field_title": "End Position Field (Required)",
+                "field_type": "string",
+                "field_parent": "range",
+                "field_order": 2,
+                "field_constraint": "choice",
+                "field_description": "Required.  Select the column name from your file which specifies the end positions.  In the file you provide, this should be numeric and not include the chromosome or sequence ID.  Please provide the same column name as start position if the position is unique (for example, a SNP position where you may not have separate start and end entries)."
+            },
+            "1.11": {
+                "field_name": "rangeStart",
+                "field_title": "Start Position Field (Required)",
+                "field_type": "string",
+                "field_parent": "range",
+                "field_order": 1,
+                "field_constraint": "choice",
+                "field_description": "Required.  Select the column name from your file which specifies the start positions.  In the file you provide, this should be numeric and not include the chromosome or sequence ID."
+            },
+            "1.12": {
+                "field_name": "rangeValidator",
+                "field_title": "Validation Criteria",
+                "field_type": "integer",
+                "field_parent": "range",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///check if the position is within the length of the sequence|0///do not check position",
+                "field_description": "Validator Criteria"
+            },
+            "1.14": {
+                "field_name": "refMapIdRange",
+                "field_title": "Reference Segment/Chromosome Field (Required)",
+                "field_type": "string",
+                "field_parent": "range",
+                "field_order": 3,
+                "field_constraint": "choice",
+                "field_description": "Optional.  Reference genome for the annotation.  HIVE does not associate the annotation with a specific genome.  However, if you wish to use any of the validation tools, you must select the appropriate reference to validate against.  This reference must use IDs that are identitical to the IDs you used in the annotation file (i.e. 'Chr1' can not be mapped to '1')."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

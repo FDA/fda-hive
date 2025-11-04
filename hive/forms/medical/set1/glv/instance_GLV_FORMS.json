@@ -1,0 +1,42 @@
+{
+    "8892": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "unique-name": "GLV_FORMS",
+        "is_draft": false,
+        "readable_name": "Galvanize Forms",
+        "sl_order": 1,
+        "survey": {
+            "12": {
+                "12.0": {
+                    "name": "$type.glv_demographics",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "15": {
+                "15.0": {
+                    "name": "$type.glv_medical_history",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "16": {
+                "16.0": {
+                    "name": "$type.glv_medications",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            }
+        }
+    }
+}

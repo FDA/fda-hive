@@ -1,0 +1,70 @@
+{
+    "74": {
+        "_id": "$type.sysdocker",
+        "_type": "type",
+        "name": "sysdocker",
+        "title": "Docker Script",
+        "description": "//\nlocation: vlib.qlib",
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_optional_fg": true,
+                "field_brief": "$_(v)"
+            },
+            "1.3": {
+                "field_name": "version",
+                "field_title": "Version",
+                "field_type": "string",
+                "field_order": 3,
+                "field_brief": "version $_(v)"
+            },
+            "1.5": {
+                "field_name": "docker_imageid",
+                "field_title": "Docker Image Id",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "docker_imagename",
+                "field_title": "Docker Image Name",
+                "field_type": "string"
+            }
+        },
+        "parent": {
+            "3": "$type.sysapp"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

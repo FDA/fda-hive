@@ -1,0 +1,85 @@
+{
+    "379": {
+        "_id": "$type.tasct_medical_history",
+        "_type": "type",
+        "name": "tasct_medical_history",
+        "title": "Medical History",
+        "fields": {
+            "1.1": {
+                "field_name": "past_medical_history",
+                "field_title": "Have you ever been diagnosed with any of the following medical problems (Check all that apply, or provide details in the ‘other’ section)?",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Fibromyalgia|Hashimoto’s disease|Irritable Bowel Syndrome (IBS)|Chronic fatigue syndrome|Breast Cancer|Other cancers|Gastrointestinal or digestive issues (such as acid reflux, Gastroesophageal reflux disease (GERD), gastritis)|Diabetes|Osteoarthritis|Rheumatoid Arthritis|Vertigo|Raynauds syndrome|Endocrine dysfunction|Neurological abnormalities|Asthma|Allergies|Depression|Anxiety|Eating disorder (e.g., bulimia, anorexia)|Drug or alcohol dependence|Panic attacks|Other"
+            },
+            "1.2": {
+                "field_name": "past_medical_other",
+                "field_title": "Please provide details for the \"other\" section.",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "is_shown_fg=$(past_medical_history)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.3": {
+                "field_name": "past_sugical_history",
+                "field_title": "Have you undergone any surgeries in the past (check all that apply)?",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Orthopedic implant|Neurosurgical implant|Obstetric implant (including birth control devices)|Urological implant|Cardiac implant|Plates, screws, rods for fractures|Hip or knee replacement|Pacemaker|Other permanent implanted medical devices"
+            },
+            "1.4": {
+                "field_name": "past_sugical_other",
+                "field_title": "Please provide details.",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(past_sugical_history)=='Other permanent implanted medical devices'",
+                "field_constraint_description": "subquestion"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

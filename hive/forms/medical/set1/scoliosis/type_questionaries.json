@@ -1,0 +1,792 @@
+{
+    "6122": {
+        "_id": "$type.scoliosis",
+        "_type": "type",
+        "name": "scoliosis",
+        "title": "Scoliosis",
+        "parent": {
+            "3": "$type.med_set1"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "description_1",
+                "field_title": "",
+                "field_type": "string",
+                "field_order": "1",
+                "field_constraint_description": "description",
+                "field_description": "For the purposes of this survey, you can respond on behalf of yourself or your child. If you are completing this survey for someone else, “you” in the consent form refers to your child. If more than one person in your family has scoliosis, please complete one survey for each person.\r\n<br /><br />\r\nQuestions marked with a red star (<span class=\"required ng-star-inserted\">*</span>) are mandatory.\r\n<br />"
+            },
+            "3.2": {
+                "field_name": "are_you_responding_on_behalf_of",
+                "field_title": "Are you responding on behalf of:",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "Yourself|Your child"
+            },
+            "3.3": {
+                "field_name": "age_scoliosis_diagnoses",
+                "field_title": "At what age was the scoliosis diagnosed?",
+                "field_type": "integer",
+                "field_order": "3",
+                "field_constraint_data": "0-100"
+            },
+            "3.4": {
+                "field_name": "current_age",
+                "field_title": "What is patient's age now?",
+                "field_type": "integer",
+                "field_order": "4",
+                "field_constraint_data": "0-100"
+            },
+            "3.5": {
+                "field_name": "gender",
+                "field_title": "Patient's sex at birth",
+                "field_type": "string",
+                "field_order": "5",
+                "field_constraint_data": "Male|Female|Prefer not to disclose"
+            },
+            "3.6": {
+                "field_name": "another_medical_problem_that_causes_scoliosis",
+                "field_title": "Do you have another medical problem that causes the scoliosis or affects the scoliosis (cerebral palsy, spinal cord injury, etc.)?",
+                "field_type": "bool",
+                "field_order": "6",
+                "field_default_value": "false",
+                "field_is_optional_fg": true
+            },
+            "3.7": {
+                "field_name": "not_continue",
+                "field_type": "string",
+                "field_order": "6.2",
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "<h4>Because you have other conditions associated with Scoliosis you do not qualify to take this survey. Thank you for your interest.</h4>"
+            },
+            "3.8": {
+                "field_name": "what_medical_condition_that_causes_scoliosis",
+                "field_title": "If you are comfortable sharing, what medical condition do you have that causes or affects the scoliosis?",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.9": {
+                "field_name": "idiopathic_scoliosis",
+                "field_title": "Have you ever been diagnosed with idiopathic scoliosis (no known medical problem causing scoliosis)?",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_data": "Yes|No|Unknown\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.10": {
+                "field_name": "most_recent_cobb_angle_measurement",
+                "field_title": "If you know, what is your most recent Cobb angle measurement?",
+                "field_type": "integer",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.11": {
+                "field_name": "currently_involved_physical_therapy",
+                "field_title": "Are you currently involved in physical therapy, specialized exercises, or physiotherapy for scoliosis?",
+                "field_type": "bool",
+                "field_order": "10",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.12": {
+                "field_name": "involved _exercises_types",
+                "field_title": "If you are involved in exercises, which type (ex: Schroth, Sports, etc)?",
+                "field_type": "string",
+                "field_order": "11",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(currently_involved_physical_therapy)=='true'&&$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.13": {
+                "field_name": "currently_using_chiropractic_treatment",
+                "field_title": "Are you currently using chiropractic treatment for scoliosis?",
+                "field_type": "bool",
+                "field_order": "12",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.14": {
+                "field_name": "hiropractic_treatment_type",
+                "field_title": "If you are doing chiropractic treatment, please provide details",
+                "field_type": "string",
+                "field_order": "13",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(currently_using_chiropractic_treatment)=='true'&&$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.15": {
+                "field_name": "currently_using_brace",
+                "field_title": "Are you currently using a brace for your scoliosis?",
+                "field_type": "bool",
+                "field_order": "14",
+                "field_is_optional_fg": true,
+                "field_is_summary_fg": false,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'",
+                "field_constraint_description": ""
+            },
+            "3.16": {
+                "field_name": "currently_using_brace_type",
+                "field_title": "If you are wearing a brace, which type of brace do you wear?",
+                "field_type": "string",
+                "field_order": "15",
+                "field_constraint_data": "SpineCor|Hard plastic brace|TLSO|Boston Brace|Charleston brace|Wilmington brace|Rigo Cheneau brace|Other|Don't know\r\n>is_shown_fg=$(currently_using_brace)=='true'&&$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.17": {
+                "field_name": "hours_wearing_brace_each_day",
+                "field_title": "About how many hours do you wear the brace each day?",
+                "field_type": "string",
+                "field_order": "16",
+                "field_constraint_data": "0-6|6-12|12-18|18-24\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.18": {
+                "field_name": "had_scoliosis_surgery",
+                "field_title": "Have you had surgery for scoliosis?",
+                "field_type": "bool",
+                "field_order": "17",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.19": {
+                "field_name": "your_approximate_age_surgery",
+                "field_title": "What was patient's approximate age at the time of surgery?",
+                "field_type": "integer",
+                "field_order": "18",
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true';has_error=$(current_age)<$(your_approximate_age_surgery);"
+            },
+            "3.20": {
+                "field_name": "sanders_hand_bone_age",
+                "field_title": "If you know, what was your Sanders hand bone age (1 through 8) at the time of surgery?",
+                "field_type": "integer",
+                "field_order": "19",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1-8\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.21": {
+                "field_name": "year_surgery",
+                "field_title": "What year was the surgery?",
+                "field_type": "string",
+                "field_order": "20",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "2022|2021|2020|2019|2018|2017|2016|2015|2014|2013|2012|2011|2010|2009|2008|2007|2006|2005|2004|2003|2002|2001|2000|1999|1998|1997|1996|1995|1994|1993|1992|1991|1990|1989|1988|1987|1986|1985|1984|1983|1982|1981|1980|1979|1978|1977|1976|1975|1974|1973|1972|1971|1970\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.22": {
+                "field_name": "surgery_country",
+                "field_title": "In what country was the surgery performed?",
+                "field_type": "string",
+                "field_order": "21",
+                "field_is_key_fg": false,
+                "field_is_optional_fg": false,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "US|Not in US",
+                "field_constraint_description": ""
+            },
+            "3.23": {
+                "field_is_hidden_fg": true,
+                "field_brief": ""
+            },
+            "3.24": {
+                "field_is_hidden_fg": true
+            },
+            "3.25": {
+                "field_name": "us_countries_list",
+                "field_title": "Countries list",
+                "field_type": "string",
+                "field_order": "21.2",
+                "field_default_value": "United States",
+                "field_constraint": "search",
+                "field_constraint_data": "{\r\n\"fetch\":[\"Country\"],\r\n\"url\":\"?cmd=file&mode=csv&filename=voc/gcd_countries.csv&raw=1&start=0\",\r\n\"inline\":[\r\n\t{\"name\":\"Country\",\"title\":\"Country\",\"display\":\"title\",\"search\":\"true\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"Country\",\"title\":\"Country\"}\r\n]\r\n}\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.26": {
+                "field_name": "surgery_type",
+                "field_title": "What type of surgery did you have?",
+                "field_type": "string",
+                "field_order": "22",
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "Please select one or more"
+            },
+            "3.27": {
+                "field_name": "fusion_upper",
+                "field_title": "Fusion upper back only (thoracic)",
+                "field_type": "bool",
+                "field_order": "23",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.28": {
+                "field_name": "fusion_lower",
+                "field_title": "Fusion lower back only (lumbar)",
+                "field_type": "bool",
+                "field_order": "24",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.29": {
+                "field_name": "fusion_upper_lower",
+                "field_title": "Fusion upper and lower back",
+                "field_type": "bool",
+                "field_order": "25",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.30": {
+                "field_name": "fusion_dont_know",
+                "field_title": "Fusion, don't know",
+                "field_type": "bool",
+                "field_order": "26",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.31": {
+                "field_name": "vertebral_body_tethering",
+                "field_title": "Tether or Vertebral body tethering (VBT, AVBT) without fusion",
+                "field_type": "bool",
+                "field_order": "27",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.32": {
+                "field_name": "apifix_mid_c_posterior_dynamic_distraction",
+                "field_title": "ApiFix/MID-C/posterior dynamic distraction",
+                "field_type": "bool",
+                "field_order": "28",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.33": {
+                "field_name": "anterior_scoliosis_correction",
+                "field_title": "Anterior Scoliosis Correction",
+                "field_type": "bool",
+                "field_order": "29",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.34": {
+                "field_name": "other",
+                "field_title": "Other",
+                "field_type": "bool",
+                "field_order": "30",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.35": {
+                "field_name": "other_1",
+                "field_type": "string",
+                "field_order": "31",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other)=='true'&&$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.36": {
+                "field_name": "magnetic_growing_rod",
+                "field_title": "Magnetic Growing Rod",
+                "field_type": "bool",
+                "field_order": "32",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.37": {
+                "field_name": "traditional_growing_rod",
+                "field_title": "Traditional Growing Rod,  Shilla, VEPTR, or Rib-based device",
+                "field_type": "bool",
+                "field_order": "33",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.38": {
+                "field_name": "fusion_neck",
+                "field_title": "Fusion neck only (cervical spine)",
+                "field_type": "bool",
+                "field_order": "34",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.39": {
+                "field_name": "neck_disc_surgery_without_fusion",
+                "field_title": "Neck disc surgery without fusion",
+                "field_type": "bool",
+                "field_order": "35",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.40": {
+                "field_name": "lower_back",
+                "field_title": "Lower back (lumbar) disc surgery without fusion",
+                "field_type": "bool",
+                "field_order": "36",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.41": {
+                "field_name": "placement_pain_stimulator",
+                "field_title": "Placement of pain stimulator, baclofen pump, or dorsal root rhizotomy",
+                "field_type": "bool",
+                "field_order": "37",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "3.42": {
+                "field_name": "specify_other",
+                "field_title": "Specify other",
+                "field_type": "string",
+                "field_order": "38",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.43": {
+                "field_name": "cobb_angle_before_surgery",
+                "field_title": "What was your Cobb angle(s) before surgery if known (cervical, thoracic, lumbar)?",
+                "field_type": "string",
+                "field_order": "39",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-100\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.44": {
+                "field_name": "cobb_angle_after_surgery",
+                "field_title": "What was your Cobb angle(s) after surgery if known (cervical, thoracic, lumbar)?",
+                "field_type": "string",
+                "field_order": "40",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-100\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.45": {
+                "field_name": "had_second_surgery",
+                "field_title": "Have you had a second surgery (revision)?",
+                "field_type": "bool",
+                "field_order": "41",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.46": {
+                "field_name": "second_surgery",
+                "field_title": "Why did you have a second surgery (revision)?",
+                "field_type": "text",
+                "field_order": "42",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(had_second_surgery)=='true'&&$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.47": {
+                "field_name": "problem_with_spinal_implants",
+                "field_title": "Are you aware of a problem with your spinal implants or device, or do you have another surgery planned on your back?",
+                "field_type": "bool",
+                "field_order": "43",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.48": {
+                "field_name": "describe_problem_with_spinal_implants",
+                "field_title": "If there is a problem with your spine implant or another surgery planned, please explain",
+                "field_type": "text",
+                "field_order": "44",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(problem_with_spinal_implants)=='true'&&$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.49": {
+                "field_name": "upload_x_ray",
+                "field_title": "Would you like to upload x-rays?",
+                "field_type": "bool",
+                "field_order": "45",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'",
+                "field_constraint_description": ""
+            },
+            "3.50": {
+                "field_name": "description_3",
+                "field_type": "string",
+                "field_order": "45.2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'",
+                "field_constraint_description": "description",
+                "field_description": "<p>Please feel free to upload any x-ray as a JPG,\r\nTIFF, PNG, DICOM etc. if you would like.\r\nIf you are able, please upload the x-rays that\r\nwere taken on the same date as a single\r\nupload. Please separate the x-rays by date.</p>\r\n<p>***IMPORTANT: Please remove/crop out\r\nany identifying information (ex: name, date\r\nof birth, medical record number, hospital,\r\netc.) from your x-rays before uploading.</p>"
+            },
+            "3.51": {
+                "field_name": "upload",
+                "field_title": "Upload",
+                "field_type": "array",
+                "field_order": "46",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(upload_x_ray)=='true'&&$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.52": {
+                "field_name": "upload_file",
+                "field_title": "Upload file",
+                "field_type": "file",
+                "field_parent": "upload",
+                "field_order": "1"
+            },
+            "3.53": {
+                "field_name": "upload_date",
+                "field_title": "Year when X-Ray was taken",
+                "field_type": "string",
+                "field_parent": "upload",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "2022|2021|2020|2019|2018|2017|2016|2015|2014|2013|2012|2011|2010|2009|2008|2007|2006|2005|2004|2003|2002|2001|2000|1999|1998|1997|1996|1995|1994|1993|1992|1991|1990|1989|1988|1987|1986|1985|1984|1983|1982|1981|1980|1979|1978|1977|1976|1975|1974|1973|1972|1971|1970"
+            },
+            "3.54": {
+                "field_name": "email",
+                "field_title": "Would you like to be contacted again in 6 months? If so, please provide your e-mail.",
+                "field_type": "string",
+                "field_order": "47",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'",
+                "field_constraint_description": "email",
+                "field_description": "We will also use this address to send you a\r\nsummary of the results of our study as the\r\ndata becomes available"
+            },
+            "3.55": {
+                "field_name": "additional_questions",
+                "field_title": "Would you like to complete the following?",
+                "field_type": "bool",
+                "field_order": "48",
+                "field_default_value": "true",
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'",
+                "field_constraint_description": "",
+                "field_description": ""
+            },
+            "3.56": {
+                "field_name": "description_2",
+                "field_title": "Please, complete the following list of questions about your pain, function, mental health, and satisfaction with treatment (Scoliosis Research Society 22 Survey). Please answer all questions to complete the survey.",
+                "field_type": "string",
+                "field_order": "49",
+                "field_default_value": "true",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'",
+                "field_constraint_description": "description",
+                "field_description": ""
+            },
+            "3.57": {
+                "field_name": "srs1",
+                "field_title": "1. Which one of the following best describes the amount of pain you have experienced during the past 6 months?",
+                "field_type": "string",
+                "field_order": "50",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///None|4///Mild|3///Moderate|2///Moderate to severe|1///Severe\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.58": {
+                "field_name": "srs2",
+                "field_title": "2. Which one of the following best describes the amount of pain you have experienced over the last month?",
+                "field_type": "string",
+                "field_order": "51",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///None|4///Mild|3///Moderate|2///Moderate to severe|1///Severe\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.59": {
+                "field_name": "srs3",
+                "field_title": "3. During the past 6 months have you been a very nervous person?",
+                "field_type": "string",
+                "field_order": "52",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///None of the time|4///A little of the time|3///Some of the time|2///Most of the time|1///All of the time\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.60": {
+                "field_name": "srs4",
+                "field_title": "4. If you had to spend the rest of your life with your back shape as it is right now, how would you feel about it?",
+                "field_type": "string",
+                "field_order": "53",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Very happy|4///Somewhat happy|3///Neither happy nor unhappy|2///Somewhat unhappy|1///Very unhappy\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.61": {
+                "field_name": "srs5",
+                "field_title": "5. What is your current level of activity?",
+                "field_type": "string",
+                "field_order": "54",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///Bedridden|2///Primarily no activity|3///Light labor and light sports|4///Moderate labor and moderate sports|5///Full activities without restriction\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.62": {
+                "field_name": "srs6",
+                "field_title": "6. How do you look in clothes?",
+                "field_type": "string",
+                "field_order": "55",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Very good|4///Good|3///Fair|2///Bad|1///Very bad\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.63": {
+                "field_name": "srs7",
+                "field_title": "7. In the past 6 months have you felt so down in the dumps that nothing could cheer you up?",
+                "field_type": "string",
+                "field_order": "56",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///Very often|2///Often|3///Sometimes|4///Rarely|5///Never\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.64": {
+                "field_name": "srs8",
+                "field_title": "8. Do you experience back pain when at rest?",
+                "field_type": "string",
+                "field_order": "57",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///Very often|2///Often|3///Sometimes|4///Rarely|5///Never\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.65": {
+                "field_name": "srs9",
+                "field_title": "9. What is your current level of work/school activity?",
+                "field_type": "string",
+                "field_order": "58",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///100% normal|4///75% normal|3///50% normal|2///25% normal|1///0% normal\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.66": {
+                "field_name": "srs10",
+                "field_title": "10. Which of the following best describes the appearance of your trunk; defined as the human body except for the head and extremities?",
+                "field_type": "string",
+                "field_order": "59",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Very good|4///Good|3///Fair|2///Poor|1///Very Poor\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.67": {
+                "field_name": "srs11",
+                "field_title": "11. Which one of the following best describes your pain medication use for back pain?",
+                "field_type": "string",
+                "field_order": "60",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///None|4///Non-narcotics weekly or less (e.g., aspirin, Tylenol, Ibuprofen)|3///Non-narcotics daily|2///Narcotics weekly or less (e.g. Tylenol III, Lorcet, Percocet)|1///Narcotics daily\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.68": {
+                "field_name": "srs12",
+                "field_title": "12. Does your back limit your ability to do things around the house?",
+                "field_type": "string",
+                "field_order": "61",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Never|4///Rarely|3///Sometimes|2///Often|1///Very Often\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.69": {
+                "field_name": "srs13",
+                "field_title": "13. Have you felt calm and peaceful during the past 6 months?",
+                "field_type": "string",
+                "field_order": "62",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///All of the time|4///Most of the time|3///Some of the time|2///A little of the time|1///None of the time\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.70": {
+                "field_name": "srs14",
+                "field_title": "14. Do you feel that your back condition affects your personal relationships?",
+                "field_type": "string",
+                "field_order": "63",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///None|4///Slightly|3///Mildly|2///Moderately|1///Severely\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.71": {
+                "field_name": "srs15",
+                "field_title": "15. Are you and/or your family experiencing financial difficulties because of your back?",
+                "field_type": "string",
+                "field_order": "64",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///Severely|2///Moderately|3///Mildly|4///Slightly|5///None\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.72": {
+                "field_name": "srs16",
+                "field_title": "16. In the past 6 months have you felt down hearted and blue?",
+                "field_type": "string",
+                "field_order": "65",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Never|4///Rarely|3///Sometimes|2///Often|1///Very Often\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.73": {
+                "field_name": "srs17",
+                "field_title": "17. In the last 3 months have you taken any days off of work, including household work, or school because of back pain?",
+                "field_type": "string",
+                "field_order": "66",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///0 days|4///1 day|3///2 days|2///3 days|1///4 or more days\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.74": {
+                "field_name": "srs18",
+                "field_title": "18 Does your back condition limit your going out with friends/family?",
+                "field_type": "string",
+                "field_order": "67",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Never|4///Rarely|3///Sometimes|2///Often|1///Very Often\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.75": {
+                "field_name": "srs19",
+                "field_title": "19. Do you feel attractive with your current back condition?",
+                "field_type": "string",
+                "field_order": "68",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Yes, very|4///Yes, somewhat|3///Neither attractive nor unattractive|2///No, not very much|1///No, not at all\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.76": {
+                "field_name": "srs20",
+                "field_title": "20. Have you been a happy person during the past 6 months?",
+                "field_type": "integer",
+                "field_order": "69",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///None of the time|2///A little of the time|3///Some of the time|4///Most of the time|5///All of the time\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.77": {
+                "field_name": "srs21",
+                "field_title": "21. Are you satisfied with the results of your back management?",
+                "field_type": "integer",
+                "field_order": "70",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Very satisfied|4///Satisfied|3///Neither satisfied nor unsatisfied|2///Unsatisfied|1///Very unsatisfied\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.78": {
+                "field_name": "srs22",
+                "field_title": "22. Would you have the same management again if you had the same condition?",
+                "field_type": "integer",
+                "field_order": "71",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "5///Definitely yes|4///Probably yes|3///Not sure|2///Probably not|1///Definitely not\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(additional_questions)=='true'"
+            },
+            "3.79": {
+                "field_name": "rate_pain",
+                "field_title": "Please rate your back pain in the last month from 0 to 10, with 0 as no pain and 10 being severe pain.",
+                "field_type": "integer",
+                "field_order": "72",
+                "field_constraint": "range",
+                "field_constraint_data": "0-10\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.80": {
+                "field_name": "miss_school_days",
+                "field_title": "How many days of school did you miss due to your back condition in the last year?",
+                "field_type": "integer",
+                "field_order": "73",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.81": {
+                "field_name": "family_member_miss_work_days",
+                "field_title": "How many days of work did you or your family member miss due to your back condition in the last years?",
+                "field_type": "integer",
+                "field_order": "74",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.82": {
+                "field_name": "receiving_disability_benefits",
+                "field_title": "Are you receiving disability benefits or Social Security Implementation because of your back condition?",
+                "field_type": "bool",
+                "field_order": "75",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "",
+                "field_constraint_description": "checkbox"
+            },
+            "3.83": {
+                "field_name": "consider_yourself_hispanic_latino",
+                "field_title": "Do you consider yourself Hispanic/Latino or not Hispanic/Latino",
+                "field_type": "string",
+                "field_order": "76",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Hispanic or Latino|Not Hispanic or Latino|Prefer not to say\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(us_countries_list)=='United States'"
+            },
+            "3.84": {
+                "field_name": "five_racial_designations",
+                "field_title": "Which of the following five racial designations best describes you? More than one choice is acceptable",
+                "field_type": "string",
+                "field_order": "77",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "American Indian or Alaska Native|Asian|Black or African American|Native Hawaiian or Other Pacific Islander|White|Multiracial|Prefer not to say\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(us_countries_list)=='United States'"
+            },
+            "3.85": {
+                "field_name": "anything_else_about_scoliosis",
+                "field_title": "Is there anything else you would like us to know about your or your scoliosis journey?",
+                "field_type": "text",
+                "field_order": "78",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.86": {
+                "field_name": "risser_value_age",
+                "field_title": "If you know, what was your Risser (0 through 5) at the time of survey?",
+                "field_type": "integer",
+                "field_order": "19.5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-5\r\n>is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'&&$(had_scoliosis_surgery)=='true'"
+            },
+            "3.87": {
+                "field_name": "currently_using_brace_type_other",
+                "field_title": "Please describe",
+                "field_type": "string",
+                "field_order": "15.5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(currently_using_brace_type)=='Other'&&$(another_medical_problem_that_causes_scoliosis)=='false'"
+            },
+            "3.88": {
+                "field_name": "srs_score",
+                "field_title": "Total score",
+                "field_type": "real",
+                "field_order": "71.5",
+                "field_constraint_data": "var arrint = [parseInt($(srs1)),parseInt($(srs2)),parseInt($(srs3)),parseInt($(srs4)),parseInt($(srs5)),parseInt($(srs6)),parseInt($(srs7)),parseInt($(srs8)),parseInt($(srs9)),parseInt($(srs10)),parseInt($(srs11)),parseInt($(srs12)),parseInt($(srs13)),parseInt($(srs14)),parseInt($(srs15)),parseInt($(srs16)),parseInt($(srs17)),parseInt($(srs18)),parseInt($(srs19)),parseInt($(srs20)),parseInt($(srs21)),parseInt($(srs22))];value_fg=((arrint.reduce((partialSum, a) => partialSum + a, 0))/(arrint.filter((value) => value != 0).length)).toFixed(2);is_disabled_fg=true;is_shown_fg=$(additional_questions)=='true';"
+            },
+            "3.89": {
+                "field_name": "description_4",
+                "field_title": "",
+                "field_order": "80",
+                "field_default_value": "true",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(another_medical_problem_that_causes_scoliosis)=='false'",
+                "field_constraint_description": "description",
+                "field_description": "After answering the questions, if you have completed the form, please, click “Submit“, otherwise please select “Save as Draft”."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

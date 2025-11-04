@@ -1,0 +1,110 @@
+{
+    "373": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "unique-name": "TMJ",
+        "readable_name": "TMJ Questionnaires",
+        "sl_order": 1,
+        "survey": {
+            "7": {
+                "7.1": {
+                    "name": "$type.tmj_patient_demographics",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": false,
+                    "optional_fields": 0
+                }
+            },
+            "33": {
+                "33.1": {
+                    "name": "$type.tmj_patient_symptoms",
+                    "dependencies": "$type.tmj_patient_demographics",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "34": {
+                "34.1": {
+                    "name": "$type.tmj_patient_therapeutics",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "35": {
+                "35.1": {
+                    "name": "$type.tmj_provider_dg",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "36": {
+                "36.1": {
+                    "name": "$type.tmj_previous_treatment_history",
+                    "dependencies": "$type.tmj_provider_dg",
+                    "order": 6,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "51": {
+                "51.1": {
+                    "name": "$type.tmj_patient_past_medical_history_new",
+                    "order": 5,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "66": {
+                "66.1": {
+                    "name": "$type.tmj_patient_past_dental_history",
+                    "order": 7,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "67": {
+                "67.1": {
+                    "name": "$type.tmj_patient_past_surgical_history",
+                    "order": 8,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            }
+        },
+        "visit_types_ref": {
+            "29": 403
+        },
+        "_perm": [
+            {
+                "party": "/HIVE/Projects/TMJ/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

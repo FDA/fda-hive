@@ -1,0 +1,52 @@
+{
+    "252": {
+        "_id": "$type.svc-dna-multi-qc",
+        "_type": "type",
+        "name": "svc-dna-multi-qc",
+        "title": "Dna Multi QC",
+        "description": "// Dna multi file QC\nlocation: hive.app.dna.dna-multi-qc",
+        "parent": {
+            "1": "$type.svc-dna-qcqa"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "query_objId",
+                "field_title": "FASTQ Read Files",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

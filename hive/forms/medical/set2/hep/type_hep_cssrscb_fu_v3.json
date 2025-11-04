@@ -1,0 +1,29 @@
+{
+    "475": {
+        "_id": "$type.hep_cssrscb_fu_v3",
+        "_type": "type",
+        "name": "hep_cssrscb_fu_v3",
+        "title": "Columbia-Suicide Severity Rating Scale – Follow Up",
+        "parent": {
+            "3": "$type.hep_cssrscb_fu"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

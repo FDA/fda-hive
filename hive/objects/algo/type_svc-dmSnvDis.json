@@ -1,0 +1,297 @@
+{
+    "type.24": {
+        "_id": "type.24",
+        "_type": "type",
+        "name": "svc-dmSnvDis",
+        "title": "nsSNVs Distribution Analysis",
+        "description": "SNVDis returns the distribution of nsSNVs across the human proteome or in a set of human proteins uploaded by the user. Follow-up analysis can be performed to ascertain how these nsSNVs are distributed in the functional sites of proteins (active site, binding site, N-linked glycosylation site, etc.), domains and pathways",
+        "parent": {
+            "1": "type.331"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "act_source",
+                "field_title": "Source of active sites",
+                "field_type": "string",
+                "field_parent": "functionalSites",
+                "field_default_value": "CDD,UniProt",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "CDD|UniProt"
+            },
+            "1.2": {
+                "field_name": "analysis",
+                "field_title": "Type of analysis",
+                "field_type": "string",
+                "field_order": 1,
+                "field_default_value": "functionalSites",
+                "field_constraint": "choice",
+                "field_constraint_data": "customdomains///User-defined domains|customProteinSets///User-defined protein sets|functionalSites///Functional Sites|domains///Protein domains| protein_sets///Protein sets"
+            },
+            "1.3": {
+                "field_name": "bind_source",
+                "field_title": "Source of binding sites",
+                "field_type": "string",
+                "field_parent": "functionalSites",
+                "field_default_value": "all",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "CDD|UniProt|all"
+            },
+            "1.4": {
+                "field_name": "cdd_bind_type",
+                "field_title": "Type of CDD binding",
+                "field_type": "string",
+                "field_parent": "functionalSites",
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "customdomains",
+                "field_title": "User-defined domains",
+                "field_type": "list",
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "customdomains_up",
+                "field_title": "Input method",
+                "field_type": "string",
+                "field_parent": "customdomains",
+                "field_order": 0,
+                "field_default_value": "text",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "text///Type you dataset|file///Upload a file"
+            },
+            "1.7": {
+                "field_name": "customdomains_up_file",
+                "field_type": "string",
+                "field_parent": "customdomains",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "customdomains_up_text",
+                "field_type": "string",
+                "field_parent": "customdomains",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "customProteinSets",
+                "field_title": "User-defined protein sets",
+                "field_type": "list",
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "customprotsets_up",
+                "field_title": "Input method",
+                "field_type": "string",
+                "field_parent": "customProteinSets",
+                "field_order": 0,
+                "field_default_value": "text",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "text///Type you dataset|file///Upload a file"
+            },
+            "1.11": {
+                "field_name": "customprotsets_up_file",
+                "field_type": "string",
+                "field_parent": "customProteinSets",
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "customprotsets_up_text",
+                "field_type": "string",
+                "field_parent": "customProteinSets",
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "domains",
+                "field_title": "Protein domains",
+                "field_type": "list",
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "dom_pval",
+                "field_title": "p-Value",
+                "field_type": "real",
+                "field_parent": "domains",
+                "field_is_optional_fg": true
+            },
+            "1.15": {
+                "field_name": "dom_specific",
+                "field_title": "Pfam ID",
+                "field_type": "string",
+                "field_parent": "domains",
+                "field_default_value": "0.005",
+                "field_is_optional_fg": true,
+                "field_constraint": "range",
+                "field_constraint_data": "0-1"
+            },
+            "1.16": {
+                "field_name": "dom_type",
+                "field_title": "Based on",
+                "field_type": "string",
+                "field_parent": "domains",
+                "field_default_value": "significance",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "specific///By ID|significance///By significance"
+            },
+            "1.17": {
+                "field_name": "functionalSites",
+                "field_title": "Functional sites",
+                "field_type": "list",
+                "field_is_optional_fg": true
+            },
+            "1.18": {
+                "field_name": "nlinked_type",
+                "field_title": "Effect on n-linked glycosylation site",
+                "field_type": "string",
+                "field_parent": "functionalSites",
+                "field_default_value": "N-linked glycosylation loss",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "not affecting the site|N-linked glycosylation loss"
+            },
+            "1.19": {
+                "field_name": "protein_sets",
+                "field_title": "Protein set",
+                "field_type": "list",
+                "field_is_optional_fg": true
+            },
+            "1.20": {
+                "field_name": "proteome",
+                "field_title": "Reference proteome",
+                "field_type": "list"
+            },
+            "1.21": {
+                "field_name": "proteome_method",
+                "field_title": "Source of proteome",
+                "field_type": "string",
+                "field_parent": "proteome",
+                "field_order": 0,
+                "field_default_value": "sets",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "sets///Provided sets|up///User-defined proteome"
+            },
+            "1.22": {
+                "field_name": "proteome_sets",
+                "field_title": "Proteome sets",
+                "field_type": "string",
+                "field_parent": "proteome",
+                "field_order": 1,
+                "field_default_value": "UniProtKB/Swiss-Prot",
+                "field_is_optional_fg": true,
+                "field_description": "Select the source that will be used as proteome."
+            },
+            "1.23": {
+                "field_name": "proteome_up_file",
+                "field_title": "Input file for proteome",
+                "field_type": "string",
+                "field_parent": "proteome",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Upload file with UniProt ACs that will be used as proteome."
+            },
+            "1.24": {
+                "field_name": "proteome_up_method",
+                "field_title": "Input method",
+                "field_type": "string",
+                "field_parent": "proteome",
+                "field_order": 1,
+                "field_default_value": "text",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "text///Type you dataset|file///Upload a file"
+            },
+            "1.25": {
+                "field_name": "proteome_up_text",
+                "field_title": "Input text for proteome",
+                "field_type": "string",
+                "field_parent": "proteome",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Type desired UniProt ACs that will be used as proteome."
+            },
+            "1.26": {
+                "field_name": "protset_pval",
+                "field_title": "p-Value",
+                "field_type": "real",
+                "field_parent": "protein_sets",
+                "field_default_value": "0.005",
+                "field_is_optional_fg": true,
+                "field_constraint": "range",
+                "field_constraint_data": "0-1"
+            },
+            "1.27": {
+                "field_name": "protset_specific",
+                "field_title": "protein set name",
+                "field_type": "string",
+                "field_parent": "protein_sets",
+                "field_is_optional_fg": true
+            },
+            "1.28": {
+                "field_name": "protset_type",
+                "field_title": "search based on",
+                "field_type": "string",
+                "field_parent": "protein_sets",
+                "field_default_value": "significance",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "specific///By ID|significance///By significance"
+            },
+            "1.29": {
+                "field_name": "siteset",
+                "field_title": "Type of functional sites",
+                "field_type": "string",
+                "field_parent": "functionalSites",
+                "field_default_value": "active,binding,N-linked",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "active///active site|binding///binding site|N-linked///N-linked glycosylation",
+                "field_description": "act"
+            },
+            "1.30": {
+                "field_name": "snp_sets",
+                "field_title": "nsSNV sources",
+                "field_type": "string",
+                "field_default_value": "UniProt,dbSNP,COSMIC,NCI-60",
+                "field_constraint_data": "UniProt|dbSNP|COSMIC|NCI-60"
+            },
+            "1.31": {
+                "field_name": "uni_bind_type",
+                "field_title": "Type of UniProtKB binding",
+                "field_type": "string",
+                "field_parent": "functionalSites",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

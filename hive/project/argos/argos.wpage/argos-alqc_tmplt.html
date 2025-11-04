@@ -1,0 +1,49 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script type="application/javascript">
+
+    setLocationTitle("ARGOS 1.4 Assembly QC: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "argos", "svc-argos-alqc");
+    algoProcess.visibleParameters=["name","wflow-folder","metadata","ref-list", "ngs-list","wflow-codingTable"];
+    algoProcess.submitButtonName="Submit";
+    
+    algoProcess.initialPresets={pipeline:"query:alloftype('workflow',{name:'argos-cflow'})"};
+    algoProcess.initialPresets={asm_pipeline:"query:alloftype('workflow',{name:'hive-assembly'})"};     
+    
+     algoProcess.inputLoaded = function (viewer, elem){
+        algoProcess.inputChanged(viewer, elem);
+    } 
+
+    algoProcess.inputChanged= function (viewer, elem){
+    }
+
+    
+    gInitList += "argosInit();";
+    function argosInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-args-alqc',
+            algoTitle: "ARGOS pipeline"
+        });
+        
+    };
+</script>
+
+

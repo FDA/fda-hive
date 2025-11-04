@@ -1,0 +1,1203 @@
+{
+    "248": {
+        "_id": "$type.svc-dna-insilico",
+        "_type": "type",
+        "name": "svc-dna-insilico",
+        "title": "Insilico Genome Randomizer",
+        "description": "// Generate Artificial reads from a Genome\nlocation: hive.app.dna.dna-insilico",
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "inSilicoGeneral",
+                "field_title": "Parameters",
+                "field_type": "list",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "inSilicoCNVSeqID",
+                "field_title": "Sequence ID",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVSequence",
+                "field_order": 1,
+                "field_default_value": "na",
+                "field_is_optional_fg": true,
+                "field_constraint": "search+",
+                "field_constraint_data": "{\r\n  fetch:'#',outline:'#,len,id', url:'http://dna.cgi?cmd=seqList&out=num|id|len&ids=$(inSilicoSourceObjId)&raw=1&start=0&cnt=50'}"
+            },
+            "1.3": {
+                "field_name": "inSilicoIDField",
+                "field_title": "Hide read identification information",
+                "field_type": "integer",
+                "field_parent": "inSilicoGeneral",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Only enumerate reads|1///Add position information of reads",
+                "field_description": "Specify information to be maintained in ID lines of output"
+            },
+            "1.4": {
+                "field_name": "inSilicoLCentropy",
+                "field_title": "Minimal Shannons Entropy",
+                "field_type": "real",
+                "field_parent": "inSilicoLowCompFilter",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///0 - Permissive | 1/// 1 - lenient | 1.2 /// 1.2 - reluctant | 1.6 /// 1.6 - strict",
+                "field_description": "Set entropy value cutoff"
+            },
+            "1.5": {
+                "field_name": "inSilicoLCwindow",
+                "field_title": "Window Size",
+                "field_type": "integer",
+                "field_parent": "inSilicoLowCompFilter",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0/// Do not filter out low complexity region | 20 /// 20 bases | 30 /// 30 bases | 40/// 40 bases | 50 /// 50 bases | 60 /// 60 bases",
+                "field_description": "Number of bases to exclude according to filter"
+            },
+            "1.6": {
+                "field_name": "inSilicoCNVAfter",
+                "field_title": "Space After",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVSequence",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "inSilicoCNVBefore",
+                "field_title": "Space Before",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVSequence",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "inSilicoEndRange",
+                "field_title": "End Range",
+                "field_type": "integer",
+                "field_parent": "inSilicoRefSeq",
+                "field_order": 4,
+                "field_default_value": "-1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///maximum",
+                "field_description": "End position of desired sequence"
+            },
+            "1.9": {
+                "field_name": "inSilicoNoise",
+                "field_title": "Noise",
+                "field_type": "list",
+                "field_parent": "inSilicoGeneral",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "inSilicoMutationTable",
+                "field_title": "Use preloaded mutation table (CSV, VCF)",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:'id',inline:'name',outline:'id,name', url:'http://?cmd=objList&type=u-file%2B&raw=1&prop_name=ext&prop_val=csv,vcf&mode=csv'}",
+                "field_description": "Select mutation table object"
+            },
+            "1.11": {
+                "field_name": "inSilicoCNVSequence",
+                "field_title": "1. Sequence Selection",
+                "field_type": "list",
+                "field_parent": "inSilicoCNVList",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "inSilicoLowCompFilter",
+                "field_title": "Low Complexity Filter",
+                "field_type": "array",
+                "field_parent": "inSilicoOutput",
+                "field_order": 1,
+                "field_default_value": "0"
+            },
+            "1.13": {
+                "field_name": "inSilicoNoiseAA",
+                "field_title": "A&#8658;A",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseA",
+                "field_order": 1,
+                "field_default_value": "1"
+            },
+            "1.14": {
+                "field_name": "inSilicoCNVId",
+                "field_title": "Id Type",
+                "field_type": "string",
+                "field_parent": "inSilicoCNVQuery",
+                "field_order": 2,
+                "field_default_value": "na",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "NA///not required|exon"
+            },
+            "1.15": {
+                "field_name": "inSilicoCNVQuery",
+                "field_title": "2. Select Annotation",
+                "field_type": "list",
+                "field_parent": "inSilicoCNVList",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "inSilicoNoiseAC",
+                "field_title": "A&#8658;C",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseA",
+                "field_order": 2,
+                "field_default_value": "1"
+            },
+            "1.17": {
+                "field_name": "inSilicoCNVFeature",
+                "field_title": "Feature Type",
+                "field_type": "string",
+                "field_parent": "inSilicoCNVQuery",
+                "field_order": 3,
+                "field_default_value": "na",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "NA///not required|feature"
+            },
+            "1.18": {
+                "field_name": "inSilicoCNVRange",
+                "field_title": "... or Range",
+                "field_type": "list",
+                "field_parent": "inSilicoCNVList",
+                "field_order": 3
+            },
+            "1.19": {
+                "field_name": "inSilicofilterNperc",
+                "field_title": "Filter low quality reads with 'N's",
+                "field_type": "integer",
+                "field_parent": "inSilicoOutput",
+                "field_order": 3,
+                "field_default_value": "-1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///-1 - Do not Filter out short reads with Ns|0///0 - Filter out short reads with Ns|50///50 - Filter out short reads with more than 50 percent of Ns|100///100 - Filter out short reads with 100 percent of Ns"
+            },
+            "1.20": {
+                "field_name": "inSilicoNoiseAG",
+                "field_title": "A&#8658;G",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseA",
+                "field_order": 3,
+                "field_default_value": "1"
+            },
+            "1.21": {
+                "field_name": "inSilicoCNVActionList",
+                "field_title": "3. Select Action",
+                "field_type": "list",
+                "field_parent": "inSilicoCNVList",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.22": {
+                "field_name": "inSilicoNoiseAT",
+                "field_title": "A&#8658;T",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseA",
+                "field_order": 4,
+                "field_default_value": "1"
+            },
+            "1.23": {
+                "field_name": "inSilicoNoiseAI",
+                "field_title": "A&#8658;Insert",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseA",
+                "field_order": 5,
+                "field_default_value": "1"
+            },
+            "1.24": {
+                "field_name": "inSilicoNoiseAD",
+                "field_title": "A&#8658;Deletion",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseA",
+                "field_order": 6,
+                "field_default_value": "1"
+            },
+            "1.25": {
+                "field_name": "inSilicoEntry",
+                "field_title": "Reference Sequence",
+                "field_type": "list",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_description": "obj Id for each entry of dna-insilico"
+            },
+            "1.26": {
+                "field_name": "inSilicoAnnotSeqID",
+                "field_title": "Sequence ID",
+                "field_type": "string",
+                "field_parent": "inSilicoAnnotExtraction",
+                "field_order": 1,
+                "field_default_value": "na",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "NA///not required|chr1"
+            },
+            "1.27": {
+                "field_name": "inSilicoMinLength",
+                "field_title": "Minimum Length",
+                "field_type": "integer",
+                "field_parent": "inSilicoLength",
+                "field_order": 1,
+                "field_default_value": "100",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0",
+                "field_description": "Generated reads will be at least this length"
+            },
+            "1.28": {
+                "field_name": "inSilicoNoiseCA",
+                "field_title": "C&#8658;A",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseC",
+                "field_order": 1,
+                "field_default_value": "1"
+            },
+            "1.29": {
+                "field_name": "inSilicoAnnotID",
+                "field_title": "id",
+                "field_type": "string",
+                "field_parent": "inSilicoAnnotExtraction",
+                "field_order": 2,
+                "field_default_value": "na",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "NA///not required|exon"
+            },
+            "1.30": {
+                "field_name": "inSilicoDiploidicity",
+                "field_title": "Ploidy",
+                "field_type": "integer",
+                "field_parent": "inSilicoEntry",
+                "field_order": 2,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "1///1 - Haploid|2///2 - Diploid",
+                "field_description": "Number of copies of chromosomes"
+            },
+            "1.31": {
+                "field_name": "inSilicoMaxLength",
+                "field_title": "Maximum Length",
+                "field_type": "integer",
+                "field_parent": "inSilicoLength",
+                "field_order": 2,
+                "field_default_value": "100",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0",
+                "field_description": "Generated reads will be no longer than this length"
+            },
+            "1.32": {
+                "field_name": "inSilicoNoiseCC",
+                "field_title": "C&#8658;C",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseC",
+                "field_order": 2,
+                "field_default_value": "1"
+            },
+            "1.33": {
+                "field_name": "inSilicoAnnotType",
+                "field_title": "type",
+                "field_type": "string",
+                "field_parent": "inSilicoAnnotExtraction",
+                "field_order": 3,
+                "field_default_value": "na",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "NA///not required|feature"
+            },
+            "1.34": {
+                "field_name": "inSilicoCoverage",
+                "field_title": "Proportional Coverage",
+                "field_type": "integer",
+                "field_parent": "inSilicoEntry",
+                "field_order": 3,
+                "field_default_value": "1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "1///1 X| 10/// 10X|40///40X |50///50X | 60///60X",
+                "field_description": "Relative abundance of sequence representation when composing reads"
+            },
+            "1.35": {
+                "field_name": "inSilicoLengthDist",
+                "field_title": "Distribution Type",
+                "field_type": "integer",
+                "field_parent": "inSilicoLength",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Uniform Distribution",
+                "field_description": "Distribution pattern of generated read lengths"
+            },
+            "1.36": {
+                "field_name": "inSilicoNoiseCG",
+                "field_title": "C&#8658;G",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseC",
+                "field_order": 3,
+                "field_default_value": "1"
+            },
+            "1.37": {
+                "field_name": "inSilicoCNVStartRange",
+                "field_title": "Start Range",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVRange",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.38": {
+                "field_name": "inSilicoMutation",
+                "field_title": "Introduce manual mutations",
+                "field_type": "array",
+                "field_parent": "inSilicoEntry",
+                "field_order": 4,
+                "field_is_multi_fg": true
+            },
+            "1.39": {
+                "field_name": "inSilicoNoiseCT",
+                "field_title": "C&#8658;T",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseC",
+                "field_order": 4,
+                "field_default_value": "1"
+            },
+            "1.40": {
+                "field_name": "inSilicoCNVEndRange",
+                "field_title": "End Range",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVRange",
+                "field_order": 5,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.41": {
+                "field_name": "inSilicoNoiseCI",
+                "field_title": "C&#8658;Insert",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseC",
+                "field_order": 5,
+                "field_default_value": "1"
+            },
+            "1.42": {
+                "field_name": "inSilicoNoiseCD",
+                "field_title": "C&#8658;Deletion",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseC",
+                "field_order": 6,
+                "field_default_value": "1"
+            },
+            "1.43": {
+                "field_name": "inSilicoAnnot",
+                "field_title": "Targeting Sequencing",
+                "field_type": "list",
+                "field_order": 4
+            },
+            "1.44": {
+                "field_name": "inSilicoAnnotObjID",
+                "field_title": "File Source",
+                "field_type": "obj",
+                "field_parent": "inSilicoAnnot",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.45": {
+                "field_name": "inSilicoCNVAction",
+                "field_title": "Action",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVActionList",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Tandem repeat|1///Invert Region|2///Delete Region|3///Move Region"
+            },
+            "1.46": {
+                "field_name": "inSilicoFormat",
+                "field_title": "Format",
+                "field_type": "integer",
+                "field_parent": "inSilicoRandomReads",
+                "field_order": 1,
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///FastA format|1///FastQ format",
+                "field_description": "Specify output format"
+            },
+            "1.47": {
+                "field_name": "inSilicoLowCompString",
+                "field_title": "Sequences to add",
+                "field_type": "text",
+                "field_parent": "inSilicoLowComplexity",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Type low complexity sequence"
+            },
+            "1.48": {
+                "field_name": "inSilicoMutString",
+                "field_title": "Variant",
+                "field_type": "string",
+                "field_parent": "inSilicoMutation",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Sequence of variant"
+            },
+            "1.49": {
+                "field_name": "inSilicoAnnotAll",
+                "field_title": "Use all existing ranges in the file",
+                "field_type": "bool",
+                "field_parent": "inSilicoAnnot",
+                "field_order": 2,
+                "field_default_value": "false",
+                "field_is_optional_fg": true
+            },
+            "1.50": {
+                "field_name": "inSilicoCNVTandem",
+                "field_title": "Tandem",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVActionList",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.51": {
+                "field_name": "inSilicoLowCompFreq",
+                "field_title": "Frequency (perc)",
+                "field_type": "integer",
+                "field_parent": "inSilicoLowComplexity",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "Percentage of reads to contain low complexity"
+            },
+            "1.52": {
+                "field_name": "inSilicoMutPos",
+                "field_title": "Position",
+                "field_type": "integer",
+                "field_parent": "inSilicoMutation",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "Reference position to mutate"
+            },
+            "1.53": {
+                "field_name": "inSilicoAnnotExtraction",
+                "field_title": "Query to Extract ranges from",
+                "field_type": "array",
+                "field_parent": "inSilicoAnnot",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice+"
+            },
+            "1.54": {
+                "field_name": "inSilicoCNVTargetSeqID",
+                "field_title": "Target Sequence ID",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVActionList",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "search+",
+                "field_constraint_data": "{\r\n  fetch:'#',outline:'#,len,id', url:'http://dna.cgi?cmd=seqList&out=num|id|len&ids=$(inSilicoSourceObjId)&raw=1&start=0&cnt=50'}"
+            },
+            "1.55": {
+                "field_name": "inSilicoLength",
+                "field_title": "Length",
+                "field_type": "list",
+                "field_parent": "inSilicoRandomReads",
+                "field_order": 3
+            },
+            "1.56": {
+                "field_name": "inSilicoLowCompMin",
+                "field_title": "Minimum length",
+                "field_type": "integer",
+                "field_parent": "inSilicoLowComplexity",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "Added low complexity region will be at least this long"
+            },
+            "1.57": {
+                "field_name": "inSilicoMutFreq",
+                "field_title": "Frequency (perc)",
+                "field_type": "integer",
+                "field_parent": "inSilicoMutation",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) <= 100",
+                "field_description": "Frequency of ocurrence"
+            },
+            "1.58": {
+                "field_name": "inSilicoCNVTargetPosition",
+                "field_title": "Target Position",
+                "field_type": "integer",
+                "field_parent": "inSilicoCNVActionList",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.59": {
+                "field_name": "inSilicoLowComplexity",
+                "field_title": "Add low complexity",
+                "field_type": "list",
+                "field_parent": "inSilicoRandomReads",
+                "field_order": 4,
+                "field_default_value": "0"
+            },
+            "1.60": {
+                "field_name": "inSilicoLowCompMax",
+                "field_title": "Maximum length",
+                "field_type": "integer",
+                "field_parent": "inSilicoLowComplexity",
+                "field_order": 4,
+                "field_default_value": "-1",
+                "field_is_optional_fg": true,
+                "field_description": "Added low complexity region will be no longer than this"
+            },
+            "1.61": {
+                "field_name": "inSilicoMutQua",
+                "field_title": "Quality",
+                "field_type": "integer",
+                "field_parent": "inSilicoMutation",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_description": "Phred value to report"
+            },
+            "1.62": {
+                "field_name": "inSilicoMutAllele",
+                "field_title": "Allele",
+                "field_type": "integer",
+                "field_parent": "inSilicoMutation",
+                "field_order": 5,
+                "field_default_value": "0 all",
+                "field_is_optional_fg": true,
+                "field_description": "Number of alleles to contain this mutation"
+            },
+            "1.63": {
+                "field_name": "inSilicoMutBias",
+                "field_title": "Mutation Bias",
+                "field_type": "array",
+                "field_parent": "inSilicoMutation",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.64": {
+                "field_name": "inSilicoCNV",
+                "field_title": "Copy Number Variant",
+                "field_type": "list",
+                "field_order": 5
+            },
+            "1.65": {
+                "field_name": "inSilicoCNVObjID",
+                "field_title": "File Source",
+                "field_type": "obj",
+                "field_parent": "inSilicoCNV",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.66": {
+                "field_name": "inSilicoCNVList",
+                "field_title": "Query to create variants",
+                "field_type": "array",
+                "field_parent": "inSilicoCNV",
+                "field_order": 2,
+                "field_is_multi_fg": true
+            },
+            "1.67": {
+                "field_name": "inSilicoHistogram",
+                "field_title": "Histogram",
+                "field_type": "integer",
+                "field_parent": "inSilicoEntry",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.68": {
+                "field_name": "inSilicoNoiseA",
+                "field_title": "A",
+                "field_type": "array",
+                "field_parent": "inSilicoNoise",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.69": {
+                "field_name": "inSilicoNoiseC",
+                "field_title": "C",
+                "field_type": "array",
+                "field_parent": "inSilicoNoise",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.70": {
+                "field_name": "inSilicoMutBiasStart",
+                "field_title": "start",
+                "field_type": "integer",
+                "field_parent": "inSilicoMutBias",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "Start position of bias range"
+            },
+            "1.71": {
+                "field_name": "inSilicoNoiseG",
+                "field_title": "G",
+                "field_type": "array",
+                "field_parent": "inSilicoNoise"
+            },
+            "1.72": {
+                "field_name": "inSilicoNoiseGA",
+                "field_title": "G&#8658;A",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseG",
+                "field_order": 1,
+                "field_default_value": "1"
+            },
+            "1.73": {
+                "field_name": "inSilicoNoiseGC",
+                "field_title": "G&#8658;C",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseG",
+                "field_order": 2,
+                "field_default_value": "1"
+            },
+            "1.74": {
+                "field_name": "inSilicoNoiseGD",
+                "field_title": "G&#8658;Deletion",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseG",
+                "field_order": 6,
+                "field_default_value": "1"
+            },
+            "1.75": {
+                "field_name": "inSilicoNoiseGG",
+                "field_title": "G&#8658;G",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseG",
+                "field_order": 3,
+                "field_default_value": "1"
+            },
+            "1.76": {
+                "field_name": "inSilicoNoiseGI",
+                "field_title": "G&#8658;Insert",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseG",
+                "field_order": 5,
+                "field_default_value": "1"
+            },
+            "1.77": {
+                "field_name": "inSilicoNoiseGT",
+                "field_title": "G&#8658;T",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseG",
+                "field_order": 4,
+                "field_default_value": "1"
+            },
+            "1.78": {
+                "field_name": "inSilicoNoiseT",
+                "field_title": "T",
+                "field_type": "array",
+                "field_parent": "inSilicoNoise"
+            },
+            "1.79": {
+                "field_name": "inSilicoNoiseTA",
+                "field_title": "T&#8658;A",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseT",
+                "field_order": 1,
+                "field_default_value": "1"
+            },
+            "1.80": {
+                "field_name": "inSilicoNoiseTC",
+                "field_title": "T&#8658;C",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseT",
+                "field_order": 2,
+                "field_default_value": "1"
+            },
+            "1.81": {
+                "field_name": "inSilicoNoiseTD",
+                "field_title": "T&#8658;Deletion",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseT",
+                "field_order": 6,
+                "field_default_value": "1"
+            },
+            "1.82": {
+                "field_name": "inSilicoNoiseTG",
+                "field_title": "T&#8658;G",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseT",
+                "field_order": 3,
+                "field_default_value": "1"
+            },
+            "1.83": {
+                "field_name": "inSilicoNoiseTI",
+                "field_title": "T&#8658;Insert",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseT",
+                "field_order": 5,
+                "field_default_value": "1"
+            },
+            "1.84": {
+                "field_name": "inSilicoNoiseTT",
+                "field_title": "T&#8658;T",
+                "field_type": "real",
+                "field_parent": "inSilicoNoiseT",
+                "field_order": 4,
+                "field_default_value": "1"
+            },
+            "1.85": {
+                "field_name": "inSilicoOption",
+                "field_title": "Task",
+                "field_type": "integer",
+                "field_parent": "inSilicoGeneral",
+                "field_order": 0,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Generate Random Reads|1///Create Genome Recombinants Only",
+                "field_description": "Choose to generate random reads or recombinants"
+            },
+            "1.86": {
+                "field_name": "inSilicoSourceObjId",
+                "field_title": "Use preloaded genome file",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "^genome$",
+                "field_description": "Select HIVE genome object"
+            },
+            "1.87": {
+                "field_name": "inSilicoObjID",
+                "field_title": "Genome File",
+                "field_type": "obj",
+                "field_parent": "inSilicoRefSeq",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_constraint": "type",
+                "field_constraint_data": "^genome$",
+                "field_description": "Select HIVE genome object"
+            },
+            "1.88": {
+                "field_name": "inSilicoSeqID",
+                "field_title": "Sequence",
+                "field_type": "integer",
+                "field_parent": "inSilicoRefSeq",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_constraint": "search+",
+                "field_constraint_data": "{\r\n fetch:'#',outline:'#,len,id', url:'http://dna.cgi?cmd=seqList&out=num|id|len&ids=$(inSilicoObjID)&raw=1&start=0&cnt=20'}",
+                "field_description": "Select HIVE sequence object from desired genome"
+            },
+            "1.89": {
+                "field_name": "inSilicoStartRange",
+                "field_title": "Start Range",
+                "field_type": "integer",
+                "field_parent": "inSilicoRefSeq",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0",
+                "field_description": "Start position of range from which to take sequences"
+            },
+            "1.90": {
+                "field_name": "inSilicoStranded",
+                "field_title": "Strandedness",
+                "field_type": "integer",
+                "field_parent": "inSilicoGeneral",
+                "field_order": 3,
+                "field_default_value": "2",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///single stranded (Forward)|1///single stranded (Reverse)|2///double stranded",
+                "field_description": "Should the reads mimic material that is single or double stranded?"
+            },
+            "1.91": {
+                "field_name": "inSilicoRandomReads",
+                "field_title": "Random Reads",
+                "field_type": "list",
+                "field_parent": "inSilicoGeneral",
+                "field_order": 4
+            },
+            "1.92": {
+                "field_name": "inSilicoOrientation",
+                "field_title": "Orientation",
+                "field_type": "integer",
+                "field_parent": "inSilicoRefSeq",
+                "field_order": 5,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Forward |1///Reverse|2///Complement|3///Reverse Complement",
+                "field_description": "Direction in which to cut sequence"
+            },
+            "1.93": {
+                "field_name": "inSilicoRecombinants",
+                "field_title": "Recombinants",
+                "field_type": "list",
+                "field_parent": "inSilicoGeneral",
+                "field_order": 6,
+                "field_is_hidden_fg": true
+            },
+            "1.94": {
+                "field_name": "inSilicoOutput",
+                "field_title": "Output Filters",
+                "field_type": "list",
+                "field_order": 2
+            },
+            "1.95": {
+                "field_name": "inSilicoRandSeed",
+                "field_title": "Random Seed",
+                "field_type": "integer",
+                "field_parent": "inSilicoOutput",
+                "field_order": 2,
+                "field_default_value": "0"
+            },
+            "1.96": {
+                "field_name": "inSilicoRangeExtractInline",
+                "field_title": "Use AnnotationTableList Viewer",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_description": "Select ranges to extract"
+            },
+            "1.97": {
+                "field_name": "inSilicoTargetSeqTable",
+                "field_title": "Use preloaded Targeting Sequence (CSV)",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:'id',inline:'name',outline:'id,name', url:'http://?cmd=objList&type=u-file%2B&raw=1&prop_name=ext&prop_val=csv&mode=csv'}",
+                "field_description": "Select ranges to extract"
+            },
+            "1.98": {
+                "field_name": "inSilicoRefSeq",
+                "field_title": "Reference Construction",
+                "field_type": "array",
+                "field_parent": "inSilicoEntry",
+                "field_order": 1,
+                "field_is_multi_fg": true
+            },
+            "1.99": {
+                "field_name": "inSilicoRandomMutation",
+                "field_title": "Introduce random mutations",
+                "field_type": "array",
+                "field_parent": "inSilicoEntry",
+                "field_order": 5,
+                "field_is_multi_fg": true
+            },
+            "1.100": {
+                "field_name": "inSilicoPreMut",
+                "field_title": "Random Mutations for Preloaded genome file",
+                "field_type": "array",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.101": {
+                "field_name": "inSilicoPreMutNum",
+                "field_title": "Number of Mutations",
+                "field_type": "integer",
+                "field_parent": "inSilicoPreMut",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.102": {
+                "field_name": "inSilicoPreMutLength",
+                "field_title": "Length of random Mutations",
+                "field_type": "integer",
+                "field_parent": "inSilicoPreMut",
+                "field_order": 2,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "1///1 - Randomly pick from [A,C,G,T]|2///2 - [AA,AC, ..., TT]"
+            },
+            "1.103": {
+                "field_name": "inSilicoReadsNumber",
+                "field_title": "Number of Reads",
+                "field_type": "integer",
+                "field_parent": "inSilicoRandomReads",
+                "field_order": 2,
+                "field_default_value": "1000",
+                "field_is_optional_fg": true,
+                "field_description": "Specify number of reads to generate"
+            },
+            "1.104": {
+                "field_name": "inSilicoPreMutFrequency",
+                "field_title": "Frequency",
+                "field_type": "integer",
+                "field_parent": "inSilicoPreMut",
+                "field_order": 3,
+                "field_default_value": "-1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Randomly chosen"
+            },
+            "1.105": {
+                "field_name": "inSilicoPrimers",
+                "field_title": "Add Primers",
+                "field_type": "list",
+                "field_parent": "inSilicoRandomReads",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.106": {
+                "field_name": "inSilicoPairedEnd",
+                "field_title": "Generate Paired end Reads",
+                "field_type": "list",
+                "field_parent": "inSilicoRandomReads",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.107": {
+                "field_name": "inSilicoQuality",
+                "field_title": "Quality Phred Score",
+                "field_type": "list",
+                "field_parent": "inSilicoRandomReads",
+                "field_order": 7,
+                "field_is_optional_fg": true
+            },
+            "1.108": {
+                "field_name": "inSilicoNoiseType",
+                "field_title": "Random noise (perc)",
+                "field_type": "real",
+                "field_parent": "inSilicoNoise",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "0///No noise|1///1 percent noise|5///5 percent noise",
+                "field_description": "Percent noise to include in reads"
+            },
+            "1.109": {
+                "field_name": "inSilicoPrimerString",
+                "field_title": "Primer sequences",
+                "field_type": "text",
+                "field_parent": "inSilicoPrimers",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Enter sequence of primer to be added"
+            },
+            "1.110": {
+                "field_name": "inSilicoRandMutNumber",
+                "field_title": "Number of mutations",
+                "field_type": "integer",
+                "field_parent": "inSilicoRandomMutation",
+                "field_order": 1,
+                "field_default_value": "0"
+            },
+            "1.111": {
+                "field_name": "inSilicoPrimerFreq",
+                "field_title": "Frequency (perc)",
+                "field_type": "integer",
+                "field_parent": "inSilicoPrimers",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) <= 100",
+                "field_description": "Percentage of sequences to include primers"
+            },
+            "1.112": {
+                "field_name": "inSilicoRandMutStringLength",
+                "field_title": "Length of the random mutation",
+                "field_type": "integer",
+                "field_parent": "inSilicoRandomMutation",
+                "field_order": 2,
+                "field_default_value": "1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "1///1 - Randomly pick from [A,C,G,T]|2///2 - [AA,AC, ..., TT]"
+            },
+            "1.113": {
+                "field_name": "inSilicoPrimerMin",
+                "field_title": "Minimum length",
+                "field_type": "integer",
+                "field_parent": "inSilicoPrimers",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "Primers added will be at least this long"
+            },
+            "1.114": {
+                "field_name": "inSilicoRandMutFrequency",
+                "field_title": "Frequency",
+                "field_type": "integer",
+                "field_parent": "inSilicoRandomMutation",
+                "field_order": 3,
+                "field_default_value": "-1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Randomly chosen"
+            },
+            "1.115": {
+                "field_name": "inSilicoRandMutQuality",
+                "field_title": "Quality",
+                "field_type": "integer",
+                "field_parent": "inSilicoRandomMutation",
+                "field_order": 4,
+                "field_default_value": "-1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Randomly chosen"
+            },
+            "1.116": {
+                "field_name": "inSilicoRandMutAllele",
+                "field_title": "Allele",
+                "field_type": "integer",
+                "field_parent": "inSilicoRandomMutation",
+                "field_order": 5,
+                "field_default_value": "-1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Randomly chosen"
+            },
+            "1.117": {
+                "field_name": "inSilicoPEactive",
+                "field_title": "Generate Paired End File",
+                "field_type": "bool",
+                "field_parent": "inSilicoPairedEnd",
+                "field_order": 1,
+                "field_default_value": "false",
+                "field_description": "Choose to create individual or paired end reads"
+            },
+            "1.118": {
+                "field_name": "inSilicoMutBiasEnd",
+                "field_title": "end",
+                "field_type": "integer",
+                "field_parent": "inSilicoMutBias",
+                "field_order": 2,
+                "field_default_value": "-1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///whole length",
+                "field_description": "End position of bias range"
+            },
+            "1.119": {
+                "field_name": "inSilicoPEmaxdist",
+                "field_title": "Maximum distance",
+                "field_type": "integer",
+                "field_parent": "inSilicoPairedEnd",
+                "field_order": 2,
+                "field_default_value": "500",
+                "field_is_optional_fg": true,
+                "field_description": "Outer ends of pairs will be no further apart than this value"
+            },
+            "1.120": {
+                "field_name": "inSilicoPEmindist",
+                "field_title": "Minimum distance",
+                "field_type": "integer",
+                "field_parent": "inSilicoPairedEnd",
+                "field_order": 3,
+                "field_default_value": "100",
+                "field_is_optional_fg": true,
+                "field_description": "Outer ends of pairs will be at least this far apart"
+            },
+            "1.121": {
+                "field_name": "inSilicoPEdistribution",
+                "field_title": "Library length distribution",
+                "field_type": "integer",
+                "field_parent": "inSilicoPairedEnd",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Uniform|1///Normal|2///Poisson",
+                "field_description": "Distribution of generated paired end read lengths"
+            },
+            "1.122": {
+                "field_name": "inSilicoQuaType",
+                "field_title": "Quality distribution",
+                "field_type": "integer",
+                "field_parent": "inSilicoQuality",
+                "field_order": 8,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Uniform distribution|1///Illumina|2///Mimic Distribution from a File",
+                "field_description": "Distribution pattern of quality scores"
+            },
+            "1.123": {
+                "field_name": "inSilicoQuaMax",
+                "field_title": "Maximum Phred score",
+                "field_type": "integer",
+                "field_parent": "inSilicoQuality",
+                "field_order": 9,
+                "field_default_value": "40",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "32|40",
+                "field_description": "Positional Phred scores will not exceed this value"
+            },
+            "1.124": {
+                "field_name": "inSilicoQuaMin",
+                "field_title": "Minimum Phred score",
+                "field_type": "integer",
+                "field_parent": "inSilicoQuality",
+                "field_order": 10,
+                "field_default_value": "25",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "0|20|30",
+                "field_description": "Positional Phred scores will be at lease this value"
+            },
+            "1.125": {
+                "field_name": "inSilicoQuaObjId",
+                "field_title": "File to Mimic the Distribution from",
+                "field_type": "obj",
+                "field_parent": "inSilicoQuality",
+                "field_order": 11,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read"
+            }
+        },
+        "parent": {
+            "4": "$type.svc-ngs"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

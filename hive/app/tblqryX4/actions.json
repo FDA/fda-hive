@@ -1,0 +1,132 @@
+{
+    "210": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "jumpToTblqry",
+        "order": 12,
+        "path": "/jumpToTblqry",
+        "required_permission": 4,
+        "target": "new",
+        "type_name": "u-tqs",
+        "url": "?cmd=tblqry-new&tqsId=$(ids)",
+        "title": "Go to TableQuery",
+        "description": "Go to TableQuery with current TQS",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "209": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2tqs",
+        "order": 12,
+        "path": "/Convert/cast2tqs",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=scast&type=u-tqs&ids=$(ids)",
+        "title": "Convert to TQS",
+        "description": "Convert current object to TQS type",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "208": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "rec",
+        "is_obj_action": true,
+        "name": "tblQry",
+        "order": 13,
+        "required_permission": 2,
+        "target": "new",
+        "type_name": "table+",
+        "url": "?cmd=tblqry-new&objs=$(ids)",
+        "title": "Analyze",
+        "description": "Analyze table with Table Query",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

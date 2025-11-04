@@ -1,0 +1,54 @@
+{
+    "176": {
+        "_id": "$type.svc-align-rnaseq",
+        "_type": "type",
+        "name": "svc-align-rnaseq",
+        "title": "RNA-seq Alignments",
+        "description": "RNA-seq Alignments",
+        "parent": {
+            "1": "$type.svc-align-pairwise"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "alignSelector",
+                "field_title": "Alignment Algorithm",
+                "field_type": "string",
+                "field_order": 1,
+                "field_default_value": "svc-align-tophat",
+                "field_constraint": "search",
+                "field_constraint_data": "{\nfetch:'name', url:'http://?cmd=objList&type=algorithm-alignment-rnaseq%2B&raw=1&mode=csv',\ninline:[\n\t{name:'id',hidden:true,title:'ID'},\n\t{name:'icon',hidden:false,iconSize:48,type:'icon',title:'Icon'},\n\t{name:'title',hidden:false,title:'Name'}\n],\noutline:[\n\t{name:'id',hidden:true,title:'ID'},\n\t{name:'title',order:2,hidden:false,title:'Name'},\n\t{name:'icon',hidden:false,iconSize:48,type:'icon',title:'Icon'},\n\t{name:'description',hidden:false,title:'Description'}\n]\n}",
+                "field_description": "Alignment Engine Selector"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

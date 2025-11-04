@@ -1,0 +1,143 @@
+{
+    "551": {
+        "_id": "$type.lup_health_habits",
+        "_type": "type",
+        "name": "lup_health_habits",
+        "title": "Health Habits",
+        "fields": {
+            "1.1": {
+                "field_name": "adequate_sleep",
+                "field_title": "Does the participant receive adequate sleep (> 6 hrs per night)?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "smoked_100_cigarettes",
+                "field_title": "Has the participant smoked more than 100 cigarettes or 1 cigar or used nicotine/smokeless tobacco products more than once?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "tobacco_products",
+                "field_title": "Select tobacco products (check all that apply)",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Cigarettes|e-Cigarettes|Cigars, cigarillos, or filtered little cigars|Smokeless tobacco (chewing tobacco, snuff, dip, snus, or dissolvable tobacco)|Pipes (regular pipes, water pipes, or hookahs)|Other\r\n>is_shown_fg=$(smoked_100_cigarettes)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.4": {
+                "field_name": "tobacco_products_other_specify",
+                "field_title": "Specify",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "is_shown_fg=$(tobacco_products)=='Other'&&$(smoked_100_cigarettes)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.5": {
+                "field_name": "currently_uses_tobacco",
+                "field_title": "Does the participant currently use cigarettes, cigars, other nicotine or smokeless tobacco products?",
+                "field_type": "bool",
+                "field_order": 5
+            },
+            "1.6": {
+                "field_name": "currently_used_tobacco_products",
+                "field_title": "Select tobacco products (check all that apply)",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Cigarettes|e-Cigarettes|Cigars, cigarillos, or filtered little cigars|Smokeless tobacco (chewing tobacco, snuff, dip, snus, or dissolvable tobacco)|Pipes (regular pipes, water pipes, or hookahs)|Other\r\n>is_shown_fg=$(currently_uses_tobacco)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.7": {
+                "field_name": "currently_used_tobacco_products_other_specify",
+                "field_title": "Specify",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(currently_used_tobacco_products)=='Other'&&$(currently_uses_tobacco)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.8": {
+                "field_name": "regular_exercise",
+                "field_title": "Does the participant get regular exercise (>20 min per day, 3 or more times per week)?",
+                "field_type": "bool",
+                "field_order": 8
+            },
+            "1.9": {
+                "field_name": "high_quality_diet",
+                "field_title": "Does the participant eat a high quality diet (plenty of vegetables, modest protein, minimal processed foods)?",
+                "field_type": "bool",
+                "field_order": 9
+            },
+            "1.10": {
+                "field_name": "limit_alcohol_intake",
+                "field_title": "Does the participant limit alcohol intake (one or less drinks per day)?",
+                "field_type": "bool",
+                "field_order": 10
+            },
+            "1.11": {
+                "field_name": "recreational_drugs",
+                "field_title": "Has the participant ever taken illicit or recreational drugs?",
+                "field_type": "bool",
+                "field_order": 11
+            },
+            "1.12": {
+                "field_name": "recreational_drugs_select",
+                "field_title": "Select drugs (check all that apply)",
+                "field_type": "string",
+                "field_order": 12,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Cannabinoids (Marijuana, Hashish)|Opioids (Heroin, Opium)|Stimulants (Cocaine, Amphetamine, Methamphetamine)|Club Drugs (MDMA, Flunitrazepam, GHB)|Dissociative Drugs (Ketamine, PCP and analogs, Salvia divinorum, Dextromethorphan (DXM))|Hallucinogens (LSD, Mescaline, Psilocybin)|Prescription Medications (CNS Depressants, Stimulants, Opioid Pain Relievers)|Other Compounds (Anabolic steroids, Inhalants)\r\n>is_shown_fg=$(recreational_drugs)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.13": {
+                "field_name": "recreational_drugs_other_specify",
+                "field_title": "Specify",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(recreational_drugs_select)=='Other Compounds (Anabolic steroids, Inhalants)'&&$(recreational_drugs)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.14": {
+                "field_name": "non_work_screentime",
+                "field_title": "Does the participant engage in greater than 2 hrs of non-work screentime per day?",
+                "field_type": "bool",
+                "field_order": 14
+            },
+            "1.15": {
+                "field_name": "strong_social_support",
+                "field_title": "Does the participant have a strong social support system?",
+                "field_type": "bool",
+                "field_order": 15
+            },
+            "1.16": {
+                "field_name": "social_activities",
+                "field_title": "Does the participant regulary enjoy leisure and/or social activities?",
+                "field_type": "bool",
+                "field_order": 16
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

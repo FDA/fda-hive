@@ -1,0 +1,46 @@
+{
+    "91": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Sequence-Hierarchical-Clustering",
+        "base_app_description": "Hierarchical clustering analysis that classifies related profiling results by comparing their SNP frequencies",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-clust",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Classifications"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

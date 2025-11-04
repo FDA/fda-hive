@@ -1,0 +1,79 @@
+{
+    "275": {
+        "_id": "$type.svc-recomb",
+        "_type": "type",
+        "name": "svc-recomb",
+        "title": "Recombination Polyplot Computation Engine",
+        "description": "//Recombination Polyplot Computation Engine\nlocation: hive.app.dna.dna-recomb",
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "mutualAligmentID",
+                "field_title": "Reference Genome Alignment File",
+                "field_type": "obj",
+                "field_order": 0,
+                "field_constraint": "search",
+                "field_constraint_data": "{\"explorer\":true,\"fetch\":\"id\",\"url\":\"mylist=union(([$(::alignID)] as objlist).map({.subject}));return (($(explorer_folder) as objlist).filter({(._type=='svc-align-multiple'||._type=='svc-align-mafft'||._type=='svc-align-clustal')}) as objlist).filter({intersect([(objlist)(.subject)],mylist) as int ||intersect([(objlist)(.query)],mylist) as int}).csv(['_type','_brief','created'],{info:true});\",\"qryLang\":true}",
+                "field_description": "Text file specifying the mutual alignment of reference genes"
+            },
+            "1.2": {
+                "field_name": "overlap",
+                "field_title": "Overlap",
+                "field_type": "list",
+                "field_order": 1
+            },
+            "1.3": {
+                "field_name": "minOverlap",
+                "field_title": "Minimum",
+                "field_type": "integer",
+                "field_parent": "overlap",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.4": {
+                "field_name": "maxOverlap",
+                "field_title": "Maximum",
+                "field_type": "integer",
+                "field_parent": "overlap",
+                "field_order": 3,
+                "field_default_value": "100",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            }
+        },
+        "parent": {
+            "4": "$type.svc-profile"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,53 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+import React, { useState, useEffect} from 'react';
+import * as UrlModal from '../hivelib/modal/url_modal';
+
+function Footer() {
+  const [urlPrefix, setUrlPrefix] = useState('');
+
+  useEffect(() => {
+      const prefix = UrlModal.getPrefix();
+      setUrlPrefix(prefix);
+  }, []);
+
+  return (
+    <footer>
+      <p style={{padding: '7px 0px' }}> © 2014-2024 &nbsp; &nbsp;
+        <a href="https://www.fda.gov/about-fda/about-website/website-policies" target="_blank" rel="noopener noreferrer">Web Policy</a>
+          &nbsp;|&nbsp;<a href={`${urlPrefix}?cmd=license`} target="_blank" rel="noopener noreferrer">License & Disclaimer</a>
+          &nbsp;|&nbsp;<a href={`${urlPrefix}?cmd=main-people`} target="_blank" rel="noopener noreferrer">Contacts</a>
+          &nbsp;|&nbsp;<a href={`${urlPrefix}?cmd=sitemap`} target="_blank" rel="noopener noreferrer">Sitemap</a>
+      </p>
+    </footer>
+  );
+}
+
+export default Footer;

@@ -1,0 +1,47 @@
+{
+    "261": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2genome",
+        "order": 12,
+        "path": "/Convert/convert2genome",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&category=genomic&objtype=genome&ids=$(ids)&datatype=fasta",
+        "title": "To Genome as FastA file",
+        "description": "Convert file formatted as fastA to Genome object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "356": {
+        "_id": "$upsert()",
+        "_type": "workflow",
+        "name": "diu-antidote",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

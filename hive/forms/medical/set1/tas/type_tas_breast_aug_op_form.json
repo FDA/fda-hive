@@ -1,0 +1,272 @@
+{
+    "374": {
+        "_id": "$type.tas_breast_aug_op_form",
+        "_type": "type",
+        "name": "tas_breast_aug_op_form",
+        "title": "Op Form Breast Aug",
+        "fields": {
+            "1.1": {
+                "field_name": "performed_mastopexy",
+                "field_title": "Did You Perform a Mastopexy?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "laterality",
+                "field_title": "Laterality",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "Bilateral|Left|Right\r\n>is_shown_fg=$(performed_mastopexy)=='true'"
+            },
+            "1.3": {
+                "field_name": "subtitle_1",
+                "field_title": "Left Side",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(performed_mastopexy)=='true'&&($(laterality)=='Left'||$(laterality)=='Bilateral')",
+                "field_constraint_description": "subtitle"
+            },
+            "1.4": {
+                "field_name": "implant_insertion_approach_ls",
+                "field_title": "Implant Insertion Approach",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "Inframammary|Periareolar|Through Mastopexy(scar or incision)|Transaxillary\r\n>is_shown_fg=$(performed_mastopexy)=='true'&&($(laterality)=='Left'||$(laterality)=='Bilateral')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.5": {
+                "field_name": "location_ls",
+                "field_title": "Location",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "Dual Plane|Subfascial|Subglandular|Total Subpectoral\r\n>is_shown_fg=$(performed_mastopexy)=='true'&&($(laterality)=='Left'||$(laterality)=='Bilateral')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.6": {
+                "field_name": "subtitle_2",
+                "field_title": "Right Side",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(performed_mastopexy)=='true'&&($(laterality)=='Right'||$(laterality)=='Bilateral')",
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "implant_insertion_approach_rs",
+                "field_title": "Implant Insertion Approach",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "Inframammary|Periareolar|Through Mastopexy(scar or incision)|Transaxillary\r\n>is_shown_fg=$(performed_mastopexy)=='true'&&($(laterality)=='Right'||$(laterality)=='Bilateral')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.8": {
+                "field_name": "location_rs",
+                "field_title": "Location",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "Dual Plane|Subfascial|Subglandular|Total Subpectoral\r\n>is_shown_fg=$(performed_mastopexy)=='true'&&($(laterality)=='Right'||$(laterality)=='Bilateral')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.9": {
+                "field_name": "soft_tissue_support",
+                "field_title": "Did You Use Soft Tissue Support?",
+                "field_type": "bool",
+                "field_order": 9
+            },
+            "1.10": {
+                "field_name": "soft_tissue_support_type",
+                "field_title": "Select type",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "Alloderm (Allergan)|Allomax (Medline)|Durasorb (SIA)|FlexHD (MTF)|Galaflex (Galatea)|Ovitex (Telabio)|Strattice (Allergan)|Vicryl Mesh (Ethicon)|Other\r\n>is_shown_fg=$(soft_tissue_support)=='true'"
+            },
+            "1.11": {
+                "field_name": "soft_tissue_support_type_other",
+                "field_title": "Please specify",
+                "field_type": "text",
+                "field_order": 11,
+                "field_constraint_data": ">is_shown_fg=$(soft_tissue_support)=='true'&&$(soft_tissue_support_type)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.12": {
+                "field_name": "pocket_irrigation",
+                "field_title": "Did You Use Pocket Irrigation?",
+                "field_type": "bool",
+                "field_order": 12
+            },
+            "1.13": {
+                "field_name": "betadine",
+                "field_title": "Betadine",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.14": {
+                "field_name": "betadine_options",
+                "field_title": "Please select",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "Less than 25 %|25%|50%|100%\r\n>is_shown_fg=$(pocket_irrigation)=='true'&&$(betadine)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.15": {
+                "field_name": "betadine_triple",
+                "field_title": "Betadine Triple: 50cc + 1gm Cefazolin + 80mg Gentamycin + 500cc NS",
+                "field_type": "bool",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.16": {
+                "field_name": "hypochlorous_acid",
+                "field_title": "Stock dilute prep < 0.5% Hypochlorous Acid Wound Cleanser",
+                "field_type": "bool",
+                "field_order": 16,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.17": {
+                "field_name": "hypochlorous_acid_options",
+                "field_title": "Please select",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "Anasept|Briotech|Lavanox|Phaseone|Vashe\r\n>is_shown_fg=$(pocket_irrigation)=='true'&&$(hypochlorous_acid)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.18": {
+                "field_name": "chlorhexidine",
+                "field_title": "Stock dilute prep 0.05% Chlorhexidine Wound Cleanser (Irrisept)",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.19": {
+                "field_name": "non_betadine_triple",
+                "field_title": "Non-Betadine Triple: 50,000 U Bacitracin + 1 gm Cefazolin + 80 mg Gentamycin + 500cc NS",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.20": {
+                "field_name": "Saline",
+                "field_title": "Saline",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.21": {
+                "field_name": "other_irrigation",
+                "field_title": "Other Irrigation",
+                "field_type": "bool",
+                "field_order": 21,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.22": {
+                "field_name": "other_irrigation_specify",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 22,
+                "field_constraint_data": "is_shown_fg=$(pocket_irrigation)=='true'&&$(other_irrigation)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.23": {
+                "field_name": "contamination_mitigation",
+                "field_title": "Did You Use Skin Implant Contamination Mitigation?",
+                "field_type": "bool",
+                "field_order": 23
+            },
+            "1.24": {
+                "field_name": "skin_reprep",
+                "field_title": "Skin re-prep",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_data": "is_shown_fg=$(contamination_mitigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.25": {
+                "field_name": "skin_reprep_options",
+                "field_title": "Please select",
+                "field_type": "string",
+                "field_order": 25,
+                "field_constraint_data": "Betadine|Chlorhexidine/Chloraprep\r\n>is_shown_fg=$(contamination_mitigation)=='true'&&$(skin_reprep)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.26": {
+                "field_name": "sleeve_funnel",
+                "field_title": "Sleeve/Funnel",
+                "field_type": "bool",
+                "field_order": 26,
+                "field_constraint_data": "is_shown_fg=$(contamination_mitigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.27": {
+                "field_name": "sleeve_funnel_options",
+                "field_title": "Please select",
+                "field_type": "string",
+                "field_order": 27,
+                "field_constraint_data": "Inplant|Keller|Stingray|Other\r\n>is_shown_fg=$(contamination_mitigation)=='true'&&$(sleeve_funnel)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.28": {
+                "field_name": "sleeve_funnel_other_option",
+                "field_title": "Please specify",
+                "field_type": "text",
+                "field_order": 28,
+                "field_constraint_data": ">is_shown_fg=$(sleeve_funnel)=='true'&&$(sleeve_funnel_options)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.29": {
+                "field_name": "tegaderm_barrier",
+                "field_title": "Tegaderm Barrier",
+                "field_type": "bool",
+                "field_order": 29,
+                "field_constraint_data": "is_shown_fg=$(contamination_mitigation)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.30": {
+                "field_name": "tegaderm_barrier_options",
+                "field_title": "Please select",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_data": "Incision Site|Nipple Shield\r\n>is_shown_fg=$(contamination_mitigation)=='true'&&$(tegaderm_barrier)=='true'",
+                "field_constraint_description": "subquestion"
+            }
+        },
+        "parent": {
+            "3": "$type.tas_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,325 @@
+{
+    "2612": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE-Hexagon_(Standard)",
+        "base_app_description": "Choose this to align sequence reads to a reference genomes",
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hexagon-",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "HIVE-Hexagon"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2611": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE-Hexagon_(Virus-specific)",
+        "base_app_description": "Choose this to align viral sequence reads to a reference viral genomes",
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hexagon-virus",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "HIVE-Hexagon"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2610": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE-Hexagon_(Bacteria-specific)",
+        "base_app_description": "Choose this to align bacterial sequence reads to a reference bacterial genomes",
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hexagon-bacteria",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "HIVE-Hexagon"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2609": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE-Hexagon_(Human-whole-genome-specific)",
+        "base_app_description": "Choose this to align human sequence reads to a whole genome human reference",
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hexagon-human-wgs",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "HIVE-Hexagon"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2608": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE-Hexagon_(Exome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hexagon-human-exome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "HIVE-Hexagon"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2607": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE-Hexagon_(Transcriptome-specific)",
+        "base_app_description": "Choose this to align transcriptome sequence reads to a transcriptome reference",
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hexagon-human-transcriptome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "HIVE-Hexagon"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2545": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE-Hexagon_(Distant-relative)",
+        "base_app_description": "Discover distant homologs",
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hexagon-related",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "HIVE-Hexagon",
+            "Different Levels of Homology discovery"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

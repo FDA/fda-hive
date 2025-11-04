@@ -1,0 +1,278 @@
+{
+    "279": {
+        "_id": "$type.svc-dna-screening",
+        "_type": "type",
+        "name": "svc-dna-screening",
+        "title": "Screen Short Read Against Genome",
+        "description": "//Random pick sequences to run alignment with specific genome\nlocation: hive.app.dna.dna-screening",
+        "parent": {
+            "1": "$type.svc-dna-qcqa"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "alignmentInput",
+                "field_title": "Alignment Input",
+                "field_type": "obj",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "process+",
+                "field_description": "Alignment input"
+            },
+            "1.2": {
+                "field_name": "alignSelector",
+                "field_title": "Algorithm",
+                "field_type": "string",
+                "field_order": 0,
+                "field_default_value": "svc-align-blast",
+                "field_constraint": "choice",
+                "field_constraint_data": "svc-align-blast///Blast",
+                "field_description": "Mapping tool algorithm :BLAST-Hexagone-Bowtie"
+            },
+            "1.3": {
+                "field_name": "automanual",
+                "field_title": "Automanual",
+                "field_type": "integer",
+                "field_order": 0,
+                "field_default_value": "0",
+                "field_is_hidden_fg": true,
+                "field_description": "specify if the dna screening launched from main platform or with dmUploader"
+            },
+            "1.4": {
+                "field_name": "blastWordSize",
+                "field_title": "Blast Sensitivity (word_size)",
+                "field_type": "integer",
+                "field_parent": "blastparams",
+                "field_order": 9,
+                "field_default_value": "28",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "11///Very sensible (11)|16///Sensible(16)|20///Medium(20)|28///Relaxed(28)",
+                "field_description": "set the word_size parameter for blastn"
+            },
+            "1.5": {
+                "field_name": "CensusIterations",
+                "field_title": "Number of Alignments p/Iteration",
+                "field_type": "integer",
+                "field_default_value": "1",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 1",
+                "field_description": "Bootstrap number"
+            },
+            "1.6": {
+                "field_name": "CensuslimitIterations",
+                "field_title": "Maximum number of iterations",
+                "field_type": "integer",
+                "field_default_value": "50",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 1"
+            },
+            "1.7": {
+                "field_name": "censusScope_otherInput",
+                "field_title": "Other Input",
+                "field_type": "list",
+                "field_order": 12
+            },
+            "1.8": {
+                "field_name": "chunk_size",
+                "field_title": "chunk_size",
+                "field_type": "integer",
+                "field_default_value": "5000",
+                "field_is_hidden_fg": true
+            },
+            "1.9": {
+                "field_name": "cutOffvalue",
+                "field_title": "Cut off value",
+                "field_type": "real",
+                "field_default_value": "0.0005",
+                "field_is_hidden_fg": true,
+                "field_description": "cutofflimit that when should we stop due the shannon entropy"
+            },
+            "1.10": {
+                "field_name": "filterNs",
+                "field_title": "Filter low quality reads",
+                "field_type": "bool",
+                "field_default_value": "1",
+                "field_description": "filter reads which contain Ns"
+            },
+            "1.11": {
+                "field_name": "query",
+                "field_title": "Input Sequences",
+                "field_type": "obj",
+                "field_order": 0,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read",
+                "field_description": "Sequences to Analyze"
+            },
+            "1.12": {
+                "field_name": "resultInQueryDir",
+                "field_title": "If put in process dir",
+                "field_type": "integer",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_hidden_fg": true,
+                "field_description": "If set, then put in the process dir rather than in short read obj dir"
+            },
+            "1.13": {
+                "field_name": "Sample",
+                "field_title": "Number of Reads",
+                "field_type": "integer",
+                "field_default_value": "1000",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 1 && $_(val) <= 5000",
+                "field_description": "Number of reads to be picked randomly from Dataset"
+            },
+            "1.14": {
+                "field_name": "selfStopping",
+                "field_title": "Active Machine Learning (Shannon Entropy)",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_default_value": "true",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Self Stopping mechanism using Shannon Entropy"
+            },
+            "1.15": {
+                "field_name": "slice",
+                "field_title": "Number of Computational Subjects per Single Thread",
+                "field_type": "integer",
+                "field_default_value": "0",
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.16": {
+                "field_name": "splitSize",
+                "field_title": "Number of Computational Subjects per Single Thread",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "0",
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.17": {
+                "field_name": "storeAlignments",
+                "field_title": "Keep and Store Alignments",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_default_value": "false",
+                "field_is_optional_fg": true,
+                "field_description": "Keep Alignments to See after Process is finished."
+            },
+            "1.18": {
+                "field_name": "subject",
+                "field_title": "Database",
+                "field_type": "obj",
+                "field_order": 0,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:'id',\ninline:[\n\t{name:'rec',hidden:false,title:'ID'},\n\t{name:'^name$',hidden:false,title:'Name'},\n\t{name:'taxonomy',hidden:false,title:'Taxonomy'}\n],\noutline:[\n\t{name:'rec',hidden:false,order:1,title:'ID'},\n\t{name:'^name$',order:3,hidden:false,title:'Name'},\n\t{name:'taxonomy',order:2,hidden:false,title:'Taxonomy'}\n],\nurl:'http://?cmd=objList&type=genome&prop_name=taxonomy&raw=1&mode=csv'}",
+                "field_brief": "$_(v)",
+                "field_description": "choose your databse"
+            },
+            "1.19": {
+                "field_name": "taxDepth",
+                "field_title": "Taxonomic Level",
+                "field_type": "string",
+                "field_default_value": "species",
+                "field_constraint": "choice",
+                "field_constraint_data": "kingdom///kingdom|phylum///phylum|class///class|order///order|family///family|genus///genus|species///species|leaf///leaf"
+            },
+            "1.20": {
+                "field_name": "textBasedColumn",
+                "field_title": "Column Number",
+                "field_type": "integer",
+                "field_parent": "censusScope_otherInput",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "column identifier"
+            },
+            "1.21": {
+                "field_name": "textBasedFileSeparator",
+                "field_title": "Column separator",
+                "field_type": "integer",
+                "field_parent": "censusScope_otherInput",
+                "field_order": 3,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///tsv (Tab Separated Values)|2///csv (Comma Separated Values)",
+                "field_description": "Column separator"
+            },
+            "1.22": {
+                "field_name": "textBasedInput",
+                "field_title": "Source File",
+                "field_type": "obj",
+                "field_parent": "censusScope_otherInput",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file,table",
+                "field_description": "Other input"
+            },
+            "1.23": {
+                "field_name": "produceRandomReadsForNT",
+                "field_title": "Produce Random Reads for NT",
+                "field_type": "bool",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.25": {
+                "field_name": "blastMegablast",
+                "field_title": "run megablast mode",
+                "field_type": "bool",
+                "field_parent": "blastparams",
+                "field_order": 10,
+                "field_default_value": "1",
+                "field_is_optional_fg": true
+            },
+            "1.27": {
+                "field_name": "blastevalue",
+                "field_title": "Blast evalueFilter",
+                "field_type": "real",
+                "field_parent": "blastparams",
+                "field_order": 11,
+                "field_default_value": "1e-6"
+            },
+            "1.29": {
+                "field_name": "blastparams",
+                "field_title": "Blast parameters",
+                "field_type": "list",
+                "field_order": 9
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

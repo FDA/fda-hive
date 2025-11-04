@@ -1,0 +1,191 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+@font-face {
+  font-family: 'record-viewer';
+  src:  url('fonts/record-viewer.eot?d6htsr');
+  src:  url('fonts/record-viewer.eot?d6htsr#iefix') format('embedded-opentype'),
+    url('fonts/record-viewer.ttf?d6htsr') format('truetype'),
+    url('fonts/record-viewer.woff?d6htsr') format('woff'),
+    url('fonts/record-viewer.svg?d6htsr#record-viewer') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
+
+i {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'record-viewer' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.rv-bug-trace-color:before {
+  content: "\e91c";
+}
+.rv-error-color:before {
+  content: "\e919";
+  color: #aa021e;
+}
+.rv-info2-color .path1:before {
+  content: "\e916";
+  color: rgb(68, 159, 219);
+}
+.rv-info2-color .path2:before {
+  content: "\e917";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.rv-info2-color .path3:before {
+  content: "\e918";
+  margin-left: -1em;
+  color: rgb(255, 255, 255);
+}
+.rv-bug-color:before {
+  content: "\e915";
+}
+.rv-warning-color:before {
+  content: "\e911";
+  color: #eabd00;
+}
+.rv-bug:before {
+  content: "\e912";
+}
+.rv-info-round-color:before {
+  content: "\e913";
+  color: #1e88e5;
+}
+.rv-cancel:before {
+  content: "\e914";
+}
+.rv-chevron-down:before {
+  content: "\e90a";
+}
+.rv-chevron-right:before {
+  content: "\e90b";
+}
+.rv-chevron-up:before {
+  content: "\e90c";
+}
+.rv-chevron-left:before {
+  content: "\e90d";
+}
+.rv-add:before {
+  content: "\e909";
+}
+.rv-search:before {
+  content: "\e908";
+}
+.rv-help:before {
+  content: "\e907";
+}
+.rv-close-thin:before {
+  content: "\e906";
+}
+.rv-user:before {
+  content: "\e905";
+}
+.rv-more:before {
+  content: "\e904";
+}
+.rv-trash:before {
+  content: "\e902";
+}
+.rv-info:before {
+  content: "\e900";
+}
+.rv-eye-no:before {
+  content: "\e90f";
+}
+.rv-eye:before {
+  content: "\e910";
+}
+.rv-sitemap:before {
+  content: "\e90e";
+}
+.rv-save:before {
+  content: "\e901";
+}
+.rv-trash-3:before {
+  content: "\e903";
+}
+.rv-folder-download:before {
+  content: "\e933";
+}
+.rv-download:before {
+  content: "\e960";
+}
+.rv-spinner:before {
+  content: "\e984";
+}
+.rv-maxi:before {
+  content: "\e989";
+}
+.rv-mini:before {
+  content: "\e98a";
+}
+.rv-warning:before {
+  content: "\ea07";
+}
+.rv-close-fat:before {
+  content: "\ea0f";
+}
+.rv-checkmark:before {
+  content: "\ea10";
+}
+.rv-arrow-down:before {
+  content: "\ea36";
+}
+.rv-resubmit:before {
+  content: "\e985";
+  color: #1e88e5;
+}
+.rv-menu:before {
+  content: "\e9bd";
+}
+.rv-play:before {
+  content: "\ea15";
+  color: #1e88e5;
+}
+.rv-pause:before {
+  content: "\ea16";
+  color: #1e88e5;
+}
+.rv-stop:before {
+  content: "\ea17";
+  color: #1e88e5;
+}

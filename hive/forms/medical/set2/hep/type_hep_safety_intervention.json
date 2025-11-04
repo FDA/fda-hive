@@ -1,0 +1,105 @@
+{
+    "514": {
+        "_id": "$type.hep_safety_intervention",
+        "_type": "type",
+        "name": "hep_safety_intervention",
+        "title": "Safety Intervention",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Documentation form for participants who score above threshold on the HEP psychiatric comorbidity questionnaires.",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "alert_date",
+                "field_title": "Date of alert",
+                "field_type": "date",
+                "field_order": 2,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.3": {
+                "field_name": "followup_date",
+                "field_title": "Date of follow-up",
+                "field_type": "date",
+                "field_order": 3,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.4": {
+                "field_name": "questionaires",
+                "field_title": "On which questionnaire(s) did the participant score above threshold?",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "MINI (adult) / DISC (adolescent)|C-SSRS|CES-D|NDDI-E|GAD-7|MDQ"
+            },
+            "1.5": {
+                "field_name": "referral_type",
+                "field_title": "What referral was done for the participant?",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Participant referred to Emergency Department (ED)|Participant referred to on-site psychiatric care|Participant referred to local mental health professional (MHP) in ≤ 24 hours|Participant referred to local mental health professional (MHP) >than 24 hours|No referral"
+            },
+            "1.6": {
+                "field_name": "no_referral",
+                "field_title": "If no referral, please explain",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(referral_type)=='No referral'"
+            },
+            "1.7": {
+                "field_name": "follow_up",
+                "field_title": "What follow up was done for the participant after the initial contact?",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "None|1 week follow-up"
+            },
+            "1.8": {
+                "field_name": "no_follow_up",
+                "field_title": "If none, why?",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(follow_up)=='None'"
+            },
+            "1.9": {
+                "field_name": "mental_health_professional",
+                "field_title": "Was a mental health professional seen?",
+                "field_type": "bool",
+                "field_order": 9
+            },
+            "1.10": {
+                "field_name": "no_mental_health_professional",
+                "field_title": "If no, why?",
+                "field_type": "string",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(mental_health_professional)=='false'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

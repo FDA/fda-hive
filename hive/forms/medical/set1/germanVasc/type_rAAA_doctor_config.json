@@ -1,0 +1,40 @@
+{
+    "148": {
+        "_id": "$type.rAAA_doctor_config",
+        "_type": "type",
+        "name": "rAAA_doctor_config",
+        "title": "Doctor Configuration",
+        "fields": {
+            "1.0": {
+                "field_name": "favorite_devices",
+                "field_title": "Favorite devices",
+                "field_type": "string",
+                "field_is_multi_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\n\"fetch\":[\"deviceID\",\"location\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/EVAR_Device_Dictionary_AWB.csv&raw=1&start=0\",\n\"inline\":[\n\t{\"name\":\"deviceID\",\"title\":\"deviceID\",\"display\":\"subtitle\",\"search\":\"false\"},\n\t{\"name\":\"manufacturer\",\"title\":\"manufacturer\",\"display\":\"title\",\"search\":\"true\"},\n\t{\"name\":\"device\",\"title\":\"device\",\"display\":\"title\",\"search\":\"true\"},\n\t{\"name\":\"size\",\"title\":\"size\",\"display\":\"subtitle\",\"search\":\"true\"},\n\t{\"name\":\"var\",\"title\":\"var\",\"display\":\"none\",\"search\":\"false\"},\n\t{\"name\":\"location\",\"title\":\"location\",\"display\":\"subtitle\",\"search\":\"true\"}\n],\n\"outline\":[\n\t{\"name\":\"deviceID\",\"title\":\"deviceID\"},\n\t{\"name\":\"manufacturer\",\"title\":\"manufacturer\"},\n\t{\"name\":\"device\",\"title\":\"device\"},\n\t{\"name\":\"size\",\"title\":\"size\"},\n\t{\"name\":\"var\",\"title\":\"var\"},\n\t{\"name\":\"location\",\"title\":\"location\"}\n]\n}",
+                "field_constraint_description": "{\n\"fetch\":[\"deviceID\",\"location\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/EVAR_Device_Dictionary_AWB.csv&raw=1&start=0\",\n\"inline\":[\n\t{\"name\":\"deviceID\",\"title\":\"deviceID\"},\n\t{\"name\":\"manufacturer\",\"title\":\"manufacturer\"},\n\t{\"name\":\"device\",\"title\":\"device\"},\n\t{\"name\":\"size\",\"title\":\"size\"},\n\t{\"name\":\"var\",\"title\":\"var\"},\n\t{\"name\":\"location\",\"title\":\"location\"}\n],\n\"outline\":[\n\t{\"name\":\"deviceID\",\"title\":\"deviceID\"},\n\t{\"name\":\"manufacturer\",\"title\":\"manufacturer\"},\n\t{\"name\":\"device\",\"title\":\"device\"},\n\t{\"name\":\"size\",\"title\":\"size\"},\n\t{\"name\":\"var\",\"title\":\"var\"},\n\t{\"name\":\"location\",\"title\":\"location\"}\n]\n}"
+            }
+        },
+        "parent": {
+            "7": "$type.med_set1"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,149 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.col-container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+}
+.row-container {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.col-container .header {
+    background-color: #e6e6e6;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 8px;
+    white-space: nowrap;
+}
+
+.header .tools {
+    float: right;
+}
+
+.col-container .content, .row-container .content {
+    background-color: #fff;
+    /*overflow: auto;*/
+    /*padding: 8px;*/
+    flex: 1;
+}
+
+.col-container .footer {
+    background-color: #e6e6e6;
+    padding: 8px;
+    display: flex;
+}
+
+.footer .notification-area {
+    display: inline-block;
+    flex: 1;
+}
+
+.row-container .debug {
+    width: 400px;
+    border-left: 1px solid #888;
+    overflow: auto;
+}
+
+pre.content {
+    font-size: 13px;
+    margin: 0;
+    padding: 4px;
+    overflow: visible;
+}
+
+.content.loading-container {
+    background: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.row-container .rec-form {
+    overflow: auto;
+    padding: 8px;
+    flex: 1;
+}
+
+.array-ops > *{
+    margin-left: 8px;
+}
+.array-ops > *:first-child{
+    margin-left: 0;
+}
+
+.array-card-grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -4px;
+}
+.array-card-grid > * {
+    margin: 8px;
+}
+
+.title-required::before, .card-required > .ant-card-head > .ant-card-head-wrapper > .ant-card-head-title::before  {
+    display: inline-block;
+    margin-right: 4px;
+    color: #f5222d;
+    font-size: 14px;
+    font-family: SimSun, sans-serif;
+    line-height: 1;
+    content: '*';
+}
+
+.menu-item-divider {
+    height: 1px;
+    border-top: 1px solid #e8e8e8;
+}
+
+.no-data {
+    color: #ccc;
+}
+
+.flat-table > .ant-spin-nested-loading > .ant-spin-container > .ant-table-small {
+    border: none;
+}
+.flat-table > .ant-spin-nested-loading > .ant-spin-container > .ant-table-small > .ant-table-content > .ant-table-body {
+    margin: 0;
+}
+.flat-table .ant-empty {
+    margin: 0;
+}
+.flat-table .ant-empty-image {
+    display: none;
+}
+
+.has-error.ant-input-number, .has-error.ant-time-picker-input {
+    border-color: #f5222d;
+}

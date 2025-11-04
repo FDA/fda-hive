@@ -1,0 +1,310 @@
+
+<script src="js/algox.js"></script>
+<script src="js/vjTreeSeries.js"></script>
+<script src="js/vjSankey.js"></script>
+<script src="js-graph/vjSVG_Phylogram.js"></script>
+<script src="?cmd=~^dna~js-obj/svc-popul.js"></script>
+
+<script>
+
+    google.load("visualization", "1", { packages: ["corechart"] });
+    
+    var process_formName = "form-process";
+    
+    gInitList += "valgoProcess_init();popul_init();";
+    setLocationTitle("HIVE Hexahedron tool");
+    
+    var alignID=docLocValue("parent_proc_ids"); if(isok(alignID))alignID=alignID.split(",");
+    
+    valgoProcess_visibleParameters=["name", "parent_proc_ids","pairedEnd","bifThreshold","mutualAligmentID", "bifMinCov", "qua_threshold", "batch_svc"];
+    valgoProcess_initialPresets={};
+    valgoProcess_brief = "<table class='HIVE_sect1'><tr ><td id='dvHitListViewer' valign=top></td><td id='dvHitListInfoViewer' valign=top></td></tr></table>";
+    valgoProcess_qpsvc="dna-popul";
+    valgoProcess_svc="svc-popul";
+    var manually_changed_named = false;
+    var manually_changed_pairedEnd = false;
+    
+    var readsID;
+    
+    var process_showParentList=1;
+    var dna_hexagonHitList, dna_populObj;
+
+    valgoToolbarWaitingList = "type,align,order,name,title,icon,path,url,description\n"
+            + "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
+            + ",left,1,home,Home Page,home,/hexagon/home,?cmd=home,Jump to Home Page\n"
+            + ",left,3,modresubmit,Modify and Resubmit,img/recRevert.gif,/resubmit,"+urlExchangeParameter(document.location,"id","-"+valgoProcess_ID)+",Modify parameters and resubmit this computation using the same template\n"
+            + ",left,2,hexagon,Back to Alignment,?cmd=~^dna-hexagon$~svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process";
+
+    function popul_init() {
+        var visualArray = new Array(
+                {
+                    name : 'dvTrees',
+                    onlyPopup : true,
+                    role : 'output',
+                    title : "Trees",
+                    align : 'left',
+                    popupCloser : true
+                }, {
+                    name : 'dvProfilerZoom',
+                    onlyPopup : true,
+                    role : 'output',
+                    title : "Profile Zoom",
+                    align : 'left',
+                    popupCloser : true
+                });
+
+        vjVIS.generate(visualArray);
+
+        return;
+    }
+
+    function setInitialName() {
+        linkCmd("objQry&raw=1&qry="
+                + vjDS.escapeQueryLanguage("a=[" + alignID
+                        + "] as objlist ;return a[0].name;"), "", function(
+                param, text) {
+            var bifTrigger = algoProcess.getValue("bifurcationDecisionFlag");
+            var title = "Clonal analysis with bifurcation on ";
+            if (bifTrigger == 1) {
+                title += "pvalue and threshold "
+                        + algoProcess.getValue("getBifurcationPvalueThrshld");
+            } else if (bifTrigger == 2) {
+                title += "bayes and threshold "
+                        + algoProcess.getValue("getBifurcationBayesThrshld")
+                        + "%";
+            } else {
+                title += "frequency and threshold "
+                        + algoProcess.getValue("bifThreshold") + "%";
+            }
+            title += " based on alignment :";
+            if (text) {
+                title += " " + text;
+            }
+            title += " (" + alignID + ")"
+            algoProcess.setValue("name", title);
+        });
+    }
+    
+    function load_readsID()
+    {
+        if (!alignID)
+            return;
+
+        linkCmd('objQry&raw=1&qry=("' + verarr(alignID).join(",") + '"%20as%20objlist).map({.query}).reduce(function(x,y){x.append(y)})',
+            "",
+            function(param, text) {
+                try {
+                    readsID = JSON.parse(text);
+                    if (readsID.join) {
+                        if( !(readsID.length%2) && !manually_changed_pairedEnd ) {
+                            algoProcess.setValue('pairedEnd', true);
+                        }
+                    }
+                    if (!readsID) {
+                        readsID = 0;
+                    }
+                } catch (e) {
+                    readsID = 0;
+                }
+            }
+        );
+    }
+    
+    valgoProcess_inputChanged = function(record_view, element) {
+
+        if (record_view.getElement("name") == element)
+            manually_changed_named = true;
+        if (record_view.getElement("pairedEnd") == element)
+            manually_changed_pairedEnd = true; 
+        
+
+        alignID= algoProcess.viewer.getElementValue("parent_proc_ids","array").join(",");
+        
+
+        var okToSubmit = isok(alignID) && algoProcess.modeActive;
+
+        if (okToSubmit) {
+            if (!manually_changed_named) {
+                setInitialName();
+            }
+        }
+
+        visibool("dvProcessSubmitter", okToSubmit);
+    }
+
+    valgoProcess_inputLoaded = function(viewer) {
+        load_readsID();
+        
+        var par = algoProcess.viewer.getElement("parent_proc_ids");
+        par.fld.constraint_data = "svc-align*";
+        par.fld.checkCallback = process_parentCheckCallback;
+        par.fld.selectCallback = function(viewer, node) {
+            dna_hexagonHitList.reload(node.id, 0, 0);
+        };
+        
+        var nam = algoProcess.getValue("name")
+
+        if (alignID)
+            algoProcess.setValue('parent_proc_ids', alignID);
+        else
+            alignID = algoProcess.getValue('parent_proc_ids');
+
+        let mutualAlignmentID=docLocValue("mutualAligmentID");
+        if (mutualAlignmentID)
+            algoProcess.setValue('mutualAligmentID', mutualAlignmentID);
+        
+        var okToSubmit = isok(alignID) && algoProcess.modeActive;
+
+        if (okToSubmit) {
+            if (!nam) {
+                setInitialName();
+            }
+        }
+
+        if (!dna_hexagonHitList && alignID) {
+            var node = {
+                _type : 'svc-align',
+                id : alignID
+            };
+            var dvname = vjDV.add("dvHitListViewer", 350, 350);
+            var dvinfo = vjDV.add("dvHitListInfoViewer", 800, 350);
+            dna_hexagonHitList = vjHO.fullview(node._type, node, {
+                obj : [ dvname, dvinfo ]
+            });
+            dna_hexagonHitList.isInput = true;
+            dna_hexagonHitList.checkable = (algoProcess.modeActive) ? true
+                    : false;
+            dna_hexagonHitList.callbackChecked = process_checkedReference;
+            dna_hexagonHitList.callbackSelected = process_selectedReference;
+            dna_hexagonHitList.algoProc = algoProcess;
+        }
+
+        visibool("dvProcessSubmitter", okToSubmit);
+    }
+
+    function process_parentCheckCallback(viewer, node, nn) {
+        if (!node)
+            return;
+
+        var url = vjDS[viewer.data].url;
+        url = urlExchangeParameter(url, "prop_name", "status"
+                + (node.checked ? ",subject" : ""));
+        url = urlExchangeParameter(url, "prop_val", "5"
+                + (node.checked ? "," + node.subject : ""));
+        var checkedIds = viewer.accumulate("node.checked", "node.id");
+
+        dna_hexagonHitList.reload(node.id, 0, 0);
+    }
+
+    function process_checkedReference(viewer) {
+        if (algoProcess.modeActive) {
+            var references = viewer.accumulate("node.checked","node");
+            algoProcess.setValue("subSet", viewer.accumulate("node.checked",
+                    "node.id").join(";"));
+            process_inputLoaded();
+        } 
+    }
+    
+    function process_selectedReference(viewer) {
+        var references = viewer.accumulate("node.selected","node");
+
+            if( dna_populObj ) {
+                dna_populObj.onSelectReferenceID(viewer, verarr(references)[0] );
+        }
+    }
+
+    valgoProcess_doneComputing = function(viewer, reqid, stat, callcounter) {
+        if(stat>0)
+            visibool("resultBlock", true);
+        if (stat == 5) {
+
+            node = {
+                _type : 'svc-popul',
+                id : valgoProcess_ID,
+                parent_id : algoProcess.viewer.getElement("parent_proc_ids").value
+            };
+
+            dvname = vjDV.add("dvPopulViewer", 350, 350);
+            dvinfo = vjDV.add("dvPopulInfoViewer", 900, 350);
+            var dvTrees = vjDV.add("dvTreesViewer", 0.95 * gPgW, 450);
+
+            dna_populObj = vjHO.fullview(node._type, node, {
+                obj : [ dvname, dvinfo, dvTrees ]
+            });
+            if( dna_hexagonHitList && dna_hexagonHitList.viewers ) {
+                process_checkedReference(dna_hexagonHitList.viewers['hitlist']);
+            }
+            dna_populObj.initProc(algoProcess);
+            vjDS["ds" + algoProcess.toolBar].reload("innerText:
+                    + algoProcess.toolBar + "DoneDV", true);
+
+        }
+    }
+</script>
+
+<script src='js/vjSVGView.js'></script>
+<script src='js-graph/vjSVG_primitive.js'></script>
+<script src='js-graph/vjSVG_base.js'></script>
+<script src='js/vjDataSeries.js'></script>
+<script src='js-graph/vjSVG_plot.js'></script>
+<script src='js-graph/vjSVG_Axis.js'></script>
+<script src='js-graph/vjSVG_Defaults.js'></script>
+<script src='js-graph/vjSVG_General.js'></script>
+<script src='js-graph/vjSVG_Sankey.js'></script>
+<script src='?cmd=~^dna-popul$~vjPopulView.js'></script>
+
+
+  
+<form name="form-process" method=get POST action="dna.cgi" enctype="multipart/form-data" >
+
+    <table class="HIVE_section"><tr><td><span id="dvTrees-visual"></td></table>
+
+    <table width="1024" border="0" id="dvWholePanel">
+        <tr>
+            <td width="48%" id="dvLeftPanel"></td>
+            <td width="2%" align=center>
+                <div class="HIVE_oneliner" style="width:100%">
+                    <span id="algoBlock">
+                        <div id="dvProcess-visual" ></div><br/>
+                        <div id="dvProcessBatchable"></div>
+                        <img border=0 src="img/algoin.gif" width=48 /><br/>
+                        <div id="dvProcessSubmitter"></div>
+                        <div id="dvProcessSubmitterAll">
+                        </div>
+                        <div id="dvProgressViewer"></div>
+                        <img border=0 src="img/algoout.gif" width=48 />
+                    </span>
+                </div>
+            </td>
+            <td width="48%" id="dvRightPanel"></td>
+        </tr>
+    </table>
+    
+    <table width="100%" border="0">
+        <tr>
+            <td width="48%"></td>
+            <td width="2%" align=center>
+                <span id="resultBlock" class="sectHid" >
+                    <div class="HIVE_section" >
+                        <script>valgoSectionHeader("Ne<span style='position:relative;right:5px'><span style='vertical-align:middle;font-size:xx-large;font-weight:400;font-style:oblique'>&fnof;</span>osome</span> Profile", "?cmd=~^dna-heptagon$~svc-profiler.gif", "sectOutput1", "<span class='sectVis' id='dvprocessToolbar'></span>", true)</script>
+    
+                        <table id="sectOut1" class="HIVE_sect1">
+                            <tr >
+                                <td id="dvPopulViewer" valign=top></td>
+                                <td id="dvPopulInfoViewer" valign=top></td>
+                            </tr>
+                        </table>    
+                    </div>
+                </span>
+            </td>
+            <td width="48%"></td>
+        </tr>
+    </table>    
+  
+</form>
+
+
+
+
+
+

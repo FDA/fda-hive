@@ -1,0 +1,34 @@
+{
+    "397": {
+        "_id": "$upsert()",
+        "_type": "hppo",
+        "unique-name": "CI3_HPPO",
+        "rule": {
+            "1.0": {
+                "types": "regex:^med_user;regex:^med_visit;regex:^u-file;",
+                "groups": "/CI3/Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/CI3/Patients/;regex:/CI3/Coordinators/"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

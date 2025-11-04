@@ -1,0 +1,41 @@
+{
+    "type.71": {
+        "_id": "type.71",
+        "_type": "type",
+        "name": "svc-denovo-abyss",
+        "title": "Abyss de novo service",
+        "description": "Abyss de novo assembler",
+        "parent": {
+            "1": "type.25"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

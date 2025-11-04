@@ -1,0 +1,263 @@
+{
+    "160": {
+        "_id": "$type.svc-download",
+        "_type": "type",
+        "name": "svc-download",
+        "title": "Download service",
+        "description": "//\nlocation: hive.app.dm.dmDownloader",
+        "parent": {
+            "1": "$type.svc-data-loading-base"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "baseURL",
+                "field_title": "Base URL",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Base url is concatenated to all the IDs to be downloaded. However, it is ignored if the full \npath is specified"
+            },
+            "1.2": {
+                "field_name": "category",
+                "field_title": "Category",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_is_summary_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "\"any/// |genomic///Genomic Sequence|short-read///Short Read",
+                "field_brief": "$_(v)",
+                "field_description": "User-defind category which will be assigned to retrieved objects e.g Genomic, Short Reads, Virus..."
+            },
+            "1.3": {
+                "field_name": "chkauto_Downloader",
+                "field_title": "Process file(s)",
+                "field_type": "integer",
+                "field_parent": "processing_Downloader",
+                "field_order": 31.1,
+                "field_default_value": "-1",
+                "field_constraint": "choice",
+                "field_constraint_data": "-1///All|0///No processing. indexing, screenning, etc|1///Top level only|2///2 levels only"
+            },
+            "1.4": {
+                "field_name": "datasource",
+                "field_title": "Data Source",
+                "field_type": "string",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "ncbi_nuccore///NCBI BioProject Genome|ncbi_nuccds///NCBI Bioproject Exome|http///HTTP|ftp///FTP|sra///NCBI SRA|genbank///NCBI GenBank ID|data///Direct Data|0///not specified",
+                "field_description": "Datasource specifies the location of the files to be downloaded from\nThis field is valid for ID lists only: if URLs are specified (http://, ftp://) this line is ignored"
+            },
+            "1.5": {
+                "field_name": "download_concurrency",
+                "field_title": "Concurrency of Download",
+                "field_type": "integer",
+                "field_order": 7,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///high|5///medium|10///low",
+                "field_description": "the degree of parallelism to download external data"
+            },
+            "1.6": {
+                "field_name": "external_credentials",
+                "field_title": "FTP credentials",
+                "field_type": "array"
+            },
+            "1.7": {
+                "field_name": "external_login",
+                "field_title": "User Name",
+                "field_type": "string",
+                "field_parent": "external_credentials",
+                "field_order": 32,
+                "field_is_optional_fg": true,
+                "field_description": "login to access external resource"
+            },
+            "1.8": {
+                "field_name": "external_password",
+                "field_title": "Password",
+                "field_type": "password",
+                "field_parent": "external_credentials",
+                "field_order": 33,
+                "field_is_optional_fg": true,
+                "field_description": "password to access external resource"
+            },
+            "1.9": {
+                "field_name": "file_format",
+                "field_title": "File Format",
+                "field_type": "string",
+                "field_order": 5,
+                "field_default_value": "unspecified",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "txt///Text Format|fasta///Squence File Without Quality|fastq///Sequence File With Quality|gb///GenBank Annotation File|sam///SAM File|unspecified///not specified",
+                "field_description": "file format to recognize the extention"
+            },
+            "1.10": {
+                "field_name": "hierarchy",
+                "field_title": "Folder_OBSOLETE",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_description": "Path to a folder in Inbox where the uploaded files will be placed e.g. /CHO-Project/CHO-1/"
+            },
+            "1.11": {
+                "field_name": "idx_Downloader",
+                "field_title": "Index",
+                "field_type": "bool",
+                "field_parent": "processing_Downloader",
+                "field_order": 31.2,
+                "field_default_value": "true"
+            },
+            "1.12": {
+                "field_name": "is_upload",
+                "field_title": "User initiated upload",
+                "field_type": "bool",
+                "field_default_value": "false",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.13": {
+                "field_name": "processing_Downloader",
+                "field_title": "Automatic Processing",
+                "field_type": "list",
+                "field_order": 31
+            },
+            "1.14": {
+                "field_name": "qc_Downloader",
+                "field_title": "Quality Control",
+                "field_type": "bool",
+                "field_parent": "processing_Downloader",
+                "field_order": 32.3,
+                "field_default_value": "true"
+            },
+            "1.15": {
+                "field_name": "screen_Downloader",
+                "field_title": "Screen",
+                "field_type": "bool",
+                "field_parent": "processing_Downloader",
+                "field_order": 31.4,
+                "field_default_value": "true"
+            },
+            "1.16": {
+                "field_name": "upload_subject",
+                "field_title": "Reference Genome",
+                "field_type": "obj",
+                "field_order": 4.5,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome+",
+                "field_description": "When uploading alignment information you need to provide list of references for the alignments"
+            },
+            "1.17": {
+                "field_name": "uri",
+                "field_title": "URLs and/or Identifiers",
+                "field_type": "text",
+                "field_order": 0,
+                "field_is_multi_fg": true,
+                "field_constraint": "search+",
+                "field_constraint_data": "{fetch:'bioprojectID',inline:'bioprojectID,name',outline:'bioprojectID,taxid,name', url:'http://taxTree.cgi?whatToPrint=bioprojectID|taxid|name|path|rank&cmd=ncbiTaxBrowseAll&searchTaxID=0&searchName=1&searchBioPID=1&start=0&cnt=20&ids=11019'}",
+                "field_description": "List URLs, numeric identifiers or accessions, one per line. Use http://, ftp:// prefix in URLs. If the value contains \", double it and surround by quotes."
+            },
+            "1.18": {
+                "field_name": "uri_data",
+                "field_title": "Parsed request data",
+                "field_type": "array",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.19": {
+                "field_name": "uri_data_filename",
+                "field_type": "string",
+                "field_parent": "uri_data",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.20": {
+                "field_name": "uri_data_uri",
+                "field_title": "URI",
+                "field_type": "string",
+                "field_parent": "uri_data",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.21": {
+                "field_name": "uri_data_wget",
+                "field_title": "wget options",
+                "field_type": "string",
+                "field_parent": "uri_data",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.22": {
+                "field_name": "url_to_uris",
+                "field_title": "External List",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_description": "URL to a file with list of downloads (not implemented)"
+            },
+            "1.24": {
+                "field_name": "subjectAlign",
+                "field_title": "Subjects to align for filtering reads",
+                "field_type": "obj",
+                "field_order": 0.5,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.25": {
+                "field_name": "seedAlign",
+                "field_title": "Seed to align for filtering reads",
+                "field_type": "integer",
+                "field_order": 0.6,
+                "field_is_optional_fg": true,
+                "field_constraint": "range",
+                "field_constraint_data": "8-16"
+            },
+            "1.27": {
+                "field_name": "maxSeqLen",
+                "field_title": "Maximum Length of Allowed sequence",
+                "field_type": "integer",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

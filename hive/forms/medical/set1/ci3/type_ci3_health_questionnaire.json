@@ -1,0 +1,101 @@
+{
+    "336": {
+        "_id": "$type.ci3_health_questionnaire",
+        "_type": "type",
+        "name": "ci3_health_questionnaire",
+        "title": "Health Questionnaire (EuroQoL)",
+        "description": "Below you will find health questionnaire related to your quality\r\nof life. We will ask you to answer how you are doing in FIVE different areas listed below",
+        "fields": {
+            "1.1": {
+                "field_name": "hq_description",
+                "field_title": " ",
+                "field_type": "string",
+                "field_order": 0,
+                "field_constraint_description": "description",
+                "field_description": "Below you will find health questionnaire related to your quality\r\nof life. We will ask you to answer how you are doing in FIVE different areas listed below"
+            },
+            "1.2": {
+                "field_name": "mobility",
+                "field_title": "MOBILITY",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "I have no problems in walking about|I have slight problems in walking about|I have moderate problems in walking about|I have severe problems in walking about|I am unable to walk about"
+            },
+            "1.3": {
+                "field_name": "self_care",
+                "field_title": "SELF-CARE",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "I have no problems washing or dressing myself|I have slight problems washing or dressing myself|I have moderate problems washing or dressing myself|I have severe problems washing or dressing myself|I am unable to wash or dress myself"
+            },
+            "1.4": {
+                "field_name": "usual_activities",
+                "field_title": "USUAL ACTIVITIES (e.g. work, study, housework, family or leisure activities)",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "I have no problems doing my usual activities|I have slight problems doing my usual activities|I have moderate problems doing my usual activities|I have severe problems doing  my usual activities|I am unable to do my usual activities "
+            },
+            "1.5": {
+                "field_name": "pain_discomfort",
+                "field_title": "PAIN / DISCOMFORT",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "I have no pain or discomfort|I have slight pain or discomfort|I have moderate pain or discomfort|I have severe pain or discomfort|I have extreme pain or discomfort"
+            },
+            "1.6": {
+                "field_name": "anxiety_depression",
+                "field_title": "ANXIETY / DEPRESSION",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "I am not anxious or depressed|I am slightly anxious or depressed|I am moderately anxious or depressed|I am severely anxious or depressed|I am extremely anxious or depressed"
+            },
+            "1.7": {
+                "field_name": "description_1",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_description": "description",
+                "field_description": "<ul>\r\n<li>We would like to know how good or bad your health is TODAY.</li>\r\n<li>This scale is numbered from 0 to 100</li>\r\n<li>100 means the <span style=\"text-decoration: underline;\">best</span> health you can imagine <p>0 means the <span style=\"text-decoration: underline;\">worst</span> health you can imagine</p></li>\r\n<li>Please use slider to indicate how your health is today</li>\r\n</ul>"
+            },
+            "1.8": {
+                "field_name": "health_scale",
+                "field_type": "integer",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint": "range",
+                "field_constraint_data": "{\"range\":\"0-100\",\"unit\":\"point(s)\"}",
+                "field_constraint_description": "slider"
+            }
+        },
+        "parent": {
+            "4": "$type.ci3_shared"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

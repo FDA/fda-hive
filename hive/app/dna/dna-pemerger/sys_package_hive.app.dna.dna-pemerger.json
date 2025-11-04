@@ -1,0 +1,20 @@
+{
+    "265": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-pemerger",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-pemerger",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-pemerger",
+        "description": "PEMERGER performs paired end NGS sequence files merging",
+        "authors": {
+            "3": "V.Simonyan"
+        }
+    }
+}

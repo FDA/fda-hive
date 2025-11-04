@@ -1,0 +1,103 @@
+{
+    "541": {
+        "_id": "$type.lup_cumulative_organ_system",
+        "_type": "type",
+        "name": "lup_cumulative_organ_system",
+        "title": "SLE Cumulative Organ System Involvement",
+        "fields": {
+            "1.1": {
+                "field_name": "constitutional",
+                "field_title": "Constitutional",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.2": {
+                "field_name": "mucocutaneous",
+                "field_title": "Mucocutaneous",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.3": {
+                "field_name": "neuropsychiatric",
+                "field_title": "Neuropsychiatric",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.4": {
+                "field_name": "musculoskeletal",
+                "field_title": "Musculoskeletal",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.5": {
+                "field_name": "cardiorespiratory",
+                "field_title": "Cardiorespiratory",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.6": {
+                "field_name": "gastrointestinal",
+                "field_title": "Gastrointestinal",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.7": {
+                "field_name": "ophthalmic",
+                "field_title": "Ophthalmic",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.8": {
+                "field_name": "renal",
+                "field_title": "Renal",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.9": {
+                "field_name": "hematologic",
+                "field_title": "Hematologic",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.10": {
+                "field_name": "other",
+                "field_title": "Other, specify",
+                "field_type": "string",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "{\"maxlength\":\"100\"}"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

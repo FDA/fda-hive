@@ -1,0 +1,91 @@
+{
+    "402": {
+        "_id": "$type.gdc_family_history",
+        "_type": "type",
+        "name": "gdc_family_history",
+        "title": "Family History",
+        "fields": {
+            "1.0": {
+                "field_name": "relationship_age_at_diagnosis",
+                "field_title": "Age of relative at diagnosis",
+                "field_type": "integer",
+                "field_parent": "relatives",
+                "field_order": 4,
+                "field_description": "The age (in years) when the patient's relative was first diagnosed."
+            },
+            "1.2": {
+                "field_name": "relationship_gender",
+                "field_title": "Relationship gender",
+                "field_type": "string",
+                "field_parent": "relatives",
+                "field_order": 2,
+                "field_constraint_data": "female|male|unknown|unspecified|not reported",
+                "field_description": "The text term used to describe the gender of the patient's relative with a history of cancer."
+            },
+            "1.3": {
+                "field_name": "relationship_primary_diagnosis",
+                "field_title": "Relationship primary diagnosis",
+                "field_type": "string",
+                "field_parent": "relatives",
+                "field_order": 3,
+                "field_constraint_data": "Adrenal Gland Cancer|Basal Cell Cancer|Bile Duct Cancer|Bladder Cancer|Blood Cancer|Bone Cancer|Brain Cancer|Breast Cancer|Cancer|Cervical Cancer|Chondrosarcoma|CNS Cancer|Colorectal Cancer|Esophageal Cancer|Ewing Sarcoma|Gallbladder Cancer|Gastric Cancer|Glioblastoma|Gynecologic Cancer|Head and Neck Cancer|Hematologic Cancer|Kaposi Sarcoma|Kidney Cancer|Laryngeal Cancer|Leukemia|Liver Cancer|Lung Cancer|Lymph Node Cancer|Lymphoma|Melanoma|Mesothelioma|Multiple Myeloma|Neuroblastoma|Osteosarcoma|Ovarian Cancer|Pancreas Cancer|Pediatric Liver Cancer|Prostate Cancer|Rectal Cancer|Rhabdomyosarcoma|Sarcoma|Skin Cancer|Spleen Cancer|Testicular Cancer|Throat Cancer|Thyroid Cancer|Tongue Cancer|Tonsillar Cancer|Uterine Cancer|Wilms Tumor|Unknown|Not Reported",
+                "field_description": "The text term used to describe the malignant diagnosis of the patient's relative with a history of cancer."
+            },
+            "1.4": {
+                "field_name": "relationship_type",
+                "field_title": "Relationship type",
+                "field_type": "string",
+                "field_parent": "relatives",
+                "field_order": 1,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "Adopted Brother|Adopted Daughter|Adopted Sister|Adopted Son|Adoptive Father|Adoptive Mother|Aunt|Brother|Brother-in-law|Child|Cousin|Daughter|Daughter-in-law|Domestic Partner|Father|Father-in-law|Female Cousin|Female Sibling of Adopted Child|First Cousin|First Cousin Once Removed|Foster Brother|Foster Daughter|Foster Father|Foster Mother|Foster Sister|Foster Son|Fraternal Twin Brother|Fraternal Twin Sibling|Fraternal Twin Sister|Full Brother|Full Sister|Grand Nephew|Grand Niece|Grandchild|Granddaughter|Grandfather|Grandmother|Grandparent|Grandson|Great Grandchild|Half Brother|Half Sibling|Half Sister|Husband|Identical Twin Brother|Identical Twin Sibling|Identical Twin Sister|Legal Guardian|Male Cousin|Male Sibling of Adopted Child|Maternal Aunt|Maternal First Cousin|Maternal First Cousin Once Removed|Maternal Grandfather|Maternal Grandmother|Maternal Grandparent|Maternal Great Aunt|Maternal Great Grandparent|Maternal Great Uncle|Maternal Half Brother|Maternal Half Sibling|Maternal Half Sister|Maternal Uncle|Mother|Mother-in-law|Natural Brother|Natural Child|Natural Daughter|Natural Father|Natural Grandchild|Natural Grandfather|Natural Grandmother|Natural Grandparent|Natural Mother|Natural Parent|Natural Sibling|Natural Sister|Natural Son|Nephew|Niece|Niece Second Degree Relative|Other|Parent|Paternal Aunt|Paternal First Cousin|Paternal First Cousin Once Removed|Paternal Grandfather|Paternal Grandmother|Paternal Grandparent|Paternal Great Aunt|Paternal Great Grandparent|Paternal Great Uncle|Paternal Half Brother|Paternal Half Sibling|Paternal Half Sister|Paternal Uncle|Sibling|Sister|Sister-in-law|Son|Son-in-law|Spouse|Step Child|Step Sibling|Stepbrother|Stepdaughter|Stepfather|Stepmother|Stepsister|Stepson|Twin Sibling|Uncle|Unrelated|Ward|Wife|Unknown|Not Reported",
+                "field_description": "The subgroup that describes the state of connectedness between members of the unit of society organized around kinship ties."
+            },
+            "1.5": {
+                "field_name": "relative_with_cancer_history",
+                "field_title": "Relative with cancer history",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "yes|no|unknown|not reported",
+                "field_description": "The yes/no/unknown indicator used to describe whether any of the patient's relatives have a history of cancer."
+            },
+            "1.6": {
+                "field_name": "relatives_with_cancer_history_count",
+                "field_title": "Number of relatives with cancer history",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_constraint_data": "is_shown_fg=$(relative_with_cancer_history)=='yes'",
+                "field_description": "The number of relatives the patient has with a known history of cancer."
+            },
+            "1.8": {
+                "field_name": "relatives",
+                "field_title": "Relatives",
+                "field_type": "array",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(relatives_with_cancer_history_count)!=''&&$(relatives_with_cancer_history_count)>0"
+            }
+        },
+        "parent": {
+            "8": "$type.gdc"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

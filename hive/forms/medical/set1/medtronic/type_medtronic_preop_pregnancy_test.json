@@ -1,0 +1,72 @@
+{
+    "181": {
+        "_id": "$type.medtronic_preop_pregnancy_test",
+        "_type": "type",
+        "name": "medtronic_preop_pregnancy_test",
+        "title": "Preop Pregnancy Test",
+        "fields": {
+            "1.2": {
+                "field_name": "pregnancy_test_administered",
+                "field_title": "Was a pregnancy test administered?",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.3": {
+                "field_name": "indicate_reason",
+                "field_title": "Indicate reason",
+                "field_type": "string",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "HYSTERECTOMY|POST-MENOPAUSAL|TUBAL LIGATION|OTHER\n>is_shown_fg=$(pregnancy_test_administered)=='NO'"
+            },
+            "1.4": {
+                "field_name": "specify_reason",
+                "field_title": "Specify reason",
+                "field_type": "string",
+                "field_order": "4",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(indicate_reason)=='OTHER'&&$(pregnancy_test_administered)=='NO'"
+            },
+            "1.5": {
+                "field_name": "pregnancy_test_esult",
+                "field_title": "Pregnancy Test Result",
+                "field_type": "string",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NEGATIVE|POSITIVE\nis_shown_fg=$(pregnancy_test_administered)=='YES'"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

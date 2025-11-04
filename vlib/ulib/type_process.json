@@ -1,0 +1,434 @@
+{
+    "type.16": {
+        "_id": "type.16",
+        "_type": "type",
+        "name": "process",
+        "title": "Process details",
+        "parent": {
+            "1": "type.67"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "action",
+                "field_title": "Action for Request",
+                "field_type": "integer",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Unknown|1///Hold|2///Run|3///Terminate|4///Suspend|5///Resume"
+            },
+            "1.2": {
+                "field_name": "batch",
+                "field_title": "Batch Description",
+                "field_type": "list",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.3": {
+                "field_name": "batch_children_proc_ids",
+                "field_title": "Batch submitted processes",
+                "field_type": "obj",
+                "field_role": "output",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-proc",
+                "field_description": "Processes created by batch submission"
+            },
+            "1.4": {
+                "field_name": "batch_ignore_errors",
+                "field_title": "Ignore errors in individual submitted processes",
+                "field_type": "bool",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_description": "Continue batching even if some batched computations could not be launched"
+            },
+            "1.5": {
+                "field_name": "batch_list",
+                "field_title": "Parameter list",
+                "field_type": "array",
+                "field_parent": "batch",
+                "field_order": 1,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false
+            },
+            "1.6": {
+                "field_name": "batch_param",
+                "field_title": "Parameter",
+                "field_type": "string",
+                "field_parent": "batch_list",
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "one|two|three"
+            },
+            "1.7": {
+                "field_name": "batch_saturated",
+                "field_title": "Saturated",
+                "field_type": "bool",
+                "field_parent": "batch",
+                "field_order": 2,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "Whether to force every batch for this list to contain at least one value from every parameter."
+            },
+            "1.8": {
+                "field_name": "batch_svc",
+                "field_title": "Batch Service",
+                "field_type": "string",
+                "field_role": "state",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "single///Single Mode",
+                "field_description": "Determines if this tool should be run in single mode (one submission) or batch mode (multiple submissions).  NOTE: setting this option will clear other fields entered into the form."
+            },
+            "1.9": {
+                "field_name": "batch_value",
+                "field_title": "Value",
+                "field_type": "integer",
+                "field_parent": "batch_list",
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "children_proc_ids",
+                "field_title": "Children Processes",
+                "field_type": "obj",
+                "field_role": "output",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-proc"
+            },
+            "1.11": {
+                "field_name": "comment",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_parent": "system",
+                "field_order": 30,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_description": "Comment field for arbitrary descriptive information associated with this process"
+            },
+            "1.12": {
+                "field_name": "completed",
+                "field_title": "Completed",
+                "field_type": "datetime",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_readonly_fg": 2
+            },
+            "1.13": {
+                "field_name": "folder",
+                "field_title": "Destination folder",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_default_value": "eval:typeof(user_get_curdir_save)!==\"undefined\"?user_get_curdir_save():\"\"",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_is_virtual_fg": true,
+                "field_weakref": true,
+                "field_constraint": "type",
+                "field_constraint_data": "folder+"
+            },
+            "1.14": {
+                "field_name": "isPostponed",
+                "field_title": "Postpone execution",
+                "field_type": "bool",
+                "field_parent": "system",
+                "field_default_value": "false",
+                "field_role": "state",
+                "field_description": "Launch job in suspended state, you will need to manually launching later"
+            },
+            "1.15": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": -100,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_summary_fg": true,
+                "field_brief": "$_(v)",
+                "field_description": "Provide an identifiable name for the process."
+            },
+            "1.16": {
+                "field_name": "nrepeat",
+                "field_title": "Number of Computational Threads",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "1",
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.17": {
+                "field_name": "onUserBehalf",
+                "field_title": "On Behalf of The User",
+                "field_type": "integer",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:\"id\", inline:\"name\", outline:\"name\", url:\"http://?cmd=usrList&active=1&grp=0&primaryGrpOnly=1&raw=1\"}"
+            },
+            "1.18": {
+                "field_name": "parent_proc_ids",
+                "field_title": "Parent Processes",
+                "field_type": "obj",
+                "field_role": "input",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "process+"
+            },
+            "1.19": {
+                "field_name": "progress",
+                "field_title": "Progress",
+                "field_type": "integer",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_readonly_fg": 2
+            },
+            "1.20": {
+                "field_name": "progress100",
+                "field_title": "Progress %",
+                "field_type": "integer",
+                "field_parent": "system",
+                "field_order": 3,
+                "field_role": "state",
+                "field_is_readonly_fg": 2,
+                "field_is_summary_fg": true,
+                "field_brief": "$_(v)%"
+            },
+            "1.21": {
+                "field_name": "random_seed",
+                "field_title": "Random Seed",
+                "field_type": "integer",
+                "field_default_value": "0",
+                "field_role": "parameter",
+                "field_is_hidden_fg": true
+            },
+            "1.22": {
+                "field_name": "reqID",
+                "field_title": "Request ID",
+                "field_type": "integer",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_readonly_fg": 2
+            },
+            "1.23": {
+                "field_name": "reqPriority",
+                "field_title": "Priority of submission",
+                "field_type": "integer",
+                "field_parent": "system",
+                "field_default_value": "0",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///normal - execute ASAP in collaborative environment|100///polite submission - let other users small computations to squeeze through|1000///large submissions - do not compete with small and medium computations|1000000///extremely nice - execute only when most computers are not busy"
+            },
+            "1.24": {
+                "field_name": "scissors",
+                "field_title": "How to split the sequences",
+                "field_type": "string",
+                "field_default_value": "hiveseq",
+                "field_role": "state",
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "hiveseq///By the number of sequences|hiveal///By the number of alignments",
+                "field_description": "The way large jobs are split into smaller pieces"
+            },
+            "1.25": {
+                "field_name": "slice",
+                "field_title": "Number of Computational Subjects per Single Thread",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "500000",
+                "field_role": "state",
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.26": {
+                "field_name": "split",
+                "field_title": "What field contains the object spliting the jobs",
+                "field_type": "string",
+                "field_default_value": "query",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.27": {
+                "field_name": "splitField",
+                "field_title": "Split based on specified field(s)",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_role": "state",
+                "field_is_optional_fg": true
+            },
+            "1.28": {
+                "field_name": "splitList",
+                "field_title": "Split process into smaller chunks",
+                "field_type": "list",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.29": {
+                "field_name": "splitSize",
+                "field_title": "Size of each chunk",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_role": "state",
+                "field_is_optional_fg": true
+            },
+            "1.30": {
+                "field_name": "splitType",
+                "field_title": "Splitting function",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "file///Number of lines in a file|multiplier///Multiplier|archive///Number of files in archive|list///Number of elements in a range|sequences///Number of sequences|alignments///Number of alignments "
+            },
+            "1.31": {
+                "field_name": "started",
+                "field_title": "Started",
+                "field_type": "datetime",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_readonly_fg": 2
+            },
+            "1.32": {
+                "field_name": "status",
+                "field_title": "Status",
+                "field_type": "integer",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_readonly_fg": 2,
+                "field_is_summary_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Unknown|1///Waiting|2///Processing|3///Running|4///Suspended|5///Done|6///Killed|7///ProgError|8///SysError"
+            },
+            "1.33": {
+                "field_name": "submitter",
+                "field_title": "Submitting Template Page",
+                "field_type": "string",
+                "field_order": 1003.1,
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_is_summary_fg": true
+            },
+            "1.34": {
+                "field_name": "svc",
+                "field_title": "Service ID",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_role": "state",
+                "field_is_readonly_fg": 2,
+                "field_is_summary_fg": false
+            },
+            "1.35": {
+                "field_name": "svcTitle",
+                "field_title": "Service Title",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_order": 2,
+                "field_role": "state",
+                "field_is_readonly_fg": 2,
+                "field_is_summary_fg": true,
+                "field_brief": "<b>$_(v)</b>"
+            },
+            "1.36": {
+                "field_name": "system",
+                "field_title": "System",
+                "field_type": "list",
+                "field_role": "state"
+            },
+            "1.37": {
+                "field_name": "systemVersion",
+                "field_title": "System version number",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_default_value": "eval:gSysVersion",
+                "field_role": "state",
+                "field_is_readonly_fg": 2
+            },
+            "1.39": {
+                "field_name": "version",
+                "field_title": "Version",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            },
+            "1.40": {
+                "field_name": "submission_project",
+                "field_title": "Project",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": false,
+                "field_constraint": "search",
+                "field_constraint_data": "{\n   \"fetch\":\"id\",\n   \"inline\":\"id,^_brief\",\n   \"outline\":[\n      {\n         \"name\":\"^_brief\",\n         \"hidden\":false,\n         \"title\":\"Project Name\"\n      },\n      {\n         \"name\":\"^id\",\n         \"hidden\":false,\n         \"title\":\"ID\"\n      },\n      {\n         \"name\":\"^project_status\",\n         \"hidden\":false,\n         \"title\":\"Project Status\"\n      }\n   ],\n   \"url\":\"http://?cmdr=objQry&qry=items%3Dalloftype('^project$%2B',%20{project_status:['Manuscript%20Prep/Review','In-progress']});return%20items%20as%20csv(['_brief','project_status']);\"\n} \n \n"
+            },
+            "1.41": {
+                "field_name": "notify",
+                "field_title": "When to Notify via Email",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_role": "input",
+                "field_default_value": "Use value from user settings",
+                "field_constraint": "choice",
+                "field_constraint_data": "Use value from user settings|Always|Failures Only|Never"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,67 @@
+{
+    "518": {
+        "_id": "$type.hep_seizure_semiology_and_classification_form",
+        "_type": "type",
+        "name": "hep_seizure_semiology_and_classification_form",
+        "title": "Seizure Semiology and Classification Form",
+        "fields": {
+            "1.1": {
+                "field_name": "classification",
+                "field_title": "Classification and Number of Seizures",
+                "field_type": "array",
+                "field_order": 1,
+                "field_is_multi_fg": true
+            },
+            "1.2": {
+                "field_name": "seizure_name",
+                "field_title": "Patient-provided Seizure Name",
+                "field_type": "string",
+                "field_parent": "classification",
+                "field_order": 1
+            },
+            "1.3": {
+                "field_name": "seizure_code",
+                "field_title": "Seizure Letter Code",
+                "field_type": "string",
+                "field_parent": "classification",
+                "field_order": 2
+            },
+            "1.4": {
+                "field_name": "seizure_semiology",
+                "field_title": "SEIZURE SEMIOLOGY FOR EACH TYPE. Please add a detailed seizure description, from beginning to end, including postictal features.",
+                "field_type": "text",
+                "field_parent": "classification",
+                "field_order": 3
+            },
+            "1.5": {
+                "field_name": "seizure_type",
+                "field_title": "Seizure Type by Number",
+                "field_type": "string",
+                "field_parent": "classification",
+                "field_order": 4,
+                "field_constraint_data": "1. Clearly generalized seizures, but unable to further classify|1.1. Tonic clonic (in any combination)|1.2. Absence|1.2.1. Typical|1.2.2. Eyelid myoclonia|1.3. Myoclonic|2. Clearly focal seizures, but unable to further classify (Exclude)|2.1. Without impairment of consciousness or responsiveness (Exclude)|2.1.1. With observable motor or autonomic component (roughly corresponds to the concept of \"simple partial seizure\") (Exclude)|2.1.2. Involving subjective sensory or psychic phenomena only (corresponds to the concept of \"aura\") (Exclude)|2.2. With impairment of consciousness or responsiveness (roughly corresponds to the concept of \"focal seizures with dyscognitive features\") (Exclude)|2.3. Evolving to a bilateral, convulsive seizure (involving tonic, clonic, or tonic and clonic components; replaces the term \"secondarily generalized seizure\") (Exclude)|3. Seizure type is unclassified (Adjudicate)|4. Unconfirmed seizure type (This category should be used for patients with confirmed epilepsy who have some events for which the Primary Investigator does not have >80% certainty that they are seizures.)"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

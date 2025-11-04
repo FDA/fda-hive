@@ -1,0 +1,173 @@
+{
+    "372": {
+        "_id": "$type.tas_provider_demographics",
+        "_type": "type",
+        "name": "tas_provider_demographics",
+        "title": "Provider demographics",
+        "fields": {
+            "1.1": {
+                "field_name": "first_name",
+                "field_title": "First Name",
+                "field_type": "string",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "last_name",
+                "field_title": "Last Name",
+                "field_type": "string",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "middle_initial",
+                "field_title": "Middle Initial",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "suffix",
+                "field_title": "Suffix",
+                "field_type": "string",
+                "field_order": 4,
+                "field_description": "e.g. MD"
+            },
+            "1.5": {
+                "field_name": "mobile_number",
+                "field_title": "Mobile Number",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_description": "phone"
+            },
+            "1.6": {
+                "field_name": "office_number",
+                "field_title": "Office Number",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "phone"
+            },
+            "1.7": {
+                "field_name": "email_address",
+                "field_title": "Email Address",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_description": "email"
+            },
+            "1.8": {
+                "field_name": "primary_staff_email",
+                "field_title": "Primary Staff Email",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_description": "email"
+            },
+            "1.9": {
+                "field_name": "how_many_implant_procedures",
+                "field_title": "Approx how many implant procedures do you typically perform in a month",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "1-5|5-10|10-20|20+|None"
+            },
+            "1.10": {
+                "field_name": "practice_type",
+                "field_title": "Practice Type",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "Single Doctor|Group Practice|University"
+            },
+            "1.11": {
+                "field_name": "board_certified_plastic_surgeon",
+                "field_title": "Are you a board-certified plastic surgeon?",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "Yes|No|Other"
+            },
+            "1.12": {
+                "field_name": "board_certified_plastic_surgeon_other",
+                "field_title": "Please specify",
+                "field_type": "text",
+                "field_order": 12,
+                "field_constraint_data": "is_shown_fg=$(board_certified_plastic_surgeon)=='Yes'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.13": {
+                "field_name": "legal_entity_name",
+                "field_title": "Legal Entity Name",
+                "field_type": "string",
+                "field_order": 13,
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "practice_name",
+                "field_title": "Practice Name",
+                "field_type": "string",
+                "field_order": 14
+            },
+            "1.15": {
+                "field_name": "office_address",
+                "field_title": "Office Address",
+                "field_type": "string",
+                "field_order": 15
+            },
+            "1.16": {
+                "field_name": "city",
+                "field_title": "City",
+                "field_type": "string",
+                "field_order": 16
+            },
+            "1.17": {
+                "field_name": "state",
+                "field_title": "State",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint": "search",
+                "field_constraint_data": "{\r\n\"fetch\":[\"code\"],\r\n\"url\":\"?cmd=file&mode=csv&filename=voc/tmj_states.csv&raw=1&start=0\",\r\n\"inline\":[\r\n\t{\"name\":\"subdivision\",\"title\":\"subdivision\",\"display\":\"title\",\"search\":\"true\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"code\",\"title\":\"code\"}\r\n]\r\n}\r\n>is_shown_fg=$(country)=='US'||$(country)=='UM'"
+            },
+            "1.18": {
+                "field_name": "zip_code",
+                "field_title": "Zip Code",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_data": "is_shown_fg=true;value_fg='$(this)';if($(country)=='US'){ var valid = /^\\d{5}$/g.test(value_fg);has_error=(!valid).toString();if(!valid){error_message='Insert correct Zip Code';}else{has_error='false';error_message='';}}"
+            },
+            "1.19": {
+                "field_name": "country",
+                "field_title": "Country",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint": "search",
+                "field_constraint_data": "{\r\n\"fetch\":[\"ISO\"],\r\n\"url\":\"?cmd=file&mode=csv&filename=voc/countries.csv&raw=1&start=0\",\r\n\"inline\":[\r\n\t{\"name\":\"ISO\",\"title\":\"ISO\",\"display\":\"none\",\"search\":\"true\"},\r\n\t{\"name\":\"country\",\"title\":\"Country\",\"display\":\"title\",\"search\":\"true\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"code\",\"title\":\"code\"}\r\n]\r\n}"
+            }
+        },
+        "parent": {
+            "4": "$type.tas_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

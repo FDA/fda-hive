@@ -1,0 +1,525 @@
+{
+    "319": {
+        "_id": "$type.svc-ecg",
+        "_type": "type",
+        "name": "svc-ecg",
+        "title": "ECG",
+        "description": "//ecg project\nlocation: hive.app.spectral.ecgtool",
+        "parent": {
+            "1": "$type.svc-spectral-base"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "arcdim",
+                "field_title": "Obj List",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file",
+                "field_description": "ecg object list"
+            },
+            "1.2": {
+                "field_name": "arcdimSource",
+                "field_title": "Source Files",
+                "field_type": "string",
+                "field_is_hidden_fg": true
+            },
+            "1.3": {
+                "field_name": "ecg_analyze",
+                "field_title": "analyze",
+                "field_type": "list",
+                "field_order": 9,
+                "field_is_multi_fg": true
+            },
+            "1.4": {
+                "field_name": "ecg_analyze_enable",
+                "field_title": "Enable ECG Analyze",
+                "field_type": "bool",
+                "field_parent": "ecg_analyze",
+                "field_order": 1,
+                "field_default_value": "false",
+                "field_constraint_description": "Enable ECG Analyze"
+            },
+            "1.5": {
+                "field_name": "ecg_analyze_inputindex",
+                "field_title": "Input Index",
+                "field_type": "string",
+                "field_parent": "ecg_analyze",
+                "field_order": 2,
+                "field_default_value": "index_raw.idx",
+                "field_is_hidden_fg": true
+            },
+            "1.6": {
+                "field_name": "ecg_analyze_log",
+                "field_title": "Log File",
+                "field_type": "string",
+                "field_parent": "ecg_analyze",
+                "field_order": 6,
+                "field_default_value": "analyze_log.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output log file"
+            },
+            "1.7": {
+                "field_name": "ecg_analyze_loglevel",
+                "field_title": "Log Level",
+                "field_type": "integer",
+                "field_parent": "ecg_analyze",
+                "field_order": 5,
+                "field_default_value": "4",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///trace|2///debug|3///info|4///warning|5///error",
+                "field_constraint_description": "Minumim log level"
+            },
+            "1.8": {
+                "field_name": "ecg_analyze_log_bt",
+                "field_title": "Backtrace File",
+                "field_type": "string",
+                "field_parent": "ecg_analyze",
+                "field_order": 7,
+                "field_default_value": "analyze_log-bt.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output backtrace file"
+            },
+            "1.9": {
+                "field_name": "ecg_analyze_outinfo",
+                "field_title": "Output Info",
+                "field_type": "string",
+                "field_parent": "ecg_analyze",
+                "field_order": 4,
+                "field_default_value": "analyze.out",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output Info file"
+            },
+            "1.10": {
+                "field_name": "ecg_analyze_plugin",
+                "field_title": "Analyzer Plugin",
+                "field_type": "string",
+                "field_parent": "ecg_analyze",
+                "field_order": 3,
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///vcg|2///repdur"
+            },
+            "1.11": {
+                "field_name": "ecg_delineate",
+                "field_title": "delineate",
+                "field_type": "list",
+                "field_order": 7
+            },
+            "1.12": {
+                "field_name": "ecg_delineate_annout",
+                "field_title": "Output Annotations",
+                "field_type": "string",
+                "field_parent": "ecg_delineate",
+                "field_order": 4,
+                "field_default_value": "automatic",
+                "field_constraint_description": "Output annotation label"
+            },
+            "1.13": {
+                "field_name": "ecg_delineate_delineation",
+                "field_title": "Delineation",
+                "field_type": "string",
+                "field_parent": "ecg_delineate",
+                "field_order": 5,
+                "field_default_value": "wavelet,newqrs,newtwave",
+                "field_constraint_description": "Delineation strategy (wavelet, leastsq, parabolafilt, newtwave, newqrs)"
+            },
+            "1.14": {
+                "field_name": "ecg_delineate_inputindex",
+                "field_title": "Input Index",
+                "field_type": "string",
+                "field_parent": "ecg_delineate",
+                "field_order": 1,
+                "field_default_value": "index_preprocess.idx",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Input Index file"
+            },
+            "1.15": {
+                "field_name": "ecg_delineate_log",
+                "field_title": "Log File",
+                "field_type": "string",
+                "field_parent": "ecg_delineate",
+                "field_order": 8,
+                "field_default_value": "delineate_log.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output log file"
+            },
+            "1.16": {
+                "field_name": "ecg_delineate_loglevel",
+                "field_title": "Log Level",
+                "field_type": "integer",
+                "field_parent": "ecg_delineate",
+                "field_order": 7,
+                "field_default_value": "4",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///trace|2///debug|3///info|4///warning|5///error",
+                "field_constraint_description": "Minumum log level"
+            },
+            "1.17": {
+                "field_name": "ecg_delineate_log_bt",
+                "field_title": "Backtrace File",
+                "field_type": "string",
+                "field_parent": "ecg_delineate",
+                "field_order": 9,
+                "field_default_value": "delineate_log-bt.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output backtrace file"
+            },
+            "1.18": {
+                "field_name": "ecg_delineate_outindex",
+                "field_title": "Output Index",
+                "field_type": "string",
+                "field_parent": "ecg_delineate",
+                "field_order": 2,
+                "field_default_value": "index_delineate.idx",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output Index file"
+            },
+            "1.19": {
+                "field_name": "ecg_delineate_outinfo",
+                "field_title": "Output Info",
+                "field_type": "string",
+                "field_parent": "ecg_delineate",
+                "field_order": 3,
+                "field_default_value": "delineate.out",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output info file"
+            },
+            "1.20": {
+                "field_name": "ecg_delineate_precut",
+                "field_title": "Precut",
+                "field_type": "integer",
+                "field_parent": "ecg_delineate",
+                "field_order": 6,
+                "field_default_value": "250",
+                "field_constraint_description": "Precut Window"
+            },
+            "1.21": {
+                "field_name": "ecg_getmetrics",
+                "field_title": "getmetrics",
+                "field_type": "list",
+                "field_order": 10,
+                "field_is_multi_fg": true
+            },
+            "1.22": {
+                "field_name": "ecg_getmetrics_annset",
+                "field_title": "Annotation Set",
+                "field_type": "integer",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 4,
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///CRO|2///automatic",
+                "field_constraint_description": "Annotation set used"
+            },
+            "1.23": {
+                "field_name": "ecg_getmetrics_enable",
+                "field_title": "Enable Getmetrics",
+                "field_type": "bool",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 1,
+                "field_default_value": "false",
+                "field_constraint_description": "Enable Getmetrics"
+            },
+            "1.24": {
+                "field_name": "ecg_getmetrics_filter",
+                "field_title": "Filter",
+                "field_type": "string",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 5,
+                "field_default_value": "PON,QON,RPEAK,QOFF,TPEAK,TPPEAK,TOFF",
+                "field_constraint_description": "Filter for measurements/leads (e.g. QON,TPEAK,V5,V5_TPEAK)"
+            },
+            "1.25": {
+                "field_name": "ecg_getmetrics_inputindex",
+                "field_title": "Input Index",
+                "field_type": "string",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 2,
+                "field_default_value": "index_delineate.idx",
+                "field_is_hidden_fg": true
+            },
+            "1.26": {
+                "field_name": "ecg_getmetrics_log",
+                "field_title": "Log File",
+                "field_type": "string",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 7,
+                "field_default_value": "getmetrics_log.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output log file"
+            },
+            "1.27": {
+                "field_name": "ecg_getmetrics_loglevel",
+                "field_title": "Log Level",
+                "field_type": "integer",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 6,
+                "field_default_value": "4",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///trace|2///debug|3///info|4///warning|5///error",
+                "field_constraint_description": "Minumim log level"
+            },
+            "1.28": {
+                "field_name": "ecg_getmetrics_log_bt",
+                "field_title": "Backtrace File",
+                "field_type": "string",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 8,
+                "field_default_value": "getmetrics_log-bt.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output backtrace file"
+            },
+            "1.29": {
+                "field_name": "ecg_getmetrics_outinfo",
+                "field_title": "Output Info",
+                "field_type": "string",
+                "field_parent": "ecg_getmetrics",
+                "field_order": 3,
+                "field_default_value": "getmetrics.out",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output Info file"
+            },
+            "1.30": {
+                "field_name": "ecg_hl7dump",
+                "field_title": "hl7dump",
+                "field_type": "list",
+                "field_order": 5
+            },
+            "1.31": {
+                "field_name": "ecg_hl7dump_annotator",
+                "field_title": "Annotator",
+                "field_type": "string",
+                "field_parent": "ecg_hl7dump",
+                "field_order": 4,
+                "field_default_value": "CRO"
+            },
+            "1.32": {
+                "field_name": "ecg_hl7dump_log",
+                "field_title": "Log File",
+                "field_type": "string",
+                "field_parent": "ecg_hl7dump",
+                "field_order": 6,
+                "field_default_value": "hl7dump_log.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output log file"
+            },
+            "1.33": {
+                "field_name": "ecg_hl7dump_loglevel",
+                "field_title": "Log Level",
+                "field_type": "integer",
+                "field_parent": "ecg_hl7dump",
+                "field_order": 5,
+                "field_default_value": "4",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///trace|2///debug|3///info|4///warning|5///error",
+                "field_constraint_description": "Minimum log level"
+            },
+            "1.34": {
+                "field_name": "ecg_hl7dump_log_bt",
+                "field_title": "Backtrace File",
+                "field_type": "string",
+                "field_parent": "ecg_hl7dump",
+                "field_order": 7,
+                "field_default_value": "hl7dump_log-bt.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output backtrace log file"
+            },
+            "1.35": {
+                "field_name": "ecg_hl7dump_outindex",
+                "field_title": "Output Index",
+                "field_type": "string",
+                "field_parent": "ecg_hl7dump",
+                "field_order": 1,
+                "field_default_value": "index_raw.idx",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output index file"
+            },
+            "1.36": {
+                "field_name": "ecg_hl7dump_outinfo",
+                "field_title": "Output Info",
+                "field_type": "string",
+                "field_parent": "ecg_hl7dump",
+                "field_order": 2,
+                "field_default_value": "info_raw.out",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output information"
+            },
+            "1.37": {
+                "field_name": "ecg_hl7dump_prefix",
+                "field_title": "Output Prefix",
+                "field_type": "string",
+                "field_parent": "ecg_hl7dump",
+                "field_order": 3,
+                "field_default_value": "/Study_Name",
+                "field_constraint_description": "Output Prefix"
+            },
+            "1.38": {
+                "field_name": "ecg_preprocess",
+                "field_title": "preprocess",
+                "field_type": "list",
+                "field_order": 6
+            },
+            "1.39": {
+                "field_name": "ecg_preprocess_inputindex",
+                "field_title": "Input Index",
+                "field_type": "string",
+                "field_parent": "ecg_preprocess",
+                "field_order": 1,
+                "field_default_value": "index_raw.idx",
+                "field_is_hidden_fg": true
+            },
+            "1.40": {
+                "field_name": "ecg_preprocess_keepmedian",
+                "field_title": "Keep Median",
+                "field_type": "bool",
+                "field_parent": "ecg_preprocess",
+                "field_order": 4,
+                "field_default_value": "false",
+                "field_constraint_description": "Keep original median"
+            },
+            "1.41": {
+                "field_name": "ecg_preprocess_log",
+                "field_title": "Log File",
+                "field_type": "string",
+                "field_parent": "ecg_preprocess",
+                "field_order": 8,
+                "field_default_value": "preprocess_log.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output log file"
+            },
+            "1.42": {
+                "field_name": "ecg_preprocess_loglevel",
+                "field_title": "Log Level",
+                "field_type": "integer",
+                "field_parent": "ecg_preprocess",
+                "field_order": 7,
+                "field_default_value": "4",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///trace|2///debug|3///info|4///warning|5///error",
+                "field_constraint_description": "Minumim log level"
+            },
+            "1.43": {
+                "field_name": "ecg_preprocess_log_bt",
+                "field_title": "Backtrace File",
+                "field_type": "string",
+                "field_parent": "ecg_preprocess",
+                "field_order": 9,
+                "field_default_value": "preprocess_log-bt.csv",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output backtrace file"
+            },
+            "1.44": {
+                "field_name": "ecg_preprocess_outindex",
+                "field_title": "Output Index",
+                "field_type": "string",
+                "field_parent": "ecg_preprocess",
+                "field_order": 2,
+                "field_default_value": "index_preprocess.idx",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output index file"
+            },
+            "1.45": {
+                "field_name": "ecg_preprocess_outinfo",
+                "field_title": "Output Info",
+                "field_type": "string",
+                "field_parent": "ecg_preprocess",
+                "field_order": 3,
+                "field_default_value": "preprocess.out",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "Output info file"
+            },
+            "1.46": {
+                "field_name": "ecg_preprocess_precut",
+                "field_title": "Precut",
+                "field_type": "integer",
+                "field_parent": "ecg_preprocess",
+                "field_order": 10,
+                "field_default_value": "350",
+                "field_constraint_description": "Precut Window"
+            },
+            "1.47": {
+                "field_name": "ecg_preprocess_savefull",
+                "field_title": "Save Full Signal",
+                "field_type": "bool",
+                "field_parent": "ecg_preprocess",
+                "field_order": 5,
+                "field_default_value": "false",
+                "field_constraint_description": "Save full preprocessed ECG to file"
+            },
+            "1.48": {
+                "field_name": "ecg_preprocess_savemedian",
+                "field_title": "Save Median",
+                "field_type": "bool",
+                "field_parent": "ecg_preprocess",
+                "field_order": 6,
+                "field_default_value": "true",
+                "field_constraint_description": "Save preprocessed median to file"
+            },
+            "1.49": {
+                "field_name": "scissors",
+                "field_title": "How to split the sequences",
+                "field_type": "string",
+                "field_order": 4,
+                "field_default_value": "arcdim",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.50": {
+                "field_name": "slice",
+                "field_title": "Number of Records per Single Thread(sllice)",
+                "field_type": "integer",
+                "field_default_value": "1000",
+                "field_is_batch_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.51": {
+                "field_name": "split",
+                "field_title": "What field contains the object spliting the jobs",
+                "field_type": "string",
+                "field_default_value": "2000",
+                "field_is_hidden_fg": true
+            },
+            "1.52": {
+                "field_name": "splitSize",
+                "field_title": "Number of Records per Single Thread (new)",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "1000"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

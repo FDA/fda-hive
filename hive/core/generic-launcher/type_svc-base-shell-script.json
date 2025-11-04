@@ -1,0 +1,58 @@
+{
+    "type.202": {
+        "_id": "type.202",
+        "_type": "type",
+        "name": "svc-base-shell-script",
+        "title": "Shell Script",
+        "description": "Generic script to be executed by generic software adapter",
+        "parent": {
+            "1": "type.68"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "algo",
+                "field_title": "Script Object",
+                "field_type": "obj",
+                "field_weakref": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:'id',inline:'name,version',outline:'id,name,version', url:'http://?cmdr=objQry&qry=alloftype(\"algorithm-script\").csv([\"id\",\"name\",\"version\"])'}",
+                "field_brief": "$_(v)"
+            },
+            "1.2": {
+                "field_name": "service",
+                "field_title": "Service",
+                "field_type": "string",
+                "field_is_hidden_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

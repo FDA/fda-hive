@@ -1,0 +1,41 @@
+{
+    "type.89": {
+        "_id": "type.89",
+        "_type": "type",
+        "name": "algorithm-alignment-rnaseq",
+        "title": "RNA-seq Alignment algorihtms",
+        "description": "RNA-seq Alignment algorihtms",
+        "parent": {
+            "1": "type.86"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

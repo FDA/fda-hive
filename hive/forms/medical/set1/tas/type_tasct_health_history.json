@@ -1,0 +1,199 @@
+{
+    "381": {
+        "_id": "$type.tasct_health_history",
+        "_type": "type",
+        "name": "tasct_health_history",
+        "title": "Health History",
+        "fields": {
+            "1.1": {
+                "field_name": "weight",
+                "field_title": "What is your weight?",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "unit"
+            },
+            "1.2": {
+                "field_name": "weight_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "weight",
+                "field_order": 1.1
+            },
+            "1.3": {
+                "field_name": "weight_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "weight",
+                "field_order": 1.2,
+                "field_constraint_data": "1///kg|2.205///LB"
+            },
+            "1.4": {
+                "field_name": "height",
+                "field_title": "What is your height?",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "height"
+            },
+            "1.5": {
+                "field_name": "height_feet",
+                "field_title": "Feet",
+                "field_type": "integer",
+                "field_parent": "height",
+                "field_order": 2.1
+            },
+            "1.6": {
+                "field_name": "height_inches",
+                "field_title": "Inches",
+                "field_type": "real",
+                "field_parent": "height",
+                "field_order": 2.2
+            },
+            "1.7": {
+                "field_name": "height_cm",
+                "field_title": "cm",
+                "field_type": "real",
+                "field_parent": "height",
+                "field_order": 2.3
+            },
+            "1.8": {
+                "field_name": "height_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "height",
+                "field_order": 2.4,
+                "field_constraint_data": "Feet/Inches|cm"
+            },
+            "1.9": {
+                "field_name": "smoking_history",
+                "field_title": "Smoking History",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_description": "subtitle"
+            },
+            "1.10": {
+                "field_name": "currently_smoke",
+                "field_title": "Do you currently smoke tobacco on a daily basis, less than daily, or not at all?",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "Daily|Less than daily|Not at all"
+            },
+            "1.11": {
+                "field_name": "smoked_in_the_past_daily",
+                "field_title": "Have you smoked tobacco daily in the past?",
+                "field_type": "bool",
+                "field_order": 5
+            },
+            "1.12": {
+                "field_name": "currently_and_past_option",
+                "field_title": "How long has it been since you quit smoking tobacco?",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(currently_smoke)=='Not at all'&&$(smoked_in_the_past_daily)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.13": {
+                "field_name": "smoked_in_the_past",
+                "field_title": "In the past, have you smoked tobacco on a daily basis, less than daily or not at all?",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "Daily|Less than daily|Not at all\r\n>is_shown_fg=$(currently_smoke)=='Not at all'&&$(smoked_in_the_past_daily)=='true'"
+            },
+            "1.14": {
+                "field_name": "alcogol_subtitle",
+                "field_title": "Alcohol",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_description": "subtitle"
+            },
+            "1.15": {
+                "field_name": "how_often_drink_alcohol",
+                "field_title": "How often do you have a drink containing alcohol?",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "Never|Monthly or less|2-4 times per month|2-3 times per week|4+ times per week"
+            },
+            "1.16": {
+                "field_name": "how_many_alcohol",
+                "field_title": "How many standard drinks of alcohol do you drink on a typical day when you are drinking?",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "1-2|3-4|5-6|7-9|10+\r\n>is_shown_fg=$(how_often_drink_alcohol)!='Never'&&$(how_often_drink_alcohol)!=''",
+                "field_constraint_description": "subquestion"
+            },
+            "1.17": {
+                "field_name": "how_often_5_or_more",
+                "field_title": "How often do you have 5 or more standard drinks on one occasion?",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "Never|Less than monthly|Monthly|Weekly|Daily or almost daily\r\n>is_shown_fg=$(how_often_drink_alcohol)!='Never'&&$(how_often_drink_alcohol)!=''",
+                "field_constraint_description": "subquestion"
+            },
+            "1.18": {
+                "field_name": "activity_subtitle",
+                "field_title": "Physical Activity",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_description": "subtitle"
+            },
+            "1.19": {
+                "field_name": "days_engage_exercise",
+                "field_title": "On average, how many days per week do you engage in moderate to strenuous exercise?",
+                "field_type": "integer",
+                "field_order": 13,
+                "field_constraint_data": "1|2|3|4|5|6|7",
+                "field_constraint_description": "dropdown"
+            },
+            "1.20": {
+                "field_name": "minutes_engage_exercise",
+                "field_title": "On average, how many minutes do you engage in exercise at this level?",
+                "field_type": "string",
+                "field_order": 14
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

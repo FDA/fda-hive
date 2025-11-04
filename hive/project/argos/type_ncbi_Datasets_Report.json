@@ -1,0 +1,1040 @@
+{
+    "275900": {
+        "_id": "$type.ncbi_Datasets_Report",
+        "_type": "type",
+        "name": "ncbi_Datasets_Report",
+        "title": "ARGOS metadata",
+        "description": "// return json for ncbi datasets api call returns array of 'reports' + additional \n// fields for metadata not found in report",
+        "parent": {
+            "7": "$type.argos_Base_Data"
+        },
+        "fields": {
+            "11.0": {
+                "field_basics": {
+                    "field_name": "assembly_accession",
+                    "field_title": "Assembly Accession"
+                }
+            },
+            "11.2": {
+                "field_basics": {
+                    "field_name": "paired_accession",
+                    "field_title": "Paired Accession"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.3": {
+                "field_basics": {
+                    "field_name": "source_database",
+                    "field_title": "Source Database"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.4": {
+                "field_basics": {
+                    "field_name": "tax_id",
+                    "field_title": "Tax ID",
+                    "field_type": "integer"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.5": {
+                "field_basics": {
+                    "field_name": "organism_name",
+                    "field_title": "Organism Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.6": {
+                "field_basics": {
+                    "field_name": "infraspecific_names",
+                    "field_title": "Infraspecific Names"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.7": {
+                "field_basics": {
+                    "field_name": "assembly_level",
+                    "field_title": "Assembly Level"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.8": {
+                "field_basics": {
+                    "field_name": "assembly_status",
+                    "field_title": "Assembly Status"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.9": {
+                "field_basics": {
+                    "field_name": "paired_assembly_status",
+                    "field_title": "Paired Assembly Status"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.10": {
+                "field_basics": {
+                    "field_name": "paired_assembly_annotation_name",
+                    "field_title": "Paired Assembly Annotation Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.11": {
+                "field_basics": {
+                    "field_name": "assembly_name",
+                    "field_title": "Assembly Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.12": {
+                "field_basics": {
+                    "field_name": "assembly_type",
+                    "field_title": "Assembly Type"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.13": {
+                "field_basics": {
+                    "field_name": "bioproject_accession",
+                    "field_title": "Bioproject Accession"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.14": {
+                "field_basics": {
+                    "field_name": "title",
+                    "field_title": "Title"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.15": {
+                "field_basics": {
+                    "field_name": "parent_accessions",
+                    "field_title": "Parent Accessions",
+                    "field_is_multi_fg": false
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.16": {
+                "field_basics": {
+                    "field_name": "parent_title",
+                    "field_title": "Parent Title"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.17": {
+                "field_basics": {
+                    "field_name": "release_date",
+                    "field_title": "Release Date",
+                    "field_type": "date"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.18": {
+                "field_basics": {
+                    "field_name": "submitter",
+                    "field_title": "Submitter"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.19": {
+                "field_basics": {
+                    "field_name": "sequencing_tech",
+                    "field_title": "Sequencing Tech"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.20": {
+                "field_basics": {
+                    "field_name": "assembly_method",
+                    "field_title": "Assembly Method"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.21": {
+                "field_basics": {
+                    "field_name": "biosample",
+                    "field_title": "Biosample"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.22": {
+                "field_basics": {
+                    "field_name": "biosample_last_updated",
+                    "field_title": "Biosample Last Updated",
+                    "field_type": "datetime"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.23": {
+                "field_basics": {
+                    "field_name": "biosample_publication_date",
+                    "field_title": "Biosample Publication Date",
+                    "field_type": "datetime"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.24": {
+                "field_basics": {
+                    "field_name": "biosample_submission_date",
+                    "field_title": "Biosample Submission Date",
+                    "field_type": "datetime"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.25": {
+                "field_basics": {
+                    "field_name": "sample_name",
+                    "field_title": "Sample Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.26": {
+                "field_basics": {
+                    "field_name": "sra",
+                    "field_title": "SRA"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.27": {
+                "field_basics": {
+                    "field_name": "description_title",
+                    "field_title": "Description Title"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.28": {
+                "field_basics": {
+                    "field_name": "organism_name",
+                    "field_title": "Organism Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.29": {
+                "field_basics": {
+                    "field_name": "env_comment",
+                    "field_title": "Env Comment"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.30": {
+                "field_basics": {
+                    "field_name": "owner_name",
+                    "field_title": "Owner Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.31": {
+                "field_basics": {
+                    "field_name": "owner_contacts",
+                    "field_title": "Owner Contacts",
+                    "field_is_multi_fg": true
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.32": {
+                "field_basics": {
+                    "field_name": "models",
+                    "field_title": "Models"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.33": {
+                "field_basics": {
+                    "field_name": "package",
+                    "field_title": "Package"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.34": {
+                "field_basics": {
+                    "field_name": "geo_location",
+                    "field_title": "Geo Location"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.35": {
+                "field_basics": {
+                    "field_name": "collected_by",
+                    "field_title": "Collected By"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.36": {
+                "field_basics": {
+                    "field_name": "isolation_source",
+                    "field_title": "Isolation Source"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.37": {
+                "field_basics": {
+                    "field_name": "collection_date",
+                    "field_title": "Collection Date",
+                    "field_type": "date"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.38": {
+                "field_basics": {
+                    "field_name": "strain",
+                    "field_title": "Strain"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.39": {
+                "field_basics": {
+                    "field_name": "lat_lon",
+                    "field_title": "Lat Lon"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.40": {
+                "field_basics": {
+                    "field_name": "isolate_alias",
+                    "field_title": "Isolate Alias"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.41": {
+                "field_basics": {
+                    "field_name": "id_method",
+                    "field_title": "ID Method"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.42": {
+                "field_basics": {
+                    "field_name": "host_sex",
+                    "field_title": "Host Sex"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.43": {
+                "field_basics": {
+                    "field_name": "host_disease",
+                    "field_title": "Host Disease"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.44": {
+                "field_basics": {
+                    "field_name": "host_age",
+                    "field_title": "Host Age"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.45": {
+                "field_basics": {
+                    "field_name": "host",
+                    "field_title": "Host"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.46": {
+                "field_basics": {
+                    "field_name": "culture_collection",
+                    "field_title": "Culture Collection"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.47": {
+                "field_basics": {
+                    "field_name": "isolate",
+                    "field_title": "Isloate"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.48": {
+                "field_basics": {
+                    "field_name": "host_health_state",
+                    "field_title": "Host Health State"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.49": {
+                "field_basics": {
+                    "field_name": "host_disease_outcome",
+                    "field_title": "Host Disease Outcome"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.50": {
+                "field_basics": {
+                    "field_name": "host_disease_stage",
+                    "field_title": "Host Disease Stage"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.51": {
+                "field_basics": {
+                    "field_name": "host_description",
+                    "field_title": "Host Description"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.52": {
+                "field_basics": {
+                    "field_name": "bco_id",
+                    "field_title": "BCO ID"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.53": {
+                "field_basics": {
+                    "field_name": "schema_version",
+                    "field_title": "Schema Version"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.54": {
+                "field_basics": {
+                    "field_name": "num_chromosomes",
+                    "field_title": "Num Chromosomes",
+                    "field_type": "integer"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.55": {
+                "field_basics": {
+                    "field_name": "num_genes",
+                    "field_title": "Num Genes",
+                    "field_type": "integer"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.56": {
+                "field_basics": {
+                    "field_name": "genomic_section",
+                    "field_title": "Genomic Section"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.57": {
+                "field_basics": {
+                    "field_name": "assembly_level",
+                    "field_title": "Assembly Level"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.58": {
+                "field_basics": {
+                    "field_name": "assembly_file_source",
+                    "field_title": "Assembly File Source"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.59": {
+                "field_basics": {
+                    "field_name": "lineage",
+                    "field_title": "Lineage"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.61": {
+                "field_basics": {
+                    "field_name": "reports",
+                    "field_title": "report obj",
+                    "field_type": "array",
+                    "field_is_multi_fg": false
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.63": {
+                "field_basics": {
+                    "field_name": "comments",
+                    "field_title": "Comments"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.64": {
+                "field_basics": {
+                    "field_name": "status",
+                    "field_title": "Status"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.65": {
+                "field_basics": {
+                    "field_name": "status_when",
+                    "field_title": "Status Timestamp"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.66": {
+                "field_basics": {
+                    "field_name": "geo_loc_name",
+                    "field_title": "Geo Location Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.67": {
+                "field_basics": {
+                    "field_name": "isolate_name_alias",
+                    "field_title": "Isolate Alias"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.68": {
+                "field_basics": {
+                    "field_name": "identification_method",
+                    "field_title": "ID Method"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.69": {
+                "field_basics": {
+                    "field_name": "checkm_marker_set",
+                    "field_title": "CheckM Marker Set"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.70": {
+                "field_basics": {
+                    "field_name": "checkm_species_tax_id",
+                    "field_title": "CheckM Species Tax ID"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.71": {
+                "field_basics": {
+                    "field_name": "checkm_marker_set_rank",
+                    "field_title": "CheckM Marker Set Rank"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.72": {
+                "field_basics": {
+                    "field_name": "checkm_version",
+                    "field_title": "CheckM Version"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.73": {
+                "field_basics": {
+                    "field_name": "completeness",
+                    "field_title": "Completeness"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.74": {
+                "field_basics": {
+                    "field_name": "contamination",
+                    "field_title": "Contamination"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.75": {
+                "field_basics": {
+                    "field_name": "completeness_percentile",
+                    "field_title": "Completeness Percentile"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.76": {
+                "field_basics": {
+                    "field_name": "taxonomy_check_status",
+                    "field_title": "Taxonomy Check Status"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.77": {
+                "field_basics": {
+                    "field_name": "match_status",
+                    "field_title": "Match Status"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.78": {
+                "field_basics": {
+                    "field_name": "submitted_organism",
+                    "field_title": "Submitted Organism"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.79": {
+                "field_basics": {
+                    "field_name": "submitted_species",
+                    "field_title": "Submitted Species"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.80": {
+                "field_basics": {
+                    "field_name": "category",
+                    "field_title": "Category"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.81": {
+                "field_basics": {
+                    "field_name": "submitted_ani_match_assembly",
+                    "field_title": "Submitted ANI Match Assembly"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.82": {
+                "field_basics": {
+                    "field_name": "submitted_ani",
+                    "field_title": "Submitted ANI"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.83": {
+                "field_basics": {
+                    "field_name": "submitted_assembly_coverage",
+                    "field_title": "Submitted Assembly Coverage"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.84": {
+                "field_basics": {
+                    "field_name": "submitted_type_assembly_coverage",
+                    "field_title": "Submitted Type Assembly Coverage"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.85": {
+                "field_basics": {
+                    "field_name": "best_ani_match_assembly",
+                    "field_title": "Best ANI Match Assembly"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.86": {
+                "field_basics": {
+                    "field_name": "best_ani",
+                    "field_title": "Best ANI"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.87": {
+                "field_basics": {
+                    "field_name": "best_assembly_coverage",
+                    "field_title": "Best Assembly Coverage"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.88": {
+                "field_basics": {
+                    "field_name": "best_type_assembly_coverage",
+                    "field_title": "Best Type Assembly Coverage"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.89": {
+                "field_basics": {
+                    "field_name": "ani_comment",
+                    "field_title": "ANI Comment"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.90": {
+                "field_basics": {
+                    "field_name": "total_number_of_chromosomes",
+                    "field_title": "Total Number of Chromosomes"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.91": {
+                "field_basics": {
+                    "field_name": "total_sequence_length",
+                    "field_title": "Total Sequence Length"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.92": {
+                "field_basics": {
+                    "field_name": "total_ungapped_length",
+                    "field_title": "Total Ungapped Length"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.93": {
+                "field_basics": {
+                    "field_name": "number_of_contigs",
+                    "field_title": "Number of Contigs"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.94": {
+                "field_basics": {
+                    "field_name": "contig_n50",
+                    "field_title": "Contig N50"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.95": {
+                "field_basics": {
+                    "field_name": "contig_l50",
+                    "field_title": "Contig L50"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.96": {
+                "field_basics": {
+                    "field_name": "number_of_scaffolds",
+                    "field_title": "Number of Scaffolds"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.97": {
+                "field_basics": {
+                    "field_name": "scaffold_n50",
+                    "field_title": "Scaffold N50"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.98": {
+                "field_basics": {
+                    "field_name": "scaffold_l50",
+                    "field_title": "Scaffold L50"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "11.99": {
+                "field_basics": {
+                    "field_name": "number_of_component_sequences",
+                    "field_title": "Number of Component Sequences"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.00": {
+                "field_basics": {
+                    "field_name": "atgc_count",
+                    "field_title": "ATGC Count"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.01": {
+                "field_basics": {
+                    "field_name": "gc_count",
+                    "field_title": "GC Count"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.02": {
+                "field_basics": {
+                    "field_name": "gc_percent",
+                    "field_title": "GC Percent"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.03": {
+                "field_basics": {
+                    "field_name": "genome_coverage",
+                    "field_title": "Genome Coverage"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.04": {
+                "field_basics": {
+                    "field_name": "annotation_name",
+                    "field_title": "Annotation Name"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.05": {
+                "field_basics": {
+                    "field_name": "annotation_provider",
+                    "field_title": "Annotation Provider"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.06": {
+                "field_basics": {
+                    "field_name": "annotation_method",
+                    "field_title": "Annotation Method"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.07": {
+                "field_basics": {
+                    "field_name": "annotation_pipeline",
+                    "field_title": "Annotation Pipeline"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.08": {
+                "field_basics": {
+                    "field_name": "annotation_release_date",
+                    "field_title": "Annotation Release Date"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.09": {
+                "field_basics": {
+                    "field_name": "annotation_software_version",
+                    "field_title": "Annotation Software Version"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.10": {
+                "field_basics": {
+                    "field_name": "annotation_gene_total",
+                    "field_title": "Gene Count Total"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.11": {
+                "field_basics": {
+                    "field_name": "annotation_gene_protein_coding",
+                    "field_title": "Gene Count Protein Coding"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.12": {
+                "field_basics": {
+                    "field_name": "annotation_gene_non_coding",
+                    "field_title": "Gene Count Non-coding"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            },
+            "12.13": {
+                "field_basics": {
+                    "field_name": "annotation_gene_pseudogene",
+                    "field_title": "Gene Count Pseudogene"
+                },
+                "field_flags": {
+                    "field_is_optional_fg": true
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

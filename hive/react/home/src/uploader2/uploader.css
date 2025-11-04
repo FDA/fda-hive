@@ -1,0 +1,174 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+#root {
+    height: 100%;
+    /* For top menu top show as 100% width*/
+    width:100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.uploader{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.uploader-login{
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.uploader .ant-btn-link{
+    background-color: transparent;
+    color: #1890ff;
+}
+
+.uploader--body{
+    flex: 1;
+    /*--------------------*/
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: auto;
+}
+
+.uploader--form--content{
+    flex: 1;
+    /*---------------------*/
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+.uploader--form--uploader{
+    width: 600px;
+    padding:30px;
+    background-color: #3340610f;
+}
+.uploader--form--files{
+    margin-left: 30px;
+    padding:30px;
+}
+
+.uploader--form--files .ant-tree li .ant-tree-node-content-wrapper:hover {
+ background-color: none;
+}
+.uploader--form--files--li>[title]{
+    display: inline-flex !important;
+}
+.uploader--form--files--li>[title]>.ant-tree-title{
+    flex: 1;
+}
+
+.uploader--form--files--btn_remove{
+    visibility: hidden;
+    top:-0.3em
+}
+
+.uploader--form--files--li>[title]:hover .uploader--form--files--btn_remove{
+    visibility: visible;
+}
+.uploader--form--files--title_text{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 300px;
+}
+.uploader--form--files--title{
+    display: flex;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+.uploader--form--files--pager > .ant-tree-switcher{
+    display: none !important;
+}
+
+.uploader--form--content > *:last-of-type {
+  margin-right: 0px;
+}
+
+/*Uploader Specific*/
+.uploader .ant-table-small
+{
+    border: none;
+}
+
+.uploader .ant-table-small .ant-table-thead > tr > th
+{
+    background-color: #fafafa !important;
+}
+
+.uploader .ant-table-small > .ant-table-content > .ant-table-body > table > .ant-table-tbody > tr > td{
+    padding: 4px 8px;
+}
+
+.uploader .ant-btn-sm {
+    background-color: rgba(9, 30, 66, 0.08) !important;
+    color: #344563 !important;
+    border: none !important;
+    margin: 8px 0px;
+    margin-right: 5px;
+    padding: 0 10px;
+    height: 27px;
+}
+.uploader .ant-btn-sm:hover {
+    color: #40a9ff !important;
+    background-color: rgba(9, 30, 66, 0.13) !important;
+}
+
+.hv--input--file-explorer .ant-input-group-addon{
+    padding: 0px;
+    border: none;
+
+}
+.hv--input--file-explorer .ant-btn ,
+.hv--input--file-explorer .ant-btn-sm{
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    width: auto;
+    margin:0px;
+    float: none;
+    height: 24px;
+}
+
+/*13" laptop*/
+@media only screen and (max-width: 1536px) {
+  .uploader--form--content{
+    justify-content: space-between;
+    justify-content: flex-start;
+  }
+}
+
+@media only screen and (max-width: 700px) {
+    #root {
+        flex-direction: unset;
+    }
+}

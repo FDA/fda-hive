@@ -1,0 +1,24 @@
+{
+    "345": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "hive.project.dna-otvi",
+                "dir": "$(HIVE.repo)/hive/project/dna-otvi",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.project.dna-otvi",
+        "description": "DNA_OTVI is HIVE pipeline for On-/Off-Target and Viral Integration detection pipeline",
+        "authors": {
+            "7": "V.Simonyan",
+            "24": "E.Thompon"
+        },
+        "contributors": {
+            "9": "T.J.Cradick"
+        }
+    }
+}

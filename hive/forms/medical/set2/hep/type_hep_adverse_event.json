@@ -1,0 +1,153 @@
+{
+    "462": {
+        "_id": "$type.hep_adverse_event",
+        "_type": "type",
+        "name": "hep_adverse_event",
+        "title": "Adverse Event Tracking",
+        "fields": {
+            "1.1": {
+                "field_name": "general_instructions",
+                "field_title": "Adverse Event Tracking Log CRF Module Instructions",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "description",
+                "field_description": "<br>General Instructions<br>\nADVERSE EVENTS<br>\nAdverse events (AEs) document medical events that occur to a participant/subject once enrolled in a study. AEs are the construct through which the safety of an intervention is recorded and assessed during a study. Typical AE descriptors include event start date, severity, relatedness, outcome, and an indication of whether the event is serious.<br><br>\nRECORDING ADVERSE EVENTS<br><br>\nAll AEs, both serious and non serious, regardless of relationship to the study intervention, should be recorded on the AE case report form (CRF). AE data should be collected from the time the informed consent form is signed through the duration of the clinical investigation. Standard medical terminology should be used when recording AEs. Furthermore, it is recommended that studies that plan to submit data to regulatory authorities should code their AE data using the Medical Dictionary for Regulatory Activities (MedDRA). The form may be modified so that a separate CRF is filled out at each study visit, rather than maintaining a running log.<br><br>\nSERIOUS ADVERSE EVENTS<br><br>\nA serious adverse event is (SAE) defined as any untoward medical occurrence that at any dose results in one of the following outcomes:<br>\n•\tDeath<br>\n•\tA life-threatening adverse drug experience<br>\n•\tResults in inpatient hospitalization or prolongation of existing hospitalization<br>\n•\tA persistent or significant disability/incapacity<br>\n•\tA congenital anomaly/birth defect<br><br>\nImportant medical events that may not result in death, be life threatening, or require hospitalization may be considered a serious adverse drug event when, based upon appropriate medical judgment, they may jeopardize the patient and may require medical or surgical intervention to prevent one of the outcomes listed in this definition. Examples of such medical events include allergic bronchospasm requiring intensive treatment in an emergency room or at home, blood dyscrasias or convulsion that do not result in inpatient hospitalization, or the development of drug dependency or drug abuse.<br><br>\nIf an event is documented as serious, then a separate SAE Report form must completed. For studies under a Food and Drug Administration (FDA) Investigational New Drug (IND) application, a 3500A is completed and submitted as an expedited report, if the event is also unexpected and related to the study intervention. Because the data collected for an SAE are descriptive and beyond the scope of a study, the SAE information is usually kept in a separate file. In addition to the SAE descriptors, it is useful to track when the SAE is sent to the IRB, sponsor, FDA, and DSMB and responses received.<br><br>\nIn some neurological studies, there has been confusion over the relationship between a study endpoint (e.g. myocardial infarction) and an SAE. The AE may be heart attack, described as mild. However, since it resulted in a hospitalization, it is coded as “serious” (SAE). The event may also be a study endpoint that is captured on the SAE form and sent for adjudication. This process would be tracked but the information collected is generally beyond the study scope and is not captured on study case report forms nor entered into the study data management system."
+            },
+            "1.2": {
+                "field_name": "has_any_adverse_events",
+                "field_title": "Has the participant/subject had any adverse events during the study?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.3": {
+                "field_name": "adverse_event_parent",
+                "field_title": "Record diagnoses (if known) or signs/symptoms the participant/subject experienced during the study that qualify as adverse events.",
+                "field_type": "array",
+                "field_order": 2,
+                "field_is_multi_fg": true
+            },
+            "1.4": {
+                "field_name": "adverse_event_name",
+                "field_title": "Adverse Event (Please use medical terminology)",
+                "field_type": "text",
+                "field_parent": "adverse_event_parent",
+                "field_order": 1
+            },
+            "1.5": {
+                "field_name": "adverse_event_start_date",
+                "field_title": "Start Date",
+                "field_type": "date",
+                "field_parent": "adverse_event_parent",
+                "field_order": 2,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.6": {
+                "field_name": "adverse_event_end_date",
+                "field_title": "End date",
+                "field_type": "date",
+                "field_parent": "adverse_event_parent",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.7": {
+                "field_name": "or_continuing",
+                "field_title": "OR-Continuing",
+                "field_type": "bool",
+                "field_parent": "adverse_event_parent",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "severity",
+                "field_title": "Severity",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": 5,
+                "field_constraint_data": "Mild|Moderate|Severe|Life-threatening/Disabling|Death"
+            },
+            "1.9": {
+                "field_name": "relatedness",
+                "field_title": "Relatedness",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": 6,
+                "field_constraint_data": "Unrelated|Unlikely|Probable|Possible|Definite"
+            },
+            "1.10": {
+                "field_name": "action_intervention",
+                "field_title": "Action Taken with Study Intervention",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": 7,
+                "field_constraint_data": "None|Study Intervention Interrupted|Study Intervention Discontinued|Study Intervention Modified"
+            },
+            "1.11": {
+                "field_name": "action_aed",
+                "field_title": "Action Taken with AED",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": 8,
+                "field_constraint_data": "None|AED therapy temporarily interrupted|AED therapy permanently stopped|AED therapy modified"
+            },
+            "1.12": {
+                "field_name": "outcome",
+                "field_title": "Outcome",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": 9,
+                "field_constraint_data": "Recovered/Resolved|Recovered/Resolved With Sequelae|Recovering/Resolving|Not Recovered/Not Resolved|Fatal|Unknown"
+            },
+            "1.13": {
+                "field_name": "serious_adverse_event",
+                "field_title": "Serious Adverse Event",
+                "field_type": "bool",
+                "field_parent": "adverse_event_parent",
+                "field_order": 10
+            },
+            "1.14": {
+                "field_name": "subtitle_1",
+                "field_title": "Principle Investigator/ or Sub-Inv (MD) review (please initial/date each AE reviewed)",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": 11,
+                "field_constraint_description": "subtitle"
+            },
+            "1.15": {
+                "field_name": "initials",
+                "field_title": "Initials",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": 12
+            },
+            "1.16": {
+                "field_name": "date_reviewed",
+                "field_title": "Date Reviewed",
+                "field_type": "date",
+                "field_parent": "adverse_event_parent",
+                "field_order": 13
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

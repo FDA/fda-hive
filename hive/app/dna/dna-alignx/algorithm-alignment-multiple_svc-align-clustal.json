@@ -1,0 +1,29 @@
+{
+    "211": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-multiple",
+        "description": "ClustAl Multiple Alignment Algorithm",
+        "icon": "?cmd=~dna~svc-align-clustal.gif",
+        "title": "clastal",
+        "version": "1.2",
+        "name": "svc-align-clustal",
+        "result_files": {
+            "1.0": {
+                "result_assignation": "output"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

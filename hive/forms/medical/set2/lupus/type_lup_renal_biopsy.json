@@ -1,0 +1,55 @@
+{
+    "558": {
+        "_id": "$type.lup_renal_biopsy",
+        "_type": "type",
+        "name": "lup_renal_biopsy",
+        "title": "Renal Biopsy",
+        "fields": {
+            "1.1": {
+                "field_name": "renal_biopsy_performed",
+                "field_title": "Was a renal biopsy performed to verify diagnosis for LN Active cohort?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "pathology_reports_upload",
+                "field_title": "Upload copies of de-identified pathology reports",
+                "field_type": "file",
+                "field_order": 2,
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(renal_biopsy_performed)=='true'"
+            },
+            "1.3": {
+                "field_name": "additional_evidence",
+                "field_title": "additional_evidence",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(renal_biopsy_performed)=='false'",
+                "field_constraint_description": "description",
+                "field_description": "<span style=\"color:red\">Please submit additional evidence for assigning the participant to the LN Active cohort in the Eligibility Criteria form</span>"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

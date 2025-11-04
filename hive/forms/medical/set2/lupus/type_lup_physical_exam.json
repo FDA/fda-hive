@@ -1,0 +1,240 @@
+{
+    "557": {
+        "_id": "$type.lup_physical_exam",
+        "_type": "type",
+        "name": "lup_physical_exam",
+        "title": "Physical Examination",
+        "fields": {
+            "1.1": {
+                "field_name": "weight",
+                "field_title": "Body Weight",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "unit",
+                "field_description": "Enter the study participant's weight in pounds or kilograms, specify which unit."
+            },
+            "1.2": {
+                "field_name": "weight_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "weight",
+                "field_order": 1.1,
+                "field_constraint_data": "is_shown_fg=true;if(($(weight_unit)=='1' && (parseInt('$(this)')<25|| parseInt('$(this)')>175)) || ($(weight_unit)=='2.205' && (parseInt('$(this)')<55||parseInt('$(this)')>385)) ){warning_message='Weight value seems out of range, please confirm';}"
+            },
+            "1.3": {
+                "field_name": "weight_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "weight",
+                "field_order": 1.2,
+                "field_constraint_data": "1///kg|2.205///lb"
+            },
+            "1.4": {
+                "field_name": "height",
+                "field_title": "Height",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "height",
+                "field_description": "Enter the study participant 's height in inches or centimeters, specify which unit."
+            },
+            "1.5": {
+                "field_name": "height_feet",
+                "field_title": "Feet",
+                "field_type": "integer",
+                "field_parent": "height",
+                "field_order": 2.1
+            },
+            "1.6": {
+                "field_name": "height_inches",
+                "field_title": "Inches",
+                "field_type": "real",
+                "field_parent": "height",
+                "field_order": 2.2
+            },
+            "1.7": {
+                "field_name": "height_cm",
+                "field_title": "cm",
+                "field_type": "real",
+                "field_parent": "height",
+                "field_order": 2.3
+            },
+            "1.8": {
+                "field_name": "height_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "height",
+                "field_order": 2.4,
+                "field_constraint_data": "Feet/Inches|cm"
+            },
+            "1.9": {
+                "field_name": "temperature",
+                "field_title": "Temperature",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "unit",
+                "field_description": "Enter the study participant's temperature in Celsius or Fahrenheit, to one decimal place"
+            },
+            "1.10": {
+                "field_name": "temperature_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "temperature",
+                "field_order": 3.1
+            },
+            "1.11": {
+                "field_name": "temperature_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "temperature",
+                "field_order": 3.2,
+                "field_constraint_data": "1///°F|1///°C"
+            },
+            "1.12": {
+                "field_name": "pulse_rate",
+                "field_title": "Pulse Rate (pulse/mn)",
+                "field_type": "integer",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "20-250"
+            },
+            "1.13": {
+                "field_name": "systolic_blood_pressure",
+                "field_title": "Systolic Blood Pressure (mm [Hg])",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "50-250"
+            },
+            "1.14": {
+                "field_name": "diastolic_blood_pressure",
+                "field_title": "Diastolic Blood Pressure (mm [Hg])",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-200"
+            },
+            "1.15": {
+                "field_name": "pulse_oximetry",
+                "field_title": "Pulse Oximetry (%)",
+                "field_type": "integer",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "30-100"
+            },
+            "1.16": {
+                "field_name": "bmi",
+                "field_title": "BMI (kg/m<sup>2</sup>)",
+                "field_type": "real",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "if($(weight_unit)=='1'&&'$(height_cm)'!=''&&'$(weight_value)'!=''){value_fg=Math.round(((parseFloat($(weight_value))*10000)/(parseFloat($(height_cm))*parseFloat($(height_cm)))+Number.EPSILON)*100)/100;}else if('$(height_cm)'!=''&&'$(weight_value)'!=''){value_fg=Math.round((parseFloat($(weight_value))*4535.92/(parseFloat($(height_cm))*parseFloat($(height_cm)))+Number.EPSILON)*100)/100;}"
+            },
+            "1.17": {
+                "field_name": "general_appearance",
+                "field_title": "General Appearance",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.18": {
+                "field_name": "dermatological_skin",
+                "field_title": "Dermatological/Skin",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.19": {
+                "field_name": "head_eyes_ears_nose_neck_throat",
+                "field_title": "Head, Eyes, Ears, Nose, Neck/Throat",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.20": {
+                "field_name": "respiratory_chest",
+                "field_title": "Respiratory/Chest",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.21": {
+                "field_name": "cardiovascular",
+                "field_title": "Cardiovascular",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.22": {
+                "field_name": "abdominal",
+                "field_title": "Abdominal",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.23": {
+                "field_name": "musculoskeletal",
+                "field_title": "Musculoskeletal",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.24": {
+                "field_name": "neurological",
+                "field_title": "Neurological",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            },
+            "1.25": {
+                "field_name": "other_parent",
+                "field_title": "Other",
+                "field_type": "array",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.26": {
+                "field_name": "other_specify",
+                "field_title": "Specify",
+                "field_type": "string",
+                "field_parent": "other_parent",
+                "field_order": 17.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\"maxlength\":\"50\"}"
+            },
+            "1.27": {
+                "field_name": "other_type",
+                "field_title": " ",
+                "field_type": "string",
+                "field_parent": "other_parent",
+                "field_order": 17.2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Normal|Abnormal|Not Assessed"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

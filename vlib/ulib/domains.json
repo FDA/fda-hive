@@ -1,0 +1,32 @@
+{
+    "1199": {
+        "_id": "$upsert()",
+        "_type": "domain-id-descr",
+        "domain-id-descr_ascii": "type",
+        "domain-id-descr_title": "System type domain",
+        "domain-id-descr_uri": "hive://type",
+        "_perm": [
+            {
+                "party": "/system/type-editors/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

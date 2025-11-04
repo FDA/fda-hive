@@ -1,0 +1,62 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+
+
+<script type="application/javascript">
+
+    setLocationTitle("Excision OTVI1: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+            
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "wflo", "ex-otvi2-base");
+    
+    algoProcess.visibleParameters=["name","wflow-folder","references", "wflow-samples", "wflow-umi_collapse","merged","wflow-has_spikes"];
+     
+    algoProcess.submitButtonName="Submit";
+    if(!(thisProcessID + "").indexOf("-") == 0){
+           algoProcess.initialPresets={"pipeline":"query:alloftype('workflow',{name:'dna-otvi'})"};
+    }
+    
+    
+     algoProcess.inputLoaded = function (viewer, elem){
+         algoProcess.readFromDocLoc(["wflow-aavintegr_ref","wflow-aav_ref","wflow-gblock_ref","wflow-hiv_ref","wflow-noeditbar_ref","wflow-hg_ref","wflow-prob_ref","wflow-barcodes","wflow-umi_size","wflow-umi_collapse","wflow-adapter_r1","wflow-adapter_r2"]);
+        algoProcess.inputChanged(viewer, elem);
+    } 
+    algoProcess.inputChanged= function (viewer, elem){
+         if(thisProcessID && thisProcessID.indexOf("-") != 0)
+            return ;
+        var samples = algoProcess.getValue("wflow-repl_merged","array");
+        if(!samples || samples.length==0)return ;
+        
+        var qry="query:q=["+samples+"] as objlist;a=\"\"; for(i=0; i<((int)q); ++i){if(i!=0){a=cat(a,\",\");}nm=split(q[i].name,[\"merged-\",\"_R1\",\"_R2\",\"_00\"]); a=cat(a,nm[1]);}return a;";
+        samples = algoProcess.setValueList({"wflow-samples": qry});
+    }
+    
+    
+    gInitList += "exotviInit();";
+    function exotviInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'ex-otvi1-base',
+            algoTitle: "Off Target, Viral Integration pipeline 1"
+        });
+        
+    };
+</script>
+

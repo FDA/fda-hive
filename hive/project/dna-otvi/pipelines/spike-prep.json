@@ -1,0 +1,104 @@
+{
+    "workflows": {
+        "name": "spike-prep",
+        "title": "In silico spike preparation pipeline",
+        "description": "Excision pipeline to prepare in-silico reads for spike-ins from a list of spike reference sequences with the given noise",
+        "comment" : "",
+        "example-presets" : "ref=15213;noise=0.1;name='spike5M_noise'+noise;counts='%25497,5099,2550'",
+        
+        "_type" : "workflow",
+        "config" : [
+            {
+                "name" : "hive.cfg",
+                "execute" : [
+                    "hive.tmpdir='/hive/data/download/SRR/';"
+                ]
+            },
+            {
+                "name" : "sra-toolkit",
+                "execute" : [
+                    "sra.toolkit='/soft/sratoolkit.2.11.2-centos_linux64/bin/';",
+                    "sra.prefetch=sra.toolkit+'prefetch -O '+hive.tmpdir;",
+                    "sra.fastq_dump=sra.toolkit+'fastq-dump --split-files' ;"
+                ]
+            }
+        ],
+        "steps": [
+            {
+                "name" : "idlist",
+                "execute" : [
+                    "idlistSpike=HIVE.cgi('cmdr=seqList&out=id&ids='+refSpike+'&lineSep=,&header=0');cntSlist=string.cnt(idlistSpike);",
+                    "if(cntMix!=0)idlistMix=HIVE.cgi('cmdr=seqList&out=id&ids='+refMix+'&lineSep=,&header=0');else idlistMix='0';cntMlist=string.cnt(idlistMix);"
+                ]
+            },            
+            {
+                "name" : "randomSpike",
+                "clone" : ["idlistSpike","cntSpike"],
+                "execute" : [
+                    "randomSpike$#0.inSilicoIDField=1;",
+                    "randomSpike$#0.inSilicoNoiseType=noise;",
+                    "randomSpike$#0.inSilicoReadsNumber=$1;",
+                    "randomSpike$#0.name='spike_cnt'+randomSpike$#0.inSilicoReadsNumber+'_noise'+randomSpike$#0.inSilicoNoiseType+'-'+$0;",
+                    "randomSpike$#0.inSilicoSeqID=#0+1;",
+                    "randomSpike$#0.inSilicoObjID=refSpike;",
+                    "randomSpike$#0.inSilicoPEactive=1;",
+                    "randomSpike$#0.inSilicoMinLength=150;",
+                    "randomSpike$#0.inSilicoMaxLength=150;",
+                    "randomSpike$#0.inSilicoPEmaxdist=310;",
+                    "randomSpike$#0.inSilicoPEmindist=160;",
+                    "HIVE.launchInSilico('randomSpike'+#0)"
+                ]
+            },           
+            {
+                "name" : "randomix",
+                "clone" : ["idlistMix","cntMix"],
+                "skip" : [ "cntMix==0" ],
+                "execute" : [
+                    "randomix$#0.inSilicoIDField=1;",
+                    "randomix$#0.inSilicoNoiseType=noise;",
+                    "randomix$#0.inSilicoReadsNumber=$1;",
+                    "randomix$#0.name='mix_cnt'+randomix$#0.inSilicoReadsNumber+'_noise'+randomix$#0.inSilicoNoiseType+'-'+$0;",
+                    "randomix$#0.inSilicoSeqID=#0+1;",
+                    "randomix$#0.inSilicoObjID=refMix;",
+                    "randomix$#0.inSilicoPEactive=1;",
+                    "randomix$#0.inSilicoMinLength=150;",
+                    "randomix$#0.inSilicoMaxLength=150;",
+                    "randomix$#0.inSilicoPEmaxdist=310;",
+                    "randomix$#0.inSilicoPEmindist=160;",
+                    "if(cntMix!=0)HIVE.launchInSilico('randomix'+#0);else true;"
+                ]
+            },
+            {
+                "name" : "randomSample",
+                "execute" : [
+                    "randomSample.inSilicoIDField=1;",
+                    "randomSample.inSilicoNoiseType=noise;",
+                    "randomSample.inSilicoReadsNumber=cntSample;",
+                    "randomSample.name='sample_cnt'+cntSample+'_noise'+randomSample.inSilicoNoiseType;",
+                    "randomSample.inSilicoSourceObjID=refSample;",
+                    "randomSample.inSilicoPEactive=1;",
+                    "randomSample.inSilicoMinLength=150;",
+                    "randomSample.inSilicoMaxLength=150;",
+                    "randomSample.inSilicoPEmaxdist=310;",
+                    "randomSample.inSilicoPEmindist=160;",
+                    "HIVE.launchInSilico('randomSample')"
+                ]
+            },
+            {
+                "name" : "archiver",
+                "condition": [
+                    "foreach('randomSpike@0.status==wflow.done','*',cntSlist);",
+                    "if(cntMix!=0)return foreach('randomix@0.status==wflow.done','*',cntMlist);else return true;",
+                    "randomSample.status==wflow.done;"
+                ],
+                "execute" : [
+                    "rids=string.glue(2,',',randomSample._id,foreach('randomSpike@0._id',',',#));",
+                    "if(cntMix!=0)rids=string.glue(2,',',rids,foreach('randomix@0._id',',',#));return rids;",
+                    "HIVE.archive(rids,'*_001.fastq',name+'_001.fastq','archiver1');",
+                    "HIVE.archive(rids,'*_002.fastq',name+'_002.fastq','archiver2');"
+                ]
+            }
+        ]
+    }
+}
+

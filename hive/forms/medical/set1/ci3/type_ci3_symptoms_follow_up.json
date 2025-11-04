@@ -1,0 +1,77 @@
+{
+    "6352": {
+        "_id": "$type.ci3_symptoms_follow_up",
+        "_type": "type",
+        "name": "ci3_symptoms_follow_up",
+        "title": "Symptoms Follow-up",
+        "parent": {
+            "3": "$type.ci3"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Symptoms below are collected at Follow-up",
+                "field_type": "string",
+                "field_order": "1",
+                "field_is_optional_fg": false,
+                "field_constraint_description": "subtitle"
+            },
+            "3.2": {
+                "field_name": "problems_with_incisions",
+                "field_title": "Problems with incisions (pain, discharge, other)",
+                "field_type": "bool",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "",
+                "field_constraint_description": "checkbox"
+            },
+            "3.3": {
+                "field_name": "problems_with_incisions_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": "3",
+                "field_constraint_data": "is_shown_fg=$(problems_with_incisions)=='true'"
+            },
+            "3.4": {
+                "field_name": "wound_problems",
+                "field_title": "Wound problems (swelling, infection, bleeding, other)",
+                "field_type": "bool",
+                "field_order": "4",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "",
+                "field_constraint_description": "checkbox"
+            },
+            "3.5": {
+                "field_name": "wound_problems_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": "5",
+                "field_constraint_data": "is_shown_fg=$(wound_problems)=='true'"
+            },
+            "3.6": {
+                "field_name": "other_concerns",
+                "field_title": "Other concerns",
+                "field_type": "text",
+                "field_order": "6"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

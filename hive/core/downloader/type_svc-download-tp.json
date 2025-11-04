@@ -1,0 +1,78 @@
+{
+    "type.549": {
+        "_id": "type.549",
+        "_type": "type",
+        "name": "svc-download-tp",
+        "title": "Transfer Protocol Download Service",
+        "parent": {
+            "1": "type.539"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "baseURL",
+                "field_title": "Base URL",
+                "field_type": "string",
+                "field_order": 2,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "Base url is concatenated to all the IDs to be downloaded. However, it is ignored if the full \npath is specified"
+            },
+            "1.6": {
+                "field_name": "external_credentials",
+                "field_title": "Credentials",
+                "field_type": "array",
+                "field_order": 3
+            },
+            "1.7": {
+                "field_name": "external_login",
+                "field_title": "User Name",
+                "field_type": "string",
+                "field_parent": "external_credentials",
+                "field_order": 1,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "login to access external resource"
+            },
+            "1.8": {
+                "field_name": "external_password",
+                "field_title": "Password",
+                "field_type": "password",
+                "field_parent": "external_credentials",
+                "field_order": 2,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "password to access external resource"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

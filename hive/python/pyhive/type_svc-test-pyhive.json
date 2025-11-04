@@ -1,0 +1,47 @@
+{
+    "type.438": {
+        "_id": "type.438",
+        "_type": "type",
+        "name": "svc-test-pyhive",
+        "title": "Test PyHive",
+        "description": "Launches a service that tests the functionality of pyhive",
+        "parent": {
+            "8": "type.331"
+        },
+        "fields": {
+            "16.0": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

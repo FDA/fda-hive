@@ -1,0 +1,56 @@
+{
+    "type.257": {
+        "_id": "type.257",
+        "_type": "type",
+        "name": "dropbox",
+        "title": "Data Dropbox",
+        "description": "Custom method for uploading data files",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "dropbox_name",
+                "field_title": "Description",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_summary_fg": true
+            },
+            "1.2": {
+                "field_name": "dropbox_path",
+                "field_title": "Directory",
+                "field_type": "string",
+                "field_order": 2
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

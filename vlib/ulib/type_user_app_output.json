@@ -1,0 +1,63 @@
+{
+    "1": {
+        "_id": "type.195",
+        "_type": "type",
+        "name": "user_app_output",
+        "title": "User Application Output",
+        "description": "Output of the user application",
+        "fields": {
+            "1.1": {
+                "field_name": "output_required",
+                "field_title": "Required",
+                "field_type": "bool",
+                "field_description": "Output is required"
+            },
+            "1.2": {
+                "field_name": "output_type",
+                "field_title": "Type",
+                "field_type": "obj",
+                "field_description": "Type of the output"
+            },
+            "1.3": {
+                "field_name": "output_value",
+                "field_title": "Output",
+                "field_type": "obj",
+                "field_description": "Value of the output"
+            },
+            "1.4": {
+                "field_name": "output_is_attachment",
+                "field_title": "Attachment",
+                "field_type": "bool",
+                "field_description": "Treat this output as an attachment"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

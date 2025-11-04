@@ -1,0 +1,33 @@
+{
+	#include : "hive_test.json" ,
+	
+	#include : "hive_core.json" ,
+	#include : "hive_primitives.json" ,
+ 	#include : "hive_base.json" ,
+
+	#include : "hive_parties.json" ,
+	#include : "hive_actions.json" ,
+	#include : "hive_services.json" ,
+	#include : "hive_hosts.json" ,
+	#include : "hive_processes.json" ,
+	#include : "hive_rules.json" ,
+
+	"system_last" : {
+		"_id" : "$newid()",
+		"last_field" : true 
+	}
+	 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

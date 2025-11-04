@@ -1,0 +1,235 @@
+{
+	"workflows" : {
+		"name" : "argos-cflow",
+		"steps" : [
+			{
+			  "name" : "p_hive-asm",
+ 			  "svc" : "hive-assembly",
+ 			  "execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-hive-assembly-clfow",
+						"name": "${'hive-asm-name}",
+						"clone_params": {
+							"clone_cov": 10,
+							"clone_length": 6,
+							"clone_support": 4
+						},
+						"random_seed": 0,
+						"scissors": "hiveseq",
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": 200000,
+							"splitSize": 200000,
+							"splitType": "file"
+						},
+						"pipeline": "${asm_pipeline}",
+						"reads": [
+							"${o_reads}"
+						],
+						"reference_genome": [
+							"${o_hive_asm_ref}"
+						],
+						"delayLaunch": 10,
+						"submitter": "hive-assembly"
+					}
+  			   ]
+			},
+			{
+				"name" : "p_hex-alignment",
+				"svc" : "dna-hexagon",
+				"execute" : [
+					{ 
+						"_id": "$newid", 
+						"_type": "svc-align-hexagon",
+						
+						"name": "Hexagon aligner NGS vs references",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 14
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": "${keepAllMatches}",
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 40,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 15,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": "${conflictResolution}",
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": 200000,
+							"splitField": "query",
+							"splitSize": 200000,
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_references}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name" : "p_hepta-profiler",
+				"svc" : "dna-heptagon",
+				"execute" : [
+					{
+						"_id": "$newid",
+						"_type": "svc-profiler-heptagon",
+						"name": "Heptagon variant caller on references",
+						
+						"collapseRpts": true,
+						"countAAs": "0",
+						"cutEnds": "do not cut",
+						"directionalityInfo": false,
+						"disbalanceFR": "0",
+						"entrCutoff": "-1",
+						"filterZeros": 0,
+						"generateIon": false,
+						"histograms": 1,
+						"lenPercCutoff": "no cutoff",
+						"maxLowQua": "no cutoff",
+						"maxMissmatchPercCutoff": "0",
+						"maxRptIns": "0",
+						"minCover": "1",
+						"minImportantEntropy": 0,
+						"noise": {
+							"noiseFilterParams": "none",
+							"noiseProfileMax": 0.01,
+							"noiseProfileResolution": 0.0001
+						},
+						"parent_proc_ids": [
+							"${p_hex-alignment}"
+						],
+						"random_seed": 0,
+						"scissors": "hiveseq",
+						"SEARCHFORREPEATS": false,
+						"snpCompare": "1",
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": 200000,
+							"splitField": "parent_proc_ids",
+							"splitSize": 100000,
+							"splitType": "alignments"
+						},
+						"supportedDeletions": true,
+						"thrSNP": {
+							"minFreqIgnoreSNP": 0,
+							"minFreqPercent": 0
+						},
+						"useQuaFilter": 0,
+						"aaThreshold": 0.001,
+						"submitter": "dna-heptagon"
+					}
+				]
+			},
+			{
+				"name" : "p_dna-alqc",
+				"svc" : "dna-alqc",
+				"execute" : [
+					{
+						"_id": "$newid",
+						"_type": "svc-dna-alqc",
+						"name": "ARGOS QC",
+						"codingTable": "${'wflow-codingTable}",
+						"heptagon_id": "${p_hepta-profiler}",
+						"refs_direct_id" : ["${o_references}"],
+						"splitList": {
+							"nrepeat": 1,
+							"slice": 200000,
+							"splitSize": 200000
+						},
+						"random_seed": 0,
+						"scissors": "hiveseq",
+						"split": "query",
+						"window_size": 30,
+						"externalQC": {
+							"asmQC": "",
+							"ngsQC": "",
+							"posQC": "",
+							"posAnnot": "",
+							"bioSampleQC": ""
+						},
+						"source" : {
+							"biosampleAcc" : "${'wflow-biosampleAcc}",
+							"srr" : "${'wflow-srr}",
+							"asm" : "${'wflow-asm}"
+						},
+						"submitter": "dna-alqc"
+					}
+				]
+			}
+		]
+	}
+}
+
+
+					

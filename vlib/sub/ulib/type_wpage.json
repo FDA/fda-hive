@@ -1,0 +1,50 @@
+{
+    "27": {
+        "_id": "$type.wpage",
+        "_type": "type",
+        "name": "wpage",
+        "title": "Web Page for portal access",
+        "description": "//\nlocation: vlib.ulib",
+        "fields": {
+            "1.0": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_is_key_fg": true,
+                "field_brief": "$_(v) <b>web pages</b>"
+            }
+        },
+        "parent": {
+            "7": "$type.base_system_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

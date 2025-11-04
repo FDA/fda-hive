@@ -1,0 +1,40 @@
+{
+    "68037": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "NCBI blast algorithm developped by National Center for Biotechnology information",
+        "icon": "img-algo/svc-align-blast.gif",
+        "name": "blast",
+        "version": "2.9",
+        "type_name": "svc-align-blast-2.9",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

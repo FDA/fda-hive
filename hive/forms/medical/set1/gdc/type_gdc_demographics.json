@@ -1,0 +1,169 @@
+{
+    "399": {
+        "_id": "$type.gdc_demographics",
+        "_type": "type",
+        "name": "gdc_demographics",
+        "title": "Demographics",
+        "fields": {
+            "1.0": {
+                "field_name": "ethnicity",
+                "field_title": "Ethnicity",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "hispanic or latino|not hispanic or latino|Unknown|not reported|not allowed to collect",
+                "field_description": "An individual's self-described social and cultural grouping, specifically whether an individual describes themselves as Hispanic or Latino. The provided values are based on the categories defined by the U.S. Office of Management and Business and used by the U.S. Census Bureau."
+            },
+            "1.2": {
+                "field_name": "gender",
+                "field_title": "Gender",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "female|male|unknown|unspecified|not reported",
+                "field_description": "Text designations that identify gender. Gender is described as the assemblage of properties that distinguish people on the basis of their societal roles. [Explanatory Comment 1: Identification of gender is based upon self-report and may come from a form, questionnaire, interview, etc.]"
+            },
+            "1.3": {
+                "field_name": "race",
+                "field_title": "Race",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "white|american indian or alaska native|black or african american|asian|native hawaiian or other pacific islander|other|Unknown|not reported|not allowed to collect",
+                "field_description": "An arbitrary classification of a taxonomic group that is a division of a species. It usually arises as a consequence of geographical isolation within a species and is characterized by shared heredity, physical attributes and behavior, and in the case of humans, by common history, nationality, or geographic distribution. The provided values are based on the categories defined by the U.S. Office of Management and Business and used by the U.S. Census Bureau."
+            },
+            "1.4": {
+                "field_name": "vital_status",
+                "field_title": "Vital Status",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Alive|Dead|Unknown|Not Reported",
+                "field_description": "The survival state of the person registered on the protocol."
+            },
+            "1.5": {
+                "field_name": "age_at_index",
+                "field_title": "Age at Index",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_description": "The patient's age (in years) on the reference or anchor date date used during date obfuscation."
+            },
+            "1.6": {
+                "field_name": "age_is_obfuscated",
+                "field_title": "age_is_obfuscated",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_description": "The age or other properties related to the patient's age have been modified for compliance reasons. The actual age may differ from what was reported in order to comply with the Health Insurance Portability and Accountability Act (HIPAA)."
+            },
+            "1.7": {
+                "field_name": "cause_of_death",
+                "field_title": "Cause of death (check only one)",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Cancer Related|Cardiovascular Disorder, NOS|End-stage Renal Disease|Infection|Not Cancer Related|Renal Disorder, NOS|Spinal Muscular Atrophy|Surgical Complications|Toxicity|Unknown|Not Reported\n>is_shown_fg=$(vital_status)=='Dead'",
+                "field_description": "Text term to identify the cause of death for a patient."
+            },
+            "1.8": {
+                "field_name": "cause_of_death_source",
+                "field_title": "cause_of_death_source",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Autopsy|Death Certificate|Medical Record|Social Security Death Index|Unknown|Not Reported\n>is_shown_fg=$(vital_status)=='Dead'",
+                "field_description": "The text term used to describe the source used to determine the patient's cause of death."
+            },
+            "1.9": {
+                "field_name": "country_of_residence_at_enrollment",
+                "field_title": "Country of Residence",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\n\"fetch\":[\"Country\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/gcd_countries.csv&raw=1&start=0\",\n\"inline\":[\n\t{\"name\":\"Country\",\"title\":\"Country\",\"display\":\"title\",\"search\":\"true\"}\n],\n\"outline\":[\n\t{\"name\":\"Country\",\"title\":\"Country\"}\n]\n}",
+                "field_description": "The text term used to describe the patient's country of residence at the time they were enrolled in the study."
+            },
+            "1.10": {
+                "field_name": "days_to_birth",
+                "field_title": "Days to birth",
+                "field_type": "integer",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_description": "Number of days between the date used for index and the date from a person's date of birth represented as a calculated negative number of days."
+            },
+            "1.11": {
+                "field_name": "days_to_death",
+                "field_title": "Days to death",
+                "field_type": "integer",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(vital_status)=='Dead'",
+                "field_description": "Number of days between the date used for index and the date from a person's date of death represented as a calculated number of days."
+            },
+            "1.12": {
+                "field_name": "occupation_duration_years",
+                "field_title": "Primary Occupation: How many years has the patient worked in this occupation?",
+                "field_type": "integer",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_description": "The number of years a patient worked in a specific occupation."
+            },
+            "1.13": {
+                "field_name": "premature_at_birth",
+                "field_title": "Premature birth (born <37 weeks gestation)?",
+                "field_type": "string",
+                "field_order": 13,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The yes/no/unknown indicator used to describe whether the patient was premature (less than 37 weeks gestation) at birth."
+            },
+            "1.14": {
+                "field_name": "weeks_gestation_at_birth",
+                "field_title": "Weeks Gestation",
+                "field_type": "integer",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_description": "Numeric value used to describe the number of weeks starting from the approximate date of the biological mother's last menstrual period and ending with the birth of the patient."
+            },
+            "1.15": {
+                "field_name": "year_of_birth",
+                "field_title": "Year of Birth",
+                "field_type": "integer",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_description": "Numeric value to represent the calendar year in which an individual was born."
+            },
+            "1.16": {
+                "field_name": "year_of_death",
+                "field_title": "Year of death",
+                "field_type": "integer",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(vital_status)=='Dead'",
+                "field_description": "Numeric value to represent the year of the death of an individual."
+            }
+        },
+        "parent": {
+            "8": "$type.gdc"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

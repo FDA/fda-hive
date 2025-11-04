@@ -1,0 +1,33 @@
+index.js
+----------------------------------
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
+import { FileExplorer }  from "./FileExplorer/index.js";
+class App extends Component {
+   render(){
+       return(
+       <>
+           <FileExplorer
+               recordTreeSelect = {false}
+               singleSelect={false}
+               hasDataPreview={true}
+               tabDataPreview={null}
+               findObject={null}
+               customPreview={null}
+               tabs={null}
+               hasUploader={true}
+               isDraggable={false}
+           />
+       </>
+      )
+   }
+}
+
+ReactDOM.render(<App />, document.querySelector("#root"));
+
+HTML
+----------------------------------
+<script src="/nodejs/marianna.faradzheva/static/js/bundle.js"></script>
+<script src="/nodejs/marianna.faradzheva/static/js/0.chunk.js"></script>
+<script src="/nodejs/marianna.faradzheva/static/js/1.chunk.js"></script>
+<script src="/nodejs/marianna.faradzheva/static/js/main.chunk.js"></script>

@@ -1,0 +1,157 @@
+"primitives" : {
+	"descr" : "primitives branch",
+	  
+	"bool" : {
+		"_type" : "core", 
+		"_limit" : { 
+			"choice" : {  
+				"true" : 1,
+				"false" : 0
+			}
+		}
+
+	},
+	
+	"int" : {
+		"_type" : "core"
+	},
+
+	
+	"real" : {
+		"_type" : "core"
+	},
+
+	"uint" : {
+		"_type" : "int",
+		"_limit" : {
+			"eval-c++" : "$val()>=0" 
+		}
+	},
+	
+	"string" : {
+		"_type" : "core"
+	},
+
+	"text" : {
+		"_type" : "core"
+	},
+
+	"date" : {
+		"_type" : "core",
+		"_default" : "$datenow()"
+	},
+	"time" : {
+		"_type" : "core",
+		"_default" : "$timenow()"
+	},
+
+	"memory" : {
+		"_type" : "uint"
+	},
+	
+	"cmdline" : {
+		"_type" : "text"
+	},
+	"url" : {
+		"_type" : "text"
+	},
+
+	"file" : {
+		"_type" : "string"
+	},
+	
+	"node" : { 
+		"name" : {
+			"_type" : "string"
+		},
+		"_parent" : "string"
+	},
+	
+	"edge" : {
+		"_type" : "string"
+	},
+	
+	"network" : {
+		"elements" : {
+			"_type" : ["node","edge"],
+			"_plural" : true
+		}
+	},
+	
+	"workflow" : {
+		"_type" : "network"
+	},
+	
+	
+	"datetime" : {
+		
+		"date": {
+			"_type": "date",
+			"_default" : "$datenow()"
+		}, 
+		"time": {
+			"_type": "time",
+			"_default" : "$timenow()"					
+		}
+	},
+	
+	"timespan" : {
+		
+		"start" : {
+			"_type" : "datetime"
+		},  
+		"finish" : {
+			"_type" : "datetime"
+		}		
+	},
+	
+	"ref" : {
+	
+		"source" : {
+			"_type" : "string"  
+		},
+		"db" : {
+			"_type" : "string" 
+		},
+		"id" : {
+			"_type" : "string"
+		},
+		"url" : {
+			"_type" : "url"
+		}
+		
+	},
+			
+	"password" : {
+		"_type" : "string",
+		"_pswd" : true 
+	},
+	
+	"email" : {
+		"_type" : "string"
+	},
+	
+		
+	"keyval" : {
+	
+		"key" : {
+			"_type" : "string"   
+		},
+		
+		"value" : {
+			"_type" : "string",
+			"_plural" : true
+		}  
+	},
+	
+	"hiveid" : {	
+		"_type" : "ref",
+		
+		"source" :{ // overloading reference type 
+			"_default" : "HIVE"
+		},
+		"db" :{
+			"_default" : "Honeycomb"
+		}
+	}
+}

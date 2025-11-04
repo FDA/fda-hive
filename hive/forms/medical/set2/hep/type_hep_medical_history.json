@@ -1,0 +1,543 @@
+{
+    "495": {
+        "_id": "$type.hep_medical_history",
+        "_type": "type",
+        "name": "hep_medical_history",
+        "title": "Medical History",
+        "fields": {
+            "1.1": {
+                "field_name": "condition_allergies",
+                "field_title": "Allergies",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "allergies_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "is_shown_fg=$(condition_allergies)=='true'"
+            },
+            "1.3": {
+                "field_name": "allergies_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_allergies)=='true'"
+            },
+            "1.4": {
+                "field_name": "allergies_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_allergies)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.5": {
+                "field_name": "condition_alcohol",
+                "field_title": "Alcohol Use",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_description": "Note: History of diagnosed chronic alcohol abuse is exclusionary"
+            },
+            "1.6": {
+                "field_name": "alcohol_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(condition_alcohol)=='true'"
+            },
+            "1.7": {
+                "field_name": "alcohol_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_alcohol)=='true'"
+            },
+            "1.8": {
+                "field_name": "alcohol_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_alcohol)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.9": {
+                "field_name": "condition_tobacco",
+                "field_title": "Tobacco Use",
+                "field_type": "bool",
+                "field_order": 9
+            },
+            "1.10": {
+                "field_name": "tobacco_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(condition_tobacco)=='true'"
+            },
+            "1.11": {
+                "field_name": "tobacco_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_tobacco)=='true'"
+            },
+            "1.12": {
+                "field_name": "tobacco_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_tobacco)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.13": {
+                "field_name": "condition_cardiovascular",
+                "field_title": "Cardiovascular",
+                "field_type": "bool",
+                "field_order": 13
+            },
+            "1.14": {
+                "field_name": "cardiovascular_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "is_shown_fg=$(condition_cardiovascular)=='true'"
+            },
+            "1.15": {
+                "field_name": "cardiovascular_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_cardiovascular)=='true'"
+            },
+            "1.16": {
+                "field_name": "cardiovascular_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 16,
+                "field_constraint_data": "is_shown_fg=$(condition_cardiovascular)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.17": {
+                "field_name": "condition_thromboembolic_disorders",
+                "field_title": "Thromboembolic Disorders",
+                "field_type": "bool",
+                "field_order": 17
+            },
+            "1.18": {
+                "field_name": "thromboembolic_disorders_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_data": "is_shown_fg=$(condition_thromboembolic_disorders)=='true'"
+            },
+            "1.19": {
+                "field_name": "thromboembolic_disorders_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 19,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_thromboembolic_disorders)=='true'"
+            },
+            "1.20": {
+                "field_name": "thromboembolic_disorders_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 20,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_thromboembolic_disorders)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.21": {
+                "field_name": "condition_respiratory_disorders",
+                "field_title": "Respiratory Disorders",
+                "field_type": "bool",
+                "field_order": 21
+            },
+            "1.22": {
+                "field_name": "respiratory_disorders_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 22,
+                "field_constraint_data": "is_shown_fg=$(condition_respiratory_disorders)=='true'"
+            },
+            "1.23": {
+                "field_name": "respiratory_disorders_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_respiratory_disorders)=='true'"
+            },
+            "1.24": {
+                "field_name": "respiratory_disorders_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 24,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_respiratory_disorders)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.25": {
+                "field_name": "condition_gastrointestinal_hepatobiliary",
+                "field_title": "Gastrointestinal Hepatobiliary Disorders",
+                "field_type": "bool",
+                "field_order": 25
+            },
+            "1.26": {
+                "field_name": "gastrointestinal_hepatobiliary_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 26,
+                "field_constraint_data": "is_shown_fg=$(condition_gastrointestinal_hepatobiliary)=='true'"
+            },
+            "1.27": {
+                "field_name": "gastrointestinal_hepatobiliary_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 27,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_gastrointestinal_hepatobiliary)=='true'"
+            },
+            "1.28": {
+                "field_name": "gastrointestinal_hepatobiliary_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 28,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_gastrointestinal_hepatobiliary)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.29": {
+                "field_name": "condition_genito_urinary",
+                "field_title": "Genito-Urinary Disorders",
+                "field_type": "bool",
+                "field_order": 29
+            },
+            "1.30": {
+                "field_name": "genito_urinary_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_data": "is_shown_fg=$(condition_genito_urinary)=='true'"
+            },
+            "1.31": {
+                "field_name": "genito_urinary_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 31,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_genito_urinary)=='true'"
+            },
+            "1.32": {
+                "field_name": "genito_urinary_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 32,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_genito_urinary)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.33": {
+                "field_name": "condition_musculoskeletal",
+                "field_title": "Musculoskeletal (other than fractures)",
+                "field_type": "bool",
+                "field_order": 33
+            },
+            "1.34": {
+                "field_name": "musculoskeletal_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 34,
+                "field_constraint_data": "is_shown_fg=$(condition_musculoskeletal)=='true'"
+            },
+            "1.35": {
+                "field_name": "musculoskeletal_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 35,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_musculoskeletal)=='true'"
+            },
+            "1.36": {
+                "field_name": "musculoskeletal_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 36,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_musculoskeletal)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.37": {
+                "field_name": "condition_endocrine_metabolic",
+                "field_title": "Endocrine & Metabolic",
+                "field_type": "bool",
+                "field_order": 37
+            },
+            "1.38": {
+                "field_name": "endocrine_metabolic_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 38,
+                "field_constraint_data": "is_shown_fg=$(condition_endocrine_metabolic)=='true'"
+            },
+            "1.39": {
+                "field_name": "endocrine_metabolic_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 39,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_endocrine_metabolic)=='true'"
+            },
+            "1.40": {
+                "field_name": "endocrine_metabolic_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 40,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_endocrine_metabolic)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.41": {
+                "field_name": "condition_dermatological",
+                "field_title": "Dermatological",
+                "field_type": "bool",
+                "field_order": 41
+            },
+            "1.42": {
+                "field_name": "dermatological_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 42,
+                "field_constraint_data": "is_shown_fg=$(condition_dermatological)=='true'"
+            },
+            "1.43": {
+                "field_name": "dermatological_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 43,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_dermatological)=='true'"
+            },
+            "1.44": {
+                "field_name": "dermatological_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 44,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_dermatological)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.45": {
+                "field_name": "condition_neurological",
+                "field_title": "Neurological other than Epilepsy",
+                "field_type": "bool",
+                "field_order": 45,
+                "field_description": "Note: Progressive neurological disorders, ASD, TBI, stroke, intracranial bleeding are exclusionary"
+            },
+            "1.46": {
+                "field_name": "neurological_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 46,
+                "field_constraint_data": "is_shown_fg=$(condition_neurological)=='true'"
+            },
+            "1.47": {
+                "field_name": "neurological_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 47,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_neurological)=='true'"
+            },
+            "1.48": {
+                "field_name": "neurological_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 48,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_neurological)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.49": {
+                "field_name": "condition_psychiatric_psychological",
+                "field_title": "Psychiatric/Psychological",
+                "field_type": "bool",
+                "field_order": 49,
+                "field_description": "Note: Previous or current significant psychiatric disorder that would interfere with conduct of the study is exclusionary"
+            },
+            "1.50": {
+                "field_name": "psychiatric_psychological_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 50,
+                "field_constraint_data": "is_shown_fg=$(condition_psychiatric_psychological)=='true'"
+            },
+            "1.51": {
+                "field_name": "psychiatric_psychological_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 51,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_psychiatric_psychological)=='true'"
+            },
+            "1.52": {
+                "field_name": "psychiatric_psychological_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 52,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_psychiatric_psychological)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.53": {
+                "field_name": "condition_other",
+                "field_title": "Other",
+                "field_type": "bool",
+                "field_order": 53
+            },
+            "1.54": {
+                "field_name": "other_start_age",
+                "field_title": "Age when condition began  (in Yrs)",
+                "field_type": "string",
+                "field_order": 54,
+                "field_constraint_data": "is_shown_fg=$(condition_other)=='true'"
+            },
+            "1.55": {
+                "field_name": "other_end_age",
+                "field_title": "Age Ended (if not current)",
+                "field_type": "string",
+                "field_order": 55,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_other)=='true'"
+            },
+            "1.56": {
+                "field_name": "other_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 56,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(condition_other)=='true'",
+                "field_description": "Please list relevant conditions here. Note if multiple episodes, and provide dates for each if relevant."
+            },
+            "1.57": {
+                "field_name": "subtitle_1",
+                "field_title": "Fractures Prior to Epilepsy Onset",
+                "field_type": "string",
+                "field_order": 57,
+                "field_constraint_description": "subtitle"
+            },
+            "1.58": {
+                "field_name": "fractures_before",
+                "field_title": "Ever Present?",
+                "field_type": "bool",
+                "field_order": 58
+            },
+            "1.59": {
+                "field_name": "fractures_before_age",
+                "field_title": "Age",
+                "field_type": "string",
+                "field_order": 59,
+                "field_constraint_data": "is_shown_fg=$(fractures_before)=='true'"
+            },
+            "1.60": {
+                "field_name": "fractures_before_comments",
+                "field_title": "List site of fractures for each event",
+                "field_type": "text",
+                "field_order": 60,
+                "field_constraint_data": "is_shown_fg=$(fractures_before)=='true'"
+            },
+            "1.61": {
+                "field_name": "subtitle_2",
+                "field_title": "Fractures After Epilepsy Onset",
+                "field_type": "string",
+                "field_order": 61,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.62": {
+                "field_name": "fractures_after",
+                "field_title": "Ever Present?",
+                "field_type": "bool",
+                "field_order": 62
+            },
+            "1.63": {
+                "field_name": "fractures_after_age",
+                "field_title": "Age",
+                "field_type": "string",
+                "field_order": 63,
+                "field_constraint_data": "is_shown_fg=$(fractures_after)=='true'"
+            },
+            "1.64": {
+                "field_name": "fractures_after_comments",
+                "field_title": "List site of fractures for each event",
+                "field_type": "text",
+                "field_order": 64,
+                "field_constraint_data": "is_shown_fg=$(fractures_after)=='true'"
+            },
+            "1.65": {
+                "field_name": "subtitle_3",
+                "field_title": "Suicide Attempts",
+                "field_type": "string",
+                "field_order": 65,
+                "field_constraint_description": "subtitle"
+            },
+            "1.66": {
+                "field_name": "suicide_attempts",
+                "field_title": "Ever Present?",
+                "field_type": "bool",
+                "field_order": 66
+            },
+            "1.67": {
+                "field_name": "suicide_attempts_first",
+                "field_title": "Date of First Attempt",
+                "field_type": "date",
+                "field_order": 67,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(suicide_attempts)=='true'"
+            },
+            "1.68": {
+                "field_name": "suicide_attempts_last",
+                "field_title": "Date of Last Attempt",
+                "field_type": "date",
+                "field_order": 68,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(suicide_attempts)=='true'"
+            },
+            "1.69": {
+                "field_name": "conditions_parent",
+                "field_title": "conditions_parent",
+                "field_type": "array",
+                "field_order": 100,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

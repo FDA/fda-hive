@@ -1,0 +1,105 @@
+{
+    "1": {
+        "_id": "type.230",
+        "_type": "type",
+        "name": "file",
+        "title": "File",
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "compressed-size",
+                "field_title": "Compressed Size",
+                "field_type": "integer",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            },
+            "1.2": {
+                "field_name": "ext",
+                "field_title": "Extension",
+                "field_type": "string",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            },
+            "1.4": {
+                "field_name": "md5",
+                "field_title": "MD5",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_summary_fg": true,
+                "field_brief": "$_(v)"
+            },
+            "1.6": {
+                "field_name": "orig_name",
+                "field_title": "Original filename",
+                "field_type": "string",
+                "field_is_readonly_fg": 2
+            },
+            "1.7": {
+                "field_name": "path",
+                "field_title": "Location_OBSOLETE",
+                "field_type": "string",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            },
+            "1.8": {
+                "field_name": "size",
+                "field_title": "Size",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_is_readonly_fg": 2,
+                "field_is_summary_fg": true
+            },
+            "1.9": {
+                "field_name": "source",
+                "field_title": "Source",
+                "field_type": "string",
+                "field_is_readonly_fg": 2
+            },
+            "1.10": {
+                "field_name": "sha256",
+                "field_title": "SHA-256",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

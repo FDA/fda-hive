@@ -1,0 +1,106 @@
+{
+    "487": {
+        "_id": "$type.hep_exclusion_criteria",
+        "_type": "type",
+        "name": "hep_exclusion_criteria",
+        "title": "EXCLUSION CRITERIA (MUST ALL BE NO)",
+        "fields": {
+            "1.0": {
+                "field_name": "focal_epilepsy",
+                "field_title": "Focal Epilepsy",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "mixed_syndromes",
+                "field_title": "Generalized/focal epilepsy mixed syndromes",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.4": {
+                "field_name": "neurological_disorder",
+                "field_title": "Progressive neurological disorder (brain tumor, AD, PME, etc)",
+                "field_type": "bool",
+                "field_order": 3
+            },
+            "1.6": {
+                "field_name": "encephalopathy",
+                "field_title": "Epileptic or developmental encephalopathy",
+                "field_type": "bool",
+                "field_order": 4
+            },
+            "1.8": {
+                "field_name": "medical_comorbidities",
+                "field_title": "Major medical co-morbidities such as renal failure requiring dialysis, metastatic cancer, HIV, or significant liver or renal disease",
+                "field_type": "bool",
+                "field_order": 5
+            },
+            "1.10": {
+                "field_name": "autism_disorder",
+                "field_title": "Autism Spectrum Disorder",
+                "field_type": "bool",
+                "field_order": 6
+            },
+            "1.12": {
+                "field_name": "drug_alcohol_2y",
+                "field_title": "History of chronic drug or alcohol abuse (misuse or excessive use that interferes with activities of daily living) within the last 2 years",
+                "field_type": "bool",
+                "field_order": 7
+            },
+            "1.14": {
+                "field_name": "seizures_pregnancy",
+                "field_title": "Seizures only during pregnancy",
+                "field_type": "bool",
+                "field_order": 8
+            },
+            "1.16": {
+                "field_name": "psychiatric_disorder_interfering_study",
+                "field_title": "History of previous or current significant psychiatric disorder that would interfere with conduct of the study requirements",
+                "field_type": "bool",
+                "field_order": 9
+            },
+            "1.18": {
+                "field_name": "exemption",
+                "field_title": "If yes is marked, the patient is not eligible to participate. If an exemption was granted document here:",
+                "field_type": "text",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(psychiatric_disorder_interfering_study)=='true'"
+            },
+            "1.20": {
+                "field_name": "completed_by",
+                "field_title": "Completed By",
+                "field_type": "string",
+                "field_order": 11,
+                "field_description": "(Enter initials of investigator who originally\ncompleted this form)"
+            },
+            "1.22": {
+                "field_name": "date_completed",
+                "field_title": "Date Completed",
+                "field_type": "date",
+                "field_order": 12,
+                "field_description": "(Date form was originally completed)"
+            }
+        },
+        "parent": {
+            "8": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

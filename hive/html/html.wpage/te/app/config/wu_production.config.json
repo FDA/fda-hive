@@ -1,0 +1,11 @@
+{
+    "hiveUrl":"http://whiseukraine.com/dna.cgi?",
+    "projectName": "HIVESurvey",
+    "projectTitle": "Hive Surveys",
+    "projectKeywords": "Healthcare Operations, Survey, HIVE Surveys, DNA HIVE",
+    "logoImage":"logo-whise.png",
+    "allowDataDownload": false,
+    "userAutoActivation": "1",
+    "administratorGroups" : "",
+    "defaultRegistrationPage" : "register-doctor"
+}

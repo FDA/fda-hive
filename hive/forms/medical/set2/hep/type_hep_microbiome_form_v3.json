@@ -1,0 +1,29 @@
+{
+    "503": {
+        "_id": "$type.hep_microbiome_form_v3",
+        "_type": "type",
+        "name": "hep_microbiome_form_v3",
+        "title": "Microbiome Form",
+        "parent": {
+            "3": "$type.hep_microbiome_form"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

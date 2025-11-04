@@ -1,0 +1,62 @@
+{
+    "389": {
+        "_id": "$type.tasct_breast_chest_body_map",
+        "_type": "type",
+        "name": "tasct_breast_chest_body_map",
+        "title": "Breast/Chest Body Map",
+        "fields": {
+            "1.1": {
+                "field_name": "chest_map",
+                "field_title": "Breast/Chest Body Map",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "{\r\n\"url\": \"assets/images/breast.jpg\",\r\n\"shape\": \"circle\",\r\n\"section\": \"Section 6///209,268,28|Section 9///63,445,27|Section 10///360,252,33|Section 2///182,384,28|Section 3///278,384,30|Section 5///182,492,29|Section 1///236,439,30|Section 7///350,447,28|Section 4///277,491,27|Section 8///236,581,29\"\r\n}",
+                "field_constraint_description": "imagemap"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

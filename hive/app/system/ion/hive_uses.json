@@ -1,0 +1,106 @@
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ dictionary definition for the values of the field _dic
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+
+// FULL DEFINITION
+
+"_dic" : { 
+		"_field": { } ,  // list of fields from this data source
+		"_type" : "existing_type",  
+		
+		"choice" : [ // strictly constrained list of elements 
+	 		"element1" , 
+	 		"element2" , 
+	 		{ 
+	 			"title" : "element3 title here",
+	 			"value" : "element3 value here" 
+	 		}
+		 ],
+		 
+		 "collect" : "expression to collect for a value from sele cted elements of dictionary: value by default",
+		 "url" : "http:/domain.com/page" ,
+		 "mode" : "json|csv"
+	},
+	
+	
+/
+// Field is defined - use that 
+"aa1" : {
+	"a" : { 
+    	"_type": "ref"
+ 	}, 
+ 	"b": {
+    	"_type" : "static"
+	},
+    "_dic" : {
+     	"_field" : { 
+             "a" : { 
+                "_type": "ref"
+             }, 
+             "b": {
+                "_type" : "static"
+             } 
+        }, 
+		choice : [                   
+    	    {"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"},
+			{"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"}
+		]
+	},
+	"_title" : "RORORORORO"
+},
+	
+// field not defined - defers to datatypes fields   	
+
+"zz":{
+    "a" : { 
+        "_type": "ref"
+     }, 
+     "b": {
+        "_type" : "static"
+     } ,
+     "_title": "AA2 type",
+     "_dic" : [
+	    {"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"},
+		{"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"},
+		{"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"}
+	]
+} 	
+
+
+// _dic will use the _type to extract the datatype wihtout _field being given    
+
+"t-cmdline" : {
+    "_type" : "cmdline",
+    "_dic" : {
+        "choice" : [
+            "Choose me",
+            "No, choose me",
+            {"value" : 13, "title" : " I am better"}
+        ]
+    }, 
+    "_rdonly" : 2
+}
+   
+// _dic is a straigntt array of values 
+   
+"t-string" :{
+            "_type" : "string",
+            "_default" : "d-string",
+            "_dic" : [   
+                {
+                    "value":"1",
+                    "title" : "dodod"
+                },
+                {
+                    "value":"2",
+                    "title" : "wowow"
+                },
+                {
+                    "value":"3"
+                }
+             ]  
+        },
+        
+                

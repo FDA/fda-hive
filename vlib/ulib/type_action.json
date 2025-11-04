@@ -1,0 +1,174 @@
+{
+    "type.8": {
+        "_id": "type.8",
+        "_type": "type",
+        "name": "action",
+        "title": "Object type action",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "align",
+                "field_title": "Align",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_role": "parameter",
+                "field_constraint": "choice",
+                "field_constraint_data": "left|right",
+                "field_description": "action placed in the menubar left or right hand side."
+            },
+            "1.2": {
+                "field_role": "parameter",
+                "field_name": "confirmation",
+                "field_title": "Confirmation",
+                "field_type": "bool",
+                "field_description": "If action requires and user confirmation dialog to popup"
+            },
+            "1.3": {
+                "field_name": "description",
+                "field_title": "Description",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_role": "parameter"
+            },
+            "1.4": {
+                "field_name": "icon",
+                "field_title": "Icon",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_role": "parameter",
+                "field_description": "icon file name: img/button.jpg"
+            },
+            "1.5": {
+                "field_role": "parameter",
+                "field_name": "is_obj_action",
+                "field_title": "Only for objects",
+                "field_type": "bool",
+                "field_description": "if this action is applicable to object vs creating new object, or upload button"
+            },
+            "1.6": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_is_key_fg": true,
+                "field_role": "parameter",
+                "field_description": "system internal unique name"
+            },
+            "1.7": {
+                "field_name": "order",
+                "field_title": "Order",
+                "field_type": "integer",
+                "field_is_optional_fg": true,
+                "field_role": "parameter",
+                "field_description": "sorting order, used separately for actions aligned left or right"
+            },
+            "1.8": {
+                "field_name": "path",
+                "field_title": "Path",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_role": "parameter",
+                "field_description": "location in menu hierarchy"
+            },
+            "1.9": {
+                "field_role": "parameter",
+                "field_name": "required_permission",
+                "field_title": "Required permission",
+                "field_type": "integer",
+                "field_description": "user permissions required for action to be applicable to object"
+            },
+            "1.10": {
+                "field_name": "response",
+                "field_title": "Response",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_role": "parameter",
+                "field_constraint": "choice",
+                "field_constraint_data": "json|txt",
+                "field_description": "Action response is JSON object in { id1 : { signal : \"signame\", data: { ... } }, id2 : { ... } } format,  or unformatted text"
+            },
+            "1.11": {
+                "field_role": "parameter",
+                "field_name": "single_obj_only",
+                "field_title": "Single",
+                "field_type": "bool",
+                "field_description": "action applies to only one object vs multiple selected"
+            },
+            "1.12": {
+                "field_name": "target",
+                "field_title": "Target",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_role": "parameter",
+                "field_constraint": "choice",
+                "field_constraint_data": "ajax|new",
+                "field_constraint_description": "URL target is ajax request or new window",
+                "field_description": "where to be redirected after action execution. If target is ajax then ajax request will be created instead."
+            },
+            "1.13": {
+                "field_name": "title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_summary_fg": true,
+                "field_role": "parameter",
+                "field_brief": "<b>Action</b> $_(v)",
+                "field_description": "User visible action title"
+            },
+            "1.14": {
+                "field_name": "type_name",
+                "field_title": "Type",
+                "field_type": "string",
+                "field_is_key_fg": true,
+                "field_role": "parameter",
+                "field_description": "Type name to which action applies"
+            },
+            "1.15": {
+                "field_role": "parameter",
+                "field_name": "url",
+                "field_title": "URL",
+                "field_type": "string",
+                "field_description": "Action url, may contain $(param), ?name=value..."
+            },
+            "1.18": {
+                "field_name": "is_default",
+                "field_title": "Default action for the type",
+                "field_type": "bool",
+                "field_role": "parameter",
+                "field_brief": "<b>default</b>",
+                "field_description": "Indicates default action for objects of given type, could be used as reaction to double click on object in a list."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

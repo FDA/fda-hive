@@ -1,0 +1,117 @@
+
+
+
+"apps" : {  
+	"descr" : "applications branch",
+	 
+	"ionapp" : {
+	 
+		"_type" : "hc_app",
+		"_id" : "$newid()",
+	
+		"name" : "ionapp",
+		"version" : "1.0",
+		"title" : "Ion Manager",
+		"cmdline" : "ionapp",
+		"descr" : "This app manages all ION databases"
+	}, 
+	"qapp" : {
+	 
+		"_type" : "hc_app",
+		"_id" : "$newid()",
+	
+		"name" : "qapp",
+		"version" : "1.0",
+		"title" : "QPride Management",
+		"script" : "shell",
+		"cmdline" : "qapp",
+		"descr" : "This app manages queue operations and data"
+	},
+	 
+	"qsrv" : {
+	 
+		"_type" : "hc_app",
+		"_id" : "$newid()",
+	
+		"name" : "qsrv",
+		"version" : "1.0",
+		"title" : "QPride Server",
+		"descr" : "This app supports HIVE services on hosts"
+	}
+},
+
+"svcs" : { 
+
+	"qsrv" : { 
+	
+		"_type" : "hc_svc",
+		"_id" : "$newid()",
+		
+		"name" : "qsrv",
+		"version" : "1.0",
+		"title" : "Core HIVE service",
+		"descr" : "This service maintains operations of HIVE nodes",
+		"categories" : ["system"],
+		"svc-type" : "pull",
+		"max-jobs" : "1",
+		"nice" : "0",
+		"parallel-jobs" : "1",
+		"max-loops" : "100",
+		"max-trials" : "3",
+		"priority" : "0", 
+		"run-multithread" : "1",
+		"active-job-reserve" : "0",
+		"capacity-demand" : "1",
+		"nograb-disconnect-after" : "5",
+		"nograb-exit-after" : "10",
+		"maxmem-soft-limit" : "0", 
+		"maxmem-hard-limit" : "0",
+		"up-threads" : "0",
+		"emails" : [ "vahansim@gmail.com", "vahansim@hotmail.com" ],
+	
+		"sleep-time-seconds" : "60000",
+		"delay-launch-seconds" : "1", 
+		"polite-exit-timeout-seconds" : "60000", 
+		"knockout-seconds" : "900", 
+		"request-restart-seconds" : "1000",
+		"cleanup-days" : "28",
+		"lazy-report-seconds" : "10",
+		"delayed-action-seconds" : "0",
+	
+		"host" : [ "QPrideSrv" ],
+	
+		"config" : [
+			{ key: "baseSvcUDPPort" , value : ["13667"]  },
+			{ key: "dbLogMinLevel" , value : "4"  },
+			{ key: "domains" , value : ["Pride1", "Pride2"]  },
+			{ key: "Pride1" , value : ["qpridesrv"]  },
+		 	{ key: "Pride2" , value : []  },
+		 	{ key: "encoder" , value : ["67D4C69816B98DB9B7038CAE97DBB6CD8558D4C7C80C05CC3F7814BD81C39712526D51D22CC5D13AAF4C98AD130123077B66817F87FC684FFFA688C9188D0569"]  },
+			{ key: "genericLauncherFolder" , value : ["/home/qpride/data/launcher/"],
+			{ key: "largeDataRepository" , value : ["/home/qpride/data/data/"],
+			{ key: "largeDataReposSize" , value : ["32768"],
+			{ key: "localCacheDirectory" , value : ["/home/qpride/bin/cache/"],
+			{ key: "logStdout" , value : ["off"],
+			{ key: "ObjectExpireDays" , value : ["30"],
+			{ key: "PurgeFrequency" , value : ["300"],
+			{ key: "purgeObjectLimit" , value : ["1000"],
+			{ key: "purgeReqLimit" , value : ["1000"],
+			{ key: "resourceRoot" , value : ["/home/qpride/bin/"],
+			{ key: "session" , value : ["@#H29r$3`D%^xtY${%$Q26954$}K\%$+,\"#%=H#*%P]*(X*o.^&muTI?N%^E T'I[X)"],
+			{ key: "statisticsTimeFrequencySecs" , value : ["900"],
+			{ key: "statisticsTimeUnit" , value : ["3600"],
+			{ key: "subNetworkHeadList" , value : ["/qpridesrv/"],
+			{ key: "tempDirectory" , value : ["/tmp/"],
+			{ key: "internalWWW" , value : ["http://qpridesrv/"],
+			{ key: "accountExpireDays" },
+			{ key: "downloadDir" , value : ["/home/qpride/data/download/"]},
+			{ key: "pswdExpireDays" },
+			{ key: "pswdKeepOldQty" },
+			{ key: "rootStoreManager" , value : ["/home/qpride/store/"]},
+			{ key: "storageMinKeepFree" , value : ["214748364800"]}
+		]
+	
+	}
+	
+}
+	

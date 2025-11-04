@@ -1,0 +1,168 @@
+{
+    "387": {
+        "_id": "$type.tasct_patient_demographics",
+        "_type": "type",
+        "name": "tasct_patient_demographics",
+        "title": "Patient demographics",
+        "fields": {
+            "1.1": {
+                "field_name": "first_name",
+                "field_title": "First Name",
+                "field_type": "string",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "last_name",
+                "field_title": "Last Name",
+                "field_type": "string",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "middle_initial",
+                "field_title": "Middle Initial",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "dob",
+                "field_title": "Date of Birth",
+                "field_type": "date",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "mobile_number",
+                "field_title": "Mobile Number",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_description": "phone"
+            },
+            "1.6": {
+                "field_name": "email_address",
+                "field_title": "Email Address",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_description": "email"
+            },
+            "1.7": {
+                "field_name": "address",
+                "field_title": "Address",
+                "field_type": "string",
+                "field_order": 7
+            },
+            "1.8": {
+                "field_name": "city",
+                "field_title": "City",
+                "field_type": "string",
+                "field_order": 8
+            },
+            "1.9": {
+                "field_name": "state",
+                "field_title": "State",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint": "search",
+                "field_constraint_data": "{\r\n\"fetch\":[\"code\"],\r\n\"url\":\"?cmd=file&mode=csv&filename=voc/tmj_states.csv&raw=1&start=0\",\r\n\"inline\":[\r\n\t{\"name\":\"subdivision\",\"title\":\"subdivision\",\"display\":\"title\",\"search\":\"true\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"code\",\"title\":\"code\"}\r\n]\r\n}\r\n>is_shown_fg=$(country)=='US'||$(country)=='UM'"
+            },
+            "1.10": {
+                "field_name": "zip_code",
+                "field_title": "Zip Code",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=true;value_fg='$(this)';if($(country)=='US'){ var valid = /^\\d{5}$/g.test(value_fg);has_error=(!valid).toString();if(!valid){error_message='Insert correct Zip Code';}else{has_error='false';error_message='';}}"
+            },
+            "1.11": {
+                "field_name": "country",
+                "field_title": "Country",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint": "search",
+                "field_constraint_data": "{\r\n\"fetch\":[\"ISO\"],\r\n\"url\":\"?cmd=file&mode=csv&filename=voc/countries.csv&raw=1&start=0\",\r\n\"inline\":[\r\n\t{\"name\":\"ISO\",\"title\":\"ISO\",\"display\":\"none\",\"search\":\"true\"},\r\n\t{\"name\":\"country\",\"title\":\"Country\",\"display\":\"title\",\"search\":\"true\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"code\",\"title\":\"code\"}\r\n]\r\n}"
+            },
+            "1.12": {
+                "field_name": "education",
+                "field_title": "What is the highest level of education?",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "Some high school|High school|College|Post-collegiate degree"
+            },
+            "1.13": {
+                "field_name": "employment ",
+                "field_title": "What is your employment status?",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "Employed|Unemployed"
+            },
+            "1.14": {
+                "field_name": "ethnicity",
+                "field_title": "What is your ethnicity?",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "Hispanic or Latino|NOT Hispanic or Latino"
+            },
+            "1.15": {
+                "field_name": "race",
+                "field_title": "What is your race?",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "American Indian or Alaska Native|Asian|Black or African American|Native Hawaiian or Other Pacific Islander|White"
+            },
+            "1.16": {
+                "field_name": "children",
+                "field_title": "Have you given birth to any children?",
+                "field_type": "bool",
+                "field_order": 16
+            },
+            "1.17": {
+                "field_name": "children_options",
+                "field_title": "How many children do you have?",
+                "field_type": "integer",
+                "field_order": 17,
+                "field_constraint_data": "is_shown_fg=$(children)=='true'",
+                "field_constraint_description": "subquestion"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

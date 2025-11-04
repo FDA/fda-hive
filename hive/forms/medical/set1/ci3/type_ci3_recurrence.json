@@ -1,0 +1,155 @@
+{
+    "344": {
+        "_id": "$type.ci3_recurrence",
+        "_type": "type",
+        "name": "ci3_recurrence",
+        "title": "Post-op outcomes and recurrence",
+        "fields": {
+            "1.1": {
+                "field_name": "height",
+                "field_title": "Height",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_constraint_description": "height"
+            },
+            "1.2": {
+                "field_name": "height_feet",
+                "field_title": "Feet",
+                "field_type": "integer",
+                "field_parent": "height",
+                "field_order": 1.1
+            },
+            "1.3": {
+                "field_name": "height_inches",
+                "field_title": "Inches",
+                "field_type": "real",
+                "field_parent": "height",
+                "field_order": 1.2
+            },
+            "1.4": {
+                "field_name": "height_cm",
+                "field_title": "cm",
+                "field_type": "real",
+                "field_parent": "height",
+                "field_order": 1.3
+            },
+            "1.5": {
+                "field_name": "height_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "height",
+                "field_order": 1.4,
+                "field_constraint_data": "Feet/Inches|cm"
+            },
+            "1.6": {
+                "field_name": "po_weight",
+                "field_title": "Weight",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_constraint_description": "unit"
+            },
+            "1.7": {
+                "field_name": "po_weight_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "po_weight",
+                "field_order": 2.1
+            },
+            "1.8": {
+                "field_name": "po_weight_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "po_weight",
+                "field_order": 2.2,
+                "field_constraint_data": "1///kg|2.205///LB"
+            },
+            "1.9": {
+                "field_name": "po_bmi",
+                "field_title": "BMI",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "if($(po_weight_unit)=='1'&&'$(height_cm)'!=''&&'$(po_weight_value)'!=''){value_fg=Math.round(((parseFloat($(po_weight_value))*10000)/(parseFloat($(height_cm))*parseFloat($(height_cm)))+Number.EPSILON)*100)/100;}else if('$(height_cm)'!=''&&'$(po_weight_value)'!=''){value_fg=Math.round((parseFloat($(po_weight_value))*4535.92/(parseFloat($(height_cm))*parseFloat($(height_cm)))+Number.EPSILON)*100)/100;}"
+            },
+            "1.10": {
+                "field_name": "follow_up_duration",
+                "field_title": "Follow-up duration (days)",
+                "field_type": "integer",
+                "field_order": 4
+            },
+            "1.11": {
+                "field_name": "hospital_major_complicatioons",
+                "field_title": "Major complications after surgery",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "intraabdominal infections|intestinal perforation/leak|myocardial infarction|stroke|pneumonia|DVT/PA|Sepsis|Death"
+            },
+            "1.12": {
+                "field_name": "post_procedure_days",
+                "field_title": "Post-procedure Length of stay (days)",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_is_hidden_fg": true
+            },
+            "1.13": {
+                "field_name": "recurrence_sbo",
+                "field_title": "Recurrence of SBO?",
+                "field_type": "bool",
+                "field_order": 7
+            },
+            "1.14": {
+                "field_name": "obstruction_days",
+                "field_title": "Time to recurrence of obstruction (days)",
+                "field_type": "integer",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(recurrence_sbo)=='true'"
+            },
+            "1.15": {
+                "field_name": "procedure_sbo",
+                "field_title": "Need for repeat procedure for SBO",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "Percutaneous, Cut-down, Endoscopy|laparoscopy|laparotomy|other\r\n>is_shown_fg=$(recurrence_sbo)=='true'"
+            },
+            "1.16": {
+                "field_name": "procedure_sbo_other",
+                "field_title": "specify",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(procedure_sbo)=='other'&&$(recurrence_sbo)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_shared"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

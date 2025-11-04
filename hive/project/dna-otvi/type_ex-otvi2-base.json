@@ -1,0 +1,201 @@
+{
+    "344": {
+        "_id": "$type.ex-otvi2-base",
+        "_type": "type",
+        "name": "ex-otvi2-base",
+        "title": "Excision OTVI 2 Base",
+        "description": "// Excision OTVI pipeline \nlocation:hive.project.dna-otvi",
+        "parent": {
+            "1": "$type.svc-wflo-base",
+            "12": "$type.project-base"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "references",
+                "field_title": "References",
+                "field_type": "list",
+                "field_order": 0
+            },
+            "1.3": {
+                "field_name": "merged",
+                "field_title": "Are Reads merged",
+                "field_type": "bool",
+                "field_order": 0,
+                "field_default_value": "true"
+            },
+            "1.4": {
+                "field_name": "wflow-gblock_ref",
+                "field_title": "gBlock references",
+                "field_type": "obj",
+                "field_parent": "references",
+                "field_order": 1,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.5": {
+                "field_name": "wflow-barcodes",
+                "field_title": "Barcodes",
+                "field_type": "string",
+                "field_order": 0.1,
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "wflow-hg_ref",
+                "field_title": "Human Genome references",
+                "field_type": "obj",
+                "field_parent": "references",
+                "field_order": 1,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.7": {
+                "field_name": "wflow-hiv_ref",
+                "field_title": "HIV Reference",
+                "field_type": "obj",
+                "field_parent": "references",
+                "field_order": 2,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.8": {
+                "field_name": "wflow-aav_ref",
+                "field_title": "AAV Reference",
+                "field_type": "obj",
+                "field_parent": "references",
+                "field_order": 3,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.9": {
+                "field_name": "wflow-noeditbar_ref",
+                "field_title": "Unedited Barcoded Spike Reference",
+                "field_type": "obj",
+                "field_parent": "references",
+                "field_order": 4,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.10": {
+                "field_name": "wflow-prob_ref",
+                "field_title": "Nominated references",
+                "field_type": "obj",
+                "field_parent": "references",
+                "field_order": 4.5,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.11": {
+                "field_name": "wflow-umi_size",
+                "field_title": "UMI size",
+                "field_type": "integer",
+                "field_order": 5
+            },
+            "1.12": {
+                "field_name": "wflow-samples",
+                "field_title": "Samples",
+                "field_type": "string",
+                "field_default_value": "repl1,repl2,repl3"
+            },
+            "1.13": {
+                "field_name": "wflow-aavintegr_ref",
+                "field_title": "AAV integration references",
+                "field_type": "obj",
+                "field_parent": "references",
+                "field_order": 5,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.14": {
+                "field_name": "wflow-umi_collapse",
+                "field_title": "UMI collapse reads",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Do not colapse UMIs|1///Collapse UMIs"
+            },
+            "1.15": {
+                "field_name": "wflow-adapter_r1",
+                "field_title": "Adapter FWD",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "wflow-adapter_r2",
+                "field_title": "Adapter REV",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.18": {
+                "field_name": "wflow-repl_merged",
+                "field_title": "Merged Reads",
+                "field_type": "obj",
+                "field_parent": "merged",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read\r\n>is_hidden_fg=$(merged)==false"
+            },
+            "1.19": {
+                "field_name": "wflow-repl_fwd",
+                "field_title": "FWD",
+                "field_type": "obj",
+                "field_parent": "merged",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read,u-file\r\n>is_hidden_fg=$(merged)==true"
+            },
+            "1.20": {
+                "field_name": "wflow-repl_rev",
+                "field_title": "REV",
+                "field_type": "obj",
+                "field_parent": "merged",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read,u-file\r\n>is_hidden_fg=$(merged)==true"
+            },
+            "1.22": {
+                "field_name": "wflow-has_spikes",
+                "field_title": "Synthetic spikes used",
+                "field_type": "bool",
+                "field_default_value": "true",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

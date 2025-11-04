@@ -1,0 +1,40 @@
+{
+    "68040": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Standalone UCSC BLAT-35x1 fast sequence search command line tool",
+        "icon": "img-algo/svc-align-blat.gif",
+        "name": "blat",
+        "version": "35x1",
+        "type_name": "svc-align-blat",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,231 @@
+{
+    "476": {
+        "_id": "$type.hep_demographics",
+        "_type": "type",
+        "name": "hep_demographics",
+        "title": "Demographics",
+        "fields": {
+            "1.1": {
+                "field_name": "sex",
+                "field_title": "Sex",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "Male|Female|Unspecified"
+            },
+            "1.2": {
+                "field_name": "year_birth",
+                "field_title": "Year of Birth (YYYY)",
+                "field_type": "integer",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "age_enrollment",
+                "field_title": "Age (Enrollment)",
+                "field_type": "integer",
+                "field_order": 3,
+                "field_description": "(Specify units below. [Whole numbers only])"
+            },
+            "1.4": {
+                "field_name": "ethnicity",
+                "field_title": "Ethnicity",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "Hispanic or Latino|Not Hispanic or Latino|Unknown|Not Reported"
+            },
+            "1.5": {
+                "field_name": "race",
+                "field_title": "Race (Select all those with which you identify)",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "American Indian or Alaska Native|Asian|Black or African-American|Native Hawaiian or Other Pacific Islander|White|Unknown|Not Reported",
+                "field_constraint_description": "checkbox"
+            },
+            "1.6": {
+                "field_name": "handedness",
+                "field_title": "Handedness (what hand do you write with?):",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "Left|Right|Both"
+            },
+            "1.7": {
+                "field_name": "employment",
+                "field_title": "Employment",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "Student (Not Currently Employed)|Unemployed|Part-time Employed|Full-time Employed|Full-time Homemaker (Regardless of marital status)"
+            },
+            "1.8": {
+                "field_name": "english_primary_language",
+                "field_title": "English Primary Language",
+                "field_type": "bool",
+                "field_order": 8
+            },
+            "1.9": {
+                "field_name": "age_learn_english",
+                "field_title": "At what age did you learn the English language?",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(english_primary_language)=='false'"
+            },
+            "1.10": {
+                "field_name": "relative_sex",
+                "field_title": "Sex  (M=male, F=female, U=Unspecified)",
+                "field_type": "string",
+                "field_parent": "other_relatives",
+                "field_order": 1,
+                "field_is_hidden_fg": true
+            },
+            "1.11": {
+                "field_name": "subject_being_interviewed",
+                "field_title": "Specific relationship to subject being interviewed (Include paternal or maternal relationship; obtain sufficient information to draw pedigree)",
+                "field_type": "string",
+                "field_parent": "other_relatives",
+                "field_order": 2,
+                "field_is_hidden_fg": true
+            },
+            "1.12": {
+                "field_name": "living",
+                "field_title": "Living?",
+                "field_type": "bool",
+                "field_parent": "other_relatives",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.13": {
+                "field_name": "enrolled_hep",
+                "field_title": "If living, is this person enrolled in HEP?",
+                "field_type": "bool",
+                "field_parent": "other_relatives",
+                "field_order": 4,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "is_shown_fg=$(living)=='true'"
+            },
+            "1.14": {
+                "field_name": "education_level",
+                "field_title": "Education Level (select the highest level attained):",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "Never attended/ Kindergarten only|1st Grade|2nd Grade|3rd Grade|4th Grade|5th Grade|6th Grade|7th Grade|8th Grade|9th Grade|10th Grade|11th Grade|12th Grade, no diploma|High school graduate|GED or equivalent|Some college, no degree|Associate degree: occupational, technical, or vocational program|Associate degree: academic program|Bachelor's degree (e.g., BA, AB, BS, BBA)|Master's degree (e.g., MA, MS, MEng, MEd, MBA)|Professional school degree (e.g., MD, DDS, DVM, JD)|Doctoral degree (e.g., PhD, EdD)|Unknown"
+            },
+            "1.15": {
+                "field_name": "pediatric_subjects",
+                "field_title": "Pediatric Subjects (< 18 yo): Mother's Education Level (select the highest level attained)",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Never attended/ Kindergarten only|1st Grade|2nd Grade|3rd Grade|4th Grade|5th Grade|6th Grade|7th Grade|8th Grade|9th Grade|10th Grade|11th Grade|12th Grade, no diploma|High school graduate|GED or equivalent|Some college, no degree|Associate degree: occupational, technical, or vocational program|Associate degree: academic program|Bachelor's degree (e.g., BA, AB, BS, BBA)|Master's degree (e.g., MA, MS, MEng, MEd, MBA)|Professional school degree (e.g., MD, DDS, DVM, JD)|Doctoral degree (e.g., PhD, EdD)|Unknown"
+            },
+            "1.16": {
+                "field_name": "family_history_seizures",
+                "field_title": "Do you have any biological first degree relatives with a history of epilepsy or seizures?",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.17": {
+                "field_name": "number_of_relatives_with_epilepsy",
+                "field_title": "If so, how many?",
+                "field_type": "integer",
+                "field_order": 12.5,
+                "field_constraint_data": "is_shown_fg=$(family_history_seizures)=='Yes'"
+            },
+            "1.18": {
+                "field_name": "other_relatives",
+                "field_title": "Relatives",
+                "field_type": "array",
+                "field_order": 14,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(family_history_seizures)=='Yes'",
+                "field_constraint_description": "col-3"
+            },
+            "1.19": {
+                "field_name": "family_history_sinistrality",
+                "field_title": "Family History of Sinistrality (Do you have any biological first degree relatives [mother, father, siblings, children] who write left-handed or with both hands? ):",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.20": {
+                "field_name": "learning_disability_add_adhd",
+                "field_title": "Formal Learning Disability or ADD/ADHD diagnosis (Were you given formal diagnosis of any learning disability or diagnosed with ADD/ADHD?):",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.21": {
+                "field_name": "repeat_grade_school",
+                "field_title": "Did you ever repeat a grade in school?",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.22": {
+                "field_name": "accommodations_coursework",
+                "field_title": "Did you ever receive special accommodations for coursework?",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_data": "Yes- remedial work|Yes-honors work|No|Unknown"
+            },
+            "1.23": {
+                "field_name": "relative_relation",
+                "field_title": "Relation",
+                "field_type": "string",
+                "field_parent": "other_relatives",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Father|Mother|Grandfather|Grandmother|Brother|Sister|Daughter|Son"
+            },
+            "1.24": {
+                "field_name": "relative_ep_type",
+                "field_title": "Type of Epilepsy",
+                "field_type": "string",
+                "field_parent": "other_relatives",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Focal|Generalized|Unknown|Other"
+            },
+            "1.25": {
+                "field_name": "relative_ep_type_other",
+                "field_title": "Specify other",
+                "field_type": "string",
+                "field_parent": "other_relatives",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(relative_ep_type)=='Other'"
+            },
+            "1.26": {
+                "field_name": "relative_sz_type",
+                "field_title": "Type of seizures (check all that  apply)",
+                "field_type": "string",
+                "field_parent": "other_relatives",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Focal|Absence (Petit mal)|Myoclonus|Tonic-Clonic (Grand mal)|Unknown"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

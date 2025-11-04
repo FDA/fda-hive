@@ -1,0 +1,126 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.action-container{
+    display: inline-block;
+}
+.btn {
+    border-radius: 4px;
+    padding: 5px 10px;
+    height: 27px;
+    box-sizing: border-box;
+}
+a.btn{
+    font-size:14px;
+}
+.btn--minor{
+    outline: none;
+    border: none;
+    color: var(--blue,#1890ff);
+    background-color: transparent;
+    font-style: italic;
+    cursor: pointer;
+
+}
+
+.btn--minor:hover{
+    color: #40a9ff;
+}
+
+.drag-tooltip{
+    box-sizing: border-box;
+    position:absolute;
+    top:-150px;
+    color: white;
+    background-color: var(--dark-navy-blue);
+    padding: 5px 10px;
+    border-radius: 4px;
+
+}
+
+.btn-regular{
+    box-sizing: border-box;
+    background-color: rgba(9, 30, 66, 0.08);
+    color: #344563 ;
+    border: none ;
+    margin: 8px 0px;
+    margin-right: 5px;
+    padding: 0px 10px;
+    height: 27px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.015);
+}
+
+a.btn-regular{
+    padding: 3px 10px;
+}
+
+.btn-regular:hover {
+    color: #40a9ff;
+    background-color: rgba(9, 30, 66, 0.13);
+}
+
+.btn-regular:hover {
+    color: #40a9ff;
+    background-color: var(--blue);
+}
+
+.btn__blue {
+    border: none;
+    box-shadow: 0px 2px 3px rgba(var(--dark-dark-blue-rgb),0.3);
+    background-color: var(--light-blue);
+    color: var(--off-white);
+}
+.btn__blue:hover{
+    box-shadow: 0px 2px 2px rgba(var(--dark-dark-blue-rgb),0.3);
+    color: var(--off-white);
+/*    background-color: var(--blue);*/
+    background-image: linear-gradient(to bottom right, var(--light-light-blue), var(--light-blue));
+    transition: all 0.8s ease;
+}
+.btn__blue:focus,.btn__blue:focus{
+    color: var(--off-white);
+    box-shadow: 0px 1px 1px rgba(var(--dark-dark-blue-rgb),0.2);
+    background-color: var(--blue);
+    background-image: none;
+    transition: all 0.2s ease;
+}
+
+.hive-btn__icon{
+    vertical-align: -0.5em;
+    height: 1.6em;
+    margin: 0 5px 0 0;
+}
+[aria-disabled="true"] img{
+    filter: grayscale(100%);
+}
+
+.hive-btn-link{
+    background-color: transparent;
+    color: #1890ff;
+}

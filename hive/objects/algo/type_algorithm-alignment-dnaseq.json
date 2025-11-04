@@ -1,0 +1,41 @@
+{
+    "type.92": {
+        "_id": "type.92",
+        "_type": "type",
+        "name": "algorithm-alignment-dnaseq",
+        "title": "DNA-seq Alignment Algorithms",
+        "description": "DNA-seq Alignment Algorithms",
+        "parent": {
+            "1": "type.86"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,61 @@
+{
+    "type.62": {
+        "_id": "type.62",
+        "_type": "type",
+        "name": "directory",
+        "title": "Directory Object",
+        "description": "Directory Object for hierarchial organization of objects",
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "child",
+                "field_title": "Child",
+                "field_type": "obj",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.2": {
+                "field_name": "type_count",
+                "field_title": "children type count",
+                "field_type": "integer",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_virtual_fg": true,
+                "field_is_hidden_fg": true,
+                "field_description": "virtual hidden field where group represents tpe name and value count of children of that type: prop.123.type_count.u-file=4"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

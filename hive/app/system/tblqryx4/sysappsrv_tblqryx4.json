@@ -1,0 +1,20 @@
+{
+    "129": {
+        "_id": "$upsert()",
+        "_type": "sysappsrv",
+        "name": "tblqryx4",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

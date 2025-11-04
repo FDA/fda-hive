@@ -1,0 +1,102 @@
+{
+    "182": {
+        "_id": "$type.medtronic_protocol_deviation",
+        "_type": "type",
+        "name": "medtronic_protocol_deviation",
+        "title": "Protocol Deviation",
+        "fields": {
+            "1.2": {
+                "field_name": "protocol_deviation_start_date",
+                "field_title": "What was the protocol deviation start date?",
+                "field_type": "date",
+                "field_order": "2"
+            },
+            "1.3": {
+                "field_name": "associated_visit",
+                "field_title": "What was the associated visit?",
+                "field_type": "string",
+                "field_order": "3",
+                "field_constraint_data": "BASELINE|SURGERY|6 WEEK FU|3 MONTHS FU|6 MONTHS FU|12 MONTHS FU|24 MONTHS FU|36 MONTHS FU|48 MONTHS FU|60 MONTHS FU|UNSCHEDULED VISIT|ADVERSE EVENT"
+            },
+            "1.5": {
+                "field_name": "protocol_deviation_term",
+                "field_title": "What was the protocol deviation term?",
+                "field_type": "string",
+                "field_order": "4"
+            },
+            "1.6": {
+                "field_name": "protocol_deviation",
+                "field_title": "What was the protocol deviation?",
+                "field_type": "string",
+                "field_order": "5",
+                "field_constraint_data": "CIP REPORTABLE EVENT, NOT REPORTED PER REQUIREMENTS|ELIGIBILITY CRITERIA NOT MET|ENROLLED SUBJECT DID NOT MEET ENROLLMENT CRITERIA|FAILURE TO OBTAIN INFORMED CONSENT PRIOR TO STUDY ACTIVITIES STARTED|GCP NON-COMPLIANCE|INCORRECT VERSION OF INFORMED CONSENT FORM SIGNED|INFORMED CONSENT NOT DONE|INFORMED CONSENT OBTAINED BUT CORRECT PROCESS WAS NOT FOLLOWED|REGULATORY REPORTABLE EVENT, NOT REPORTED PER REQUIREMENTS|SOURCE DATA NOT AVAILABLE|STUDY ASSESSMENT COMPLETED OUTSIDE WINDOW|STUDY ASSESSMENT/DATA COLLECTION NOT COMPLETED|STUDY TREATMENT DEVIATION|SUBJECT BECAME UNBLINDED|UNAUTHORIZED STUDY PERSONNEL COMPLETED STUDY PROCEDURE|UNAUTHORIZED USE OF DRUG|UNAUTHORIZED USE OF INVESTIGATIONAL DEVICE|UNAUTHORIZED USE OF PRODUCT|VISIT NOT COMPLETED|VISIT OCCURRED OUTSIDE OF WINDOW|OTHER"
+            },
+            "1.8": {
+                "field_name": "reason_for_protocol_deviation",
+                "field_title": "What was the reason for the protocol deviation?",
+                "field_type": "string",
+                "field_order": "6"
+            },
+            "1.9": {
+                "field_name": "deviation_necessary_to_protect_safety",
+                "field_title": "Was this deviation necessary to protect the safety and well-being of the subject in an emergency?",
+                "field_type": "string",
+                "field_order": "7",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.10": {
+                "field_name": "protocol_deviation_preapproved_by_Medtronic",
+                "field_title": "Was the protocol deviation preapproved by Medtronic?",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.11": {
+                "field_name": "date_of_Medtronic_preapproval",
+                "field_title": "Date of Medtronic preapproval",
+                "field_type": "date",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(protocol_deviation_preapproved_by_Medtronic)=='YES'"
+            },
+            "1.12": {
+                "field_name": "protocol_deviation_classification",
+                "field_title": "Protocol Deviation Classification",
+                "field_type": "string",
+                "field_order": "10",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

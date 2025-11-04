@@ -1,0 +1,24 @@
+{
+    "120": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "vioapp",
+                "dir": "$(HIVE.repo)/hive/app/system/vioapp",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "comments": "debugging",
+        "version": 1,
+        "name": "hive.app.system.vioapp",
+        "description": "VIOAPP is sequence manipulation command line standalone application for HIVE",
+        "authors": {
+            "24": "V.Simonyan"
+        },
+        "contributors": {
+            "58": "L.Santana-Quinterro"
+        }
+    }
+}

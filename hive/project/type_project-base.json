@@ -1,0 +1,41 @@
+{
+    "335": {
+        "_id": "$type.project-base",
+        "_type": "type",
+        "name": "project-base",
+        "title": "Project Specific Types",
+        "description": "// Baseline type for all project specific services\nlocation: hive.project",
+        "parent": {
+            "7": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "type.63": {
+        "_id": "type.63",
+        "_type": "type",
+        "name": "folder",
+        "title": "Folder",
+        "description": "Folders to organize objects hierarchically",
+        "parent": {
+            "1": "type.67",
+            "2": "type.62"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_summary_fg": true,
+                "field_brief": " $_(v) <b>$_(t)</b>"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

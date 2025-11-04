@@ -1,0 +1,30 @@
+{
+    "232": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-heptagon",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-heptagon",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-heptagon",
+        "description": "HEPTAGON is HIVE's  major NGS based sequence profiler. It performs sequence pileups based on alignments, as well as variety of very unique and useful functionalities. \n\nPMID: 28188908",
+        "links": {
+            "6": "https://pubmed.ncbi.nlm.nih.gov/28188908/"
+        },
+        "related": {
+            "13": "59119"
+        },
+        "synonyms": {
+            "23": "HIVE-heptagon"
+        },
+        "authors": {
+            "25": "V.Simonyan",
+            "38": "K.Karagiannis"
+        }
+    }
+}

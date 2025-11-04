@@ -1,0 +1,42 @@
+{
+    "149": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "upload",
+        "name": "upload",
+        "order": 13,
+        "required_permission": 0,
+        "type_name": "u-file+",
+        "title": "Upload a new file",
+        "description": "Upload a file",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

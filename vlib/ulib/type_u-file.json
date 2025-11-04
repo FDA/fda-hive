@@ -1,0 +1,59 @@
+{
+    "type.19": {
+        "_id": "type.19",
+        "_type": "type",
+        "name": "u-file",
+        "title": "User File",
+        "parent": {
+            "1": "type.67",
+            "2": "type.230"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "description",
+                "field_title": "Description",
+                "field_type": "text",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "tag",
+                "field_title": "Tag",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": false
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

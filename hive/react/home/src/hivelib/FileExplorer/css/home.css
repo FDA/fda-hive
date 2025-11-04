@@ -1,0 +1,584 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+*{
+    box-sizing: border-box;
+}
+
+body{
+    margin:0;
+    padding: 0;
+    font-family: 'TitilliumWeb', sans-serif;
+
+    --dark-dark-blue: #0e1d44;
+    --dark-dark-blue-05: rgba(14, 29, 68, 0.5);
+    --dark-dark-blue-rgb: 14, 29, 68;
+    --dark-blue: #124269;
+    --blue: #167aaa;
+    --light-blue: #3191bf;
+    --light-light-blue: #42cbe8;
+    --off-white: #f2f2f2;
+}
+
+.div__center{
+    margin: 0px auto;
+    padding:25px;
+}
+
+.home .ant-btn,
+.project-table .ant-btn,
+.project .ant-btn {
+    background-color: rgba(9, 30, 66, 0.08) !important;
+    color: #344563 !important;
+    border: none !important;
+    margin: 8px 0px;
+    margin-right: 5px;
+    padding: 0 10px;
+    height: 27px;
+}
+
+.dashboard table{
+    table-layout: fixed;
+}
+.dashboard table td, table th{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.dashboard__main--flex-footer{
+    display: flex;
+    flex-direction: column;
+}
+
+
+.home .ant-table-body {
+    overflow-x: auto !important;
+}
+
+.home .ant-btn:last-child,
+.project-table .ant-btn:last-child {
+    margin-right: 0px;
+}
+
+.home .ant-btn:hover,
+.project-table .ant-btn:hover {
+    color: #40a9ff !important;
+    background-color: rgba(9, 30, 66, 0.13) !important;
+}
+
+.home .ant-table-tbody > tr > td {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+}
+
+.home .ant-table-tbody > tr:nth-child(even) {
+    background-color: #f5faff;
+}
+
+
+
+.sidenav-tree__note{
+    position:relative;
+}
+.sidenav-tree__note::before{
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    left: -9px;
+    top: 5px;
+    background-color: #78AB46;
+    background-color: #eaba3a;
+}
+
+.sidenav-search{
+    margin-top: 20px;
+    padding-left: 25px;
+    padding-right:15px;
+}
+.sidenav-search input{
+    background-color: #19274d;
+    border-color: transparent;
+    color:var(--off-white);
+}
+.sidenav-search .ant-input-suffix{
+    right: 30px;
+}
+.sidenav-search .ant-input-suffix svg{
+    color: var(--off-white);
+}
+
+.dashboard-main {
+  display: block;
+  padding: 25px 15px 0px 25px;
+  overflow-x: auto;
+  overflow-y: auto; /*for split screen to work properly*/
+  height: 100%; /*for split screen to work properly*/
+}
+
+.dashboard__main--flex{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.dashboard-table-container:first-child{
+   flex:1;
+}
+.dashboard-table-container{
+   flex-grow: 1;
+}
+
+.dashboard__main__footer{
+   flex-shrink: 0;
+   width: calc(100% + 40px);
+   margin-left: -25px;
+}
+
+.ant-table-body{
+    resize:vertical;
+    overflow-x: auto !important;
+}
+
+
+.hive-table__bottom {
+    margin-top: 10px;
+}
+
+.hive-table__bottom > div {
+    display: inline-block;
+}
+.hive-table__bottom > div:last-child {
+    float: right;
+}
+
+.hive-table__selection {
+    font-style: italic;
+}
+.hive-table__selection a , .hive-table__selection p {
+    display: inline-block;
+}
+.hive-table__selection a {
+    margin-left: 15px;
+}
+
+.hive-ant-tag{
+/*
+    color:#1056A5;
+    border-color: #1056A5;
+*/
+    color:#1890ff;
+    border-color: #1890ff;
+    background-color: transparent;
+}
+.hive-table__hide-item {
+   color: red;
+/*   visibility: collapse;*/
+/*   transition: color 0.5s ease-in;*/
+}
+
+
+.ant-table-thead {
+    font-size: 14px;
+}
+
+/*************************
+ *** Resizable Columns ***
+ *************************/
+ .react-resizable {
+    position: relative;
+}
+
+.react-resizable-handle-se {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    bottom: 0;
+    right: 0;
+    cursor: col-resize;
+    background-color: rgba(24, 144, 255, 0);
+}
+
+.react-resizable-handle-se:hover {
+    background-color: rgba(24, 144, 255, 0.8);
+    -webkit-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+.ant-table-thead:hover > tr > th{
+/*    border-right: 1px solid #0e1d44;*/
+    border-right: 1px dotted #999999;
+    box-sizing: border-box;
+    padding-left: 7px !important;
+}
+.ant-table-thead:hover > tr > th:nth-child(2){
+        padding-left: 8px !important;
+}
+.ant-table-thead:hover > tr > th:last-child,
+.ant-table-thead:hover > tr > th:nth-last-child(2),
+.ant-table-thead:hover > tr > th:first-child{
+    border-right:none;
+}
+
+
+.ant-btn {
+    background-color: rgba(9, 30, 66, 0.08) !important;
+    color: #344563 !important;
+    border: none !important;
+    margin: 8px 0px;
+    margin-right: 5px;
+    padding: 0 10px;
+    height: 27px;
+}
+.ant-btn:last-child{
+    margin-right: 0px;
+}
+
+.ant-btn:hover {
+    color: #40a9ff !important;
+    background-color: rgba(9, 30, 66, 0.13) !important;
+}
+
+.ant-table-tbody > tr > td {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+}
+
+.ant-table-tbody > tr:nth-child(even) {
+    background-color: #f5faff;
+}
+
+
+/***************
+ **** Table ****
+ ***************/
+
+.table-controls{
+    display: block;
+}
+
+
+/*************************/
+
+/***********************
+ **** ag-grid Table ****
+ ***********************/
+
+.ag-theme-balham .ag-root {
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    border-bottom: none;
+}
+.ag-theme-balham .ag-row-odd {
+    background-color: #f5faff;
+}
+.ag-theme-balham .ag-row-hover {
+    background-color: #e6f7ff;
+}
+
+.ag-theme-balham .ag-ltr .ag-has-focus .ag-cell-focus:not(.ag-cell-range-selected){
+    border: none;
+}
+.ag-theme-balham .ag-row,
+.ag-theme-balham .ag-header{
+    height: 32px;
+}
+.ag-theme-balham .ag-row-selected{
+    background-color: #b7e4ff;
+}
+/*
+These style are for header columns to align with body columns
+*/
+table{
+  table-layout: fixed;
+}
+table td, table th{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+/*
+Col width poorly works with two styles above
+*/
+
+.ant-dropdown-menu-item.ant-dropdown-menu-item-disabled > a,
+.ant-dropdown-menu-submenu-title > a {
+    color: rgba(0, 0, 0, 0.25) !important;
+    cursor: default !important;
+}
+
+.action-container .ant-menu-horizontal > .ant-menu-item, .action-container .ant-menu-horizontal > .ant-menu-submenu {
+    top: 0px;
+}
+
+.action-container .ant-menu-horizontal > .ant-menu-item > a {
+    line-height: 1.8;
+}
+.ant-menu-horizontal {
+    border-bottom: none;
+}
+.ant-menu-item-disabled,
+.ant-menu-submenu-disabled,
+.ant-dropdown-menu-item-disabled:hover,
+.ant-dropdown-menu-submenu-title-disabled:hover{
+    cursor: default;
+}
+.ant-menu-item-disabled:hover,
+.ant-menu-submenu-disabled:hover{
+    background-color: rgba(9, 30, 66, 0.08) !important;
+}
+.ant-dropdown-menu-item > a.action-button,
+.ant-dropdown-menu-submenu-title > a.action-button ,
+.ant-menu-horizontal > .ant-menu-item > a{
+    display: inline-block;
+}
+
+.anticon.hive-btn__icon {
+    vertical-align: -0.5em;
+}
+
+.ant-menu-item-disabled .anticon.hive-btn__icon svg path,
+.ant-menu-item-disabled .anticon.hive-btn__icon svg polygon {
+    fill: #cccccc;
+}
+
+
+.ant-table-thead > tr.ant-table-row-hover:not(.ant-table-expanded-row) > td,
+.ant-table-tbody > tr.ant-table-row-hover:not(.ant-table-expanded-row) > td,
+.ant-table-thead > tr:hover:not(.ant-table-expanded-row) > td,
+.ant-table-tbody > tr:hover:not(.ant-table-expanded-row) > td {
+    background: #1890ff4a;
+}
+.ant-table-small > .ant-table-content .ant-table-header {
+    background-color: #fafafa;
+}
+
+/*************
+**** TABS  ***
+**************/
+
+.ant-tabs-nav .ant-tabs-tab-active{
+    background-color: #f4f5f7;
+}
+
+
+.ant-tabs-nav .ant-tabs-tab {
+    margin-right: 15px;
+    padding: 7px 16px;
+        border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+}
+
+.ant-tabs-nav .ant-tabs-tab .anticon {
+    visibility: hidden;
+    margin-left: 13px;
+    margin-right:0px;
+}
+
+.tab-info{
+   padding-left: 3px;
+   color: var(--blue);
+   color: #989898;
+   font-size: 11px;
+   display: inline-block;
+}
+
+/* Decrease the size of tabs*/
+.ant-tabs.ant-tabs-card .ant-tabs-card-bar .ant-tabs-nav-container {
+    height: 30px;
+}
+
+.ant-tabs.ant-tabs-card .ant-tabs-card-bar .ant-tabs-tab {
+    height: 30px;
+    line-height: 30px;
+    background-color: #f4f5f7;
+}
+
+.ant-tabs.ant-tabs-card .ant-tabs-card-bar .ant-tabs-tab-active {
+    height: 30px;
+    background-color: #ffffff;
+}
+
+.ant-tabs-nav .ant-tabs-tab:hover .anticon, .ant-tabs-nav .ant-tabs-tab-active .anticon{
+    visibility: visible;
+}
+/*********************
+**** Styling Color ***
+**********************/
+.dashboard-sidenav{
+     background-color: #334061;
+}
+.dashboard-sidenav{
+    width: inherit; /* when using react-split-pane*/
+    position: relative;
+    background-color: #334061   /* #f5f7f9; in bco editor*/
+}
+
+.dashboard-sidenav .ant-menu {
+    background-color: transparent;
+}
+
+.dashboard-sidenav .ant-spin{
+    color: var(--offwhite);
+}
+.dashboard-sidenav .ant-spin-dot-item{
+    background-color: var(--offwhite);
+}
+
+.dashboard-sidenav .sidenav-actions {
+    grid-area: actions;
+    background-color: #334061;
+    padding-top: 20px;    /* 10px; in home */
+  }
+
+  .dashboard-sidenav .sidenav-tree {
+    grid-area: tree;
+    overflow-y: auto;
+    padding-bottom: 50px;
+  }
+
+  .dashboard-sidenav .sidenav-tree ,
+  .dashboard-sidenav .sidenav-actions{
+    display: flex;
+    flex-direction: row;
+    padding-left: 25px;
+    padding-right: 15px;
+  }
+
+.dashboard-sidenav .ant-tree,
+.dashboard-sidenav .ant-tree li .ant-tree-node-content-wrapper,
+.dashboard-sidenav .ant-btn{
+    color:#f5f7f9 !important;
+}
+
+
+.dashboard-sidenav .ant-tree li .ant-tree-node-content-wrapper.ant-tree-node-selected,
+.dashboard-sidenav .ant-tree li .ant-tree-node-content-wrapper:hover  {
+    background-color: #1890ff;
+}
+
+.dashboard-sidenav .action-container .ant-btn{
+    background-color: rgba(14, 29, 68, 0.7) !important;
+    color:#f5f7f9;
+}
+.dashboard-sidenav .ant-tree{
+    margin-top: 15px;
+}
+
+.allow{
+    background-color: #78AB46;
+    box-shadow: inset 0em 5em #78AB46 !important;
+}
+.read-only{
+    background-color: #C41414;
+    cursor: no-drop;
+/*    box-shadow: inset 0em 5em #C41414 !important;*/
+}
+
+.ant-tree.ant-tree-show-line li:not(:last-child)::before {
+    border-left: 1px dotted #929292;
+}
+
+.ant-tree.ant-tree-show-line li span.ant-tree-switcher {
+     color: #fff;
+     background: transparent;
+}
+.ant-tree.ant-tree-show-line li span.ant-tree-switcher:hover:not(.ant-tree-switcher-noop) {
+     color: var(--antd-wave-shadow-color,#1890ff);
+}
+
+.ant-tree li span.ant-tree-switcher.ant-tree-switcher-noop {
+    color: #ffffff29;
+}
+/************************
+**** React Split Pane ***
+************************/
+
+.Resizer {
+  background: #1890ff;
+  opacity: 0.5;
+  z-index: 1;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-background-clip: padding;
+  -webkit-background-clip: padding;
+  background-clip: padding-box;
+}
+
+.Resizer:hover {
+  -webkit-transition: all 0.2s ease;
+  transition: all 0.2s ease;
+}
+
+.Resizer.horizontal {
+  height: 11px;
+  margin: -5px 0;
+  border-top: 5px solid rgba(255, 255, 255, 0);
+  border-bottom: 5px solid rgba(255, 255, 255, 0);
+  cursor: row-resize;
+  width: 100%;
+}
+
+.Resizer.horizontal:hover {
+  border-top: 5px solid #1890ff;
+  border-bottom: 5px solid #1890ff;
+}
+
+.Resizer.vertical {
+  width: 11px;
+  margin: 0 -5px;
+  border-left: 5px solid rgba(255, 255, 255, 0);
+  border-right: 5px solid rgba(255, 255, 255, 0);
+  cursor: col-resize;
+}
+
+.Resizer.vertical:hover {
+  border-left: 5px solid #1890ff;
+  border-right: 5px solid #1890ff;
+}
+.Resizer.disabled {
+  cursor: not-allowed;
+}
+.Resizer.disabled:hover {
+  border-color: transparent;
+}
+
+.hive.dashboard-container .Pane2{
+    overflow-x: auto; /* Adding style overflow-x: auto on Pane2 triggers proper work of overflow-x: auto on .ant-table-body */
+}
+
+/**************************
+**** Buttons and Inputs ***
+**************************/
+.ant-input {
+    margin:0px 0px;
+    height: 32px
+}

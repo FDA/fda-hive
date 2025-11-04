@@ -1,0 +1,347 @@
+{
+    "358": {
+        "_id": "$type.tmj_previous_treatment_history",
+        "_type": "type",
+        "name": "tmj_previous_treatment_history",
+        "title": "Patient Previous Treatment History",
+        "parent": {
+            "4": "$type.tmj_questionnaires"
+        },
+        "fields": {
+            "4.1": {
+                "field_name": "subtitle_2",
+                "field_title": "Previous TMJ Treatment",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "4.2": {
+                "field_name": "tmj_treatment_in_the_past",
+                "field_title": "Have you received TMJ treatment in the past?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "4.3": {
+                "field_name": "provider_list",
+                "field_title": "Speciaslists list",
+                "field_type": "array",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(tmj_treatment_in_the_past)=='true'"
+            },
+            "4.4": {
+                "field_name": "types_of_specialists",
+                "field_title": "What types of specialists have you seen?",
+                "field_type": "string",
+                "field_parent": "provider_list",
+                "field_order": 3.1,
+                "field_constraint_data": "Rheumatology|Neurology|Pain medicine|Sleep Medicine|ENT|OMFS|Immunologist|Opthamologist|Orthopedics|Infectious diesease|Genetics|Functional Medicine|Psychiatrist|Gastroenterologist|Dermatology|Cardiology|General Dentist|Orthodontics|Periodontist|Prosthodotist|Endodontist"
+            },
+            "4.5": {
+                "field_name": "names_of_specialists",
+                "field_title": "List the names of medical or dental specialists that were consulted",
+                "field_type": "string",
+                "field_parent": "provider_list",
+                "field_order": 3.2,
+                "field_constraint": "undefined",
+                "field_constraint_data": "{\"sourceType\":\"tmj_provider_dg\",\"sourceField\":\"providers_list\",\"briefFields\":[\"first_name\",\"last_name\",\"type\"],\"briefFormat\":\"${first_name} ${last_name} (${type})\"}",
+                "field_constraint_description": "hiveobjectfield"
+            },
+            "4.6": {
+                "field_name": "time_from_symptom_onset",
+                "field_title": "What was the time from symptom onset to diagnosis and treatment by this specialist (specify by month and years)?",
+                "field_type": "string",
+                "field_parent": "provider_list",
+                "field_order": 3.3
+            },
+            "4.7": {
+                "field_name": "previous_injection_medication",
+                "field_title": "Have you received any of the following TMJ Injections/Medications",
+                "field_type": "bool",
+                "field_order": 10
+            },
+            "4.8": {
+                "field_name": "prp_injections",
+                "field_title": "PRP injection",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(previous_injection_medication)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.9": {
+                "field_name": "steroid_injections",
+                "field_title": "Steroid injections",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_constraint_data": "is_shown_fg=$(previous_injection_medication)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.10": {
+                "field_name": "received_prolotherapy_trigger_point_injections",
+                "field_title": "Prolotherapy/Trigger Point injections/nerve blocks",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(previous_injection_medication)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.11": {
+                "field_name": "treated_with_botox_injections",
+                "field_title": "Botox Injections",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_constraint_data": "is_shown_fg=$(previous_injection_medication)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.12": {
+                "field_name": "received_iontophoresis",
+                "field_title": "Iontophoresis with Dexamethasone, lidocaine, benzocaine, septacaine and/or others",
+                "field_type": "bool",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(previous_injection_medication)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.13": {
+                "field_name": "tmj_massage_therapy_treatment",
+                "field_title": "Have you had TMJ Massage Therapy treatment?",
+                "field_type": "bool",
+                "field_order": 16
+            },
+            "4.14": {
+                "field_name": "treated_with_massage_therapy",
+                "field_title": "Treated with Massage Therapy?",
+                "field_type": "bool",
+                "field_order": 17,
+                "field_constraint_data": "is_shown_fg=$(tmj_massage_therapy_treatment)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.15": {
+                "field_name": "treated_with_cranial_sacral_therapy",
+                "field_title": "Treated with Cranial Sacral Therapy?",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_constraint_data": "is_shown_fg=$(tmj_massage_therapy_treatment)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.16": {
+                "field_name": "myofascial_precision_neuromuscular_massage_therapy",
+                "field_title": "Treated with Myofascial & Precision Neuromuscular massage therapy?",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_constraint_data": "is_shown_fg=$(tmj_massage_therapy_treatment)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.17": {
+                "field_name": "therapeutic_exercises",
+                "field_title": "Treated with Therapeutic exercises (posture and mechanical training)?",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_constraint_data": "is_shown_fg=$(tmj_massage_therapy_treatment)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.18": {
+                "field_name": "manual_therapy",
+                "field_title": "Treated with Manual Therapy?",
+                "field_type": "bool",
+                "field_order": 21,
+                "field_constraint_data": "is_shown_fg=$(tmj_massage_therapy_treatment)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.19": {
+                "field_name": "tmj_alternative_treatments",
+                "field_title": "Have you had any TMJ Alternative treatments?",
+                "field_type": "bool",
+                "field_order": 22
+            },
+            "4.20": {
+                "field_name": "acupuncture_dry_needling",
+                "field_title": "Acupuncture/Dry needling",
+                "field_type": "bool",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.21": {
+                "field_name": "myofunctional_speech_therapy",
+                "field_title": "Myofunctional/Speech Therapy",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.22": {
+                "field_name": "physical_therapy_physiotherapy",
+                "field_title": "Physical Therapy/Physiotherapy",
+                "field_type": "bool",
+                "field_order": 25,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.23": {
+                "field_name": "chiropractic_treatment",
+                "field_title": "Chiropractic Treatment",
+                "field_type": "bool",
+                "field_order": 26,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.24": {
+                "field_name": "iv_ozone",
+                "field_title": "IV Ozone",
+                "field_type": "bool",
+                "field_order": 27,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.25": {
+                "field_name": "shock_wave_therapy",
+                "field_title": "Shock wave therapy",
+                "field_type": "bool",
+                "field_order": 28,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.26": {
+                "field_name": "hyperbaric_oxygen_therapy",
+                "field_title": "Hyperbaric oxygen therapy",
+                "field_type": "bool",
+                "field_order": 29,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.27": {
+                "field_name": "cold_laser_therapy",
+                "field_title": "Cold laser therapy",
+                "field_type": "bool",
+                "field_order": 30,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.28": {
+                "field_name": "ultrasound_therapy",
+                "field_title": "Ultrasound therapy",
+                "field_type": "bool",
+                "field_order": 31,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.29": {
+                "field_name": "magnetic_therapy",
+                "field_title": "Magnetic therapy",
+                "field_type": "bool",
+                "field_order": 32,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.30": {
+                "field_name": "heat_therapy",
+                "field_title": "Heat therapy",
+                "field_type": "string",
+                "field_order": 33,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Hot packs|hot baths|shower and cold packs|sauna\r\n>is_shown_fg=$(tmj_alternative_treatments)=='true'"
+            },
+            "4.31": {
+                "field_name": "breath_work",
+                "field_title": "Breath Work",
+                "field_type": "bool",
+                "field_order": 34,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.32": {
+                "field_name": "physical_rehabilitation",
+                "field_title": "Physical Rehabilitation",
+                "field_type": "bool",
+                "field_order": 35,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.33": {
+                "field_name": "splint_orthotic_mouth_guard_night_guard",
+                "field_title": "Splint/orthotic/mouth guard/night guard (Custom vs OTC)",
+                "field_type": "bool",
+                "field_order": 36,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.34": {
+                "field_name": "tens",
+                "field_title": "Myofascial & Precision Neuromuscular treatment or  muscular electrical stimulation (TENS)",
+                "field_type": "bool",
+                "field_order": 36.1,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.35": {
+                "field_name": "manipulation_of_the_mandible",
+                "field_title": "Manipulation of the mandible",
+                "field_type": "bool",
+                "field_order": 36.2,
+                "field_constraint_data": "is_shown_fg=$(tmj_alternative_treatments)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.36": {
+                "field_name": "tmj_education_counseling_or_training",
+                "field_title": "Have you had any TMJ Education, Counseling or Training?",
+                "field_type": "bool",
+                "field_order": 37
+            },
+            "4.37": {
+                "field_name": "received_behavioral_therapy",
+                "field_title": "Received Behavioral Therapy/Counseling  (biofeedback, CBT, Relaxation training, hypnosis, stress management, mindfulness)?",
+                "field_type": "bool",
+                "field_order": 38,
+                "field_constraint_data": "is_shown_fg=$(tmj_education_counseling_or_training)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "4.38": {
+                "field_name": "received_nutrition_counseling",
+                "field_title": "Received Nutrition Counseling?",
+                "field_type": "bool",
+                "field_order": 39,
+                "field_constraint_data": "is_shown_fg=$(tmj_education_counseling_or_training)=='true'",
+                "field_constraint_description": "checkbox"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/TMJ-Registry/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/Administrators/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

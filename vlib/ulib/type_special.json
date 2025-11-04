@@ -1,0 +1,89 @@
+{
+    "type.66": {
+        "_id": "type.66",
+        "_type": "type",
+        "name": "special",
+        "title": "Special Object",
+        "description": "Manage internal object",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "ext",
+                "field_title": "extention",
+                "field_type": "string",
+                "field_order": 4,
+                "field_description": "What extention is"
+            },
+            "1.2": {
+                "field_name": "file",
+                "field_title": "File Name",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_description": "Your file name"
+            },
+            "1.3": {
+                "field_name": "meaning",
+                "field_title": "What This is",
+                "field_type": "string",
+                "field_order": 0,
+                "field_description": "Define what this special type it is"
+            },
+            "1.4": {
+                "field_name": "tag",
+                "field_title": "Tag Name",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_description": "String tag for quick retrieval.  For example, 'protein_db' for retrieving protein databases."
+            },
+            "1.5": {
+                "field_name": "title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_order": 1,
+                "field_brief": "$_(v) <b>Specail Object</b>",
+                "field_description": "Readable title"
+            },
+            "1.6": {
+                "field_name": "version",
+                "field_title": "Version",
+                "field_type": "string",
+                "field_order": 2,
+                "field_description": "What version it is"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

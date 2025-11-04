@@ -1,0 +1,391 @@
+{
+    "579": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "HEP3_eCRFs",
+        "survey": {
+            "10": {
+                "10.1": {
+                    "name": "$type.hep_seizure_calendar",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "11": {
+                "11.1": {
+                    "name": "$type.hep_cssrscb_fu",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "12": {
+                "12.1": {
+                    "name": "$type.hep_specimen_collection_form_v2",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "13": {
+                "13.1": {
+                    "name": "$type.hep_specimen_collection_form_v1",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "14": {
+                "14.1": {
+                    "name": "$type.hep_specimen_collection_form_v3",
+                    "order": 5,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "15": {
+                "15.1": {
+                    "name": "$type.hep_disc_whole_life_youth",
+                    "order": 6,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "16": {
+                "16.1": {
+                    "name": "$type.hep_seizure_semiology_and_classification_form",
+                    "order": 7,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "17": {
+                "17.1": {
+                    "name": "$type.hep_discover_form",
+                    "order": 8,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "18": {
+                "18.1": {
+                    "name": "$type.hep_cssrscb_bl",
+                    "order": 9,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "19": {
+                "19.1": {
+                    "name": "$type.hep_whole_life_module",
+                    "order": 10,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "20": {
+                "20.1": {
+                    "name": "$type.hep_eeg_upload",
+                    "order": 11,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "21": {
+                "21.1": {
+                    "name": "$type.hep_safety_intervention",
+                    "order": 12,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "22": {
+                "22.1": {
+                    "name": "$type.hep_monthly_check",
+                    "order": 13,
+                    "items-per-page": 1,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "23": {
+                "23.1": {
+                    "name": "$type.hep_past_nonEpilepsy_treatment",
+                    "order": 14,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "25": {
+                "25.1": {
+                    "name": "$type.hep_epilepsy_treatment_log",
+                    "order": 16,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "26": {
+                "26.1": {
+                    "name": "$type.hep_gtc_seizure",
+                    "order": 17,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "27": {
+                "27.1": {
+                    "name": "$type.hep_mri_upload",
+                    "order": 18,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "28": {
+                "28.1": {
+                    "name": "$type.hep_medical_records",
+                    "order": 19,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "29": {
+                "29.1": {
+                    "name": "$type.hep_healthcare_utilization",
+                    "order": 20,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "30": {
+                "30.1": {
+                    "name": "$type.hep_classification_of_etiology",
+                    "order": 21,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "31": {
+                "31.1": {
+                    "name": "$type.hep_medical_history",
+                    "order": 22,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "32": {
+                "32.1": {
+                    "name": "$type.hep_plasma_concentration_aed_log",
+                    "order": 23,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "33": {
+                "33.1": {
+                    "name": "$type.hep_adverse_event",
+                    "order": 24,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "34": {
+                "34.1": {
+                    "name": "$type.hep_mini_v1",
+                    "order": 25,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "35": {
+                "35.1": {
+                    "name": "$type.hep_demographics",
+                    "order": 26,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "36": {
+                "36.1": {
+                    "name": "$type.hep_adjudication_eligibility_form",
+                    "order": 27,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "38": {
+                "38.1": {
+                    "name": "$type.hep_inclusion_criteria",
+                    "order": 29,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "39": {
+                "39.1": {
+                    "name": "$type.hep_informed_consent_checklist",
+                    "order": 30,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "40": {
+                "40.1": {
+                    "name": "$type.hep_screening_checklist",
+                    "order": 31,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "51": {
+                "51.1": {
+                    "name": "$type.hep_cryovials_urine",
+                    "order": 32,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "62": {
+                "62.1": {
+                    "name": "$type.hep_microbiome_form",
+                    "order": 33,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "73": {
+                "73.1": {
+                    "name": "$type.hep_standard_hep3_eeg",
+                    "order": 34,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "84": {
+                "84.1": {
+                    "name": "$type.hep_wrat4",
+                    "order": 35,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

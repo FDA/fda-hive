@@ -1,0 +1,81 @@
+"_core:descriptions" : {
+	"descr" : "description of system variables",
+	 
+	"_type" : "type of the object",
+	"_id" : "identifier of the object",
+	"_fields" : "list of fields",
+	"_abstr" : "abstract type",
+	"_inherit" : "list of types this type inherits from",
+	"_func" : "the function name/dictionary/code that handles the object", 
+	"_parent" : "list of abstract parents",
+	"_bind" : [ // relations to other objects
+		"to1",  // elements without a role in a relation
+		"to2",  
+		{
+			"to" : "element to be connected with a relation",
+			"rel" : "relation type of the connection, parent, child, in, out, etc"
+		}
+	],
+	"_stat": { // status of the element
+		"choice+" : [ // suggestive list of elements from the list 
+		 	"unknown", 
+		 	"enabled",
+			"disabled",
+			"vetoed"
+		 ]
+	},
+			 
+	"_limit" :  { // synonym: _constraint
+		
+		"descr" : "constraints on fields",
+		 "eval-c++" : "C/C++ evaluation constructs",
+		 "eval-js" : "Javascript evaluation constructs",
+		 
+		 "choice" : [ // strictly constrained list of elements 
+		 	"element1" , 
+		 	"element2" , 
+		 	{ 
+		 		"title" : "element3 title here",
+		 		"value" : "element3 value here" 
+		 	}
+		 ],
+		 "choice+" : [ // suggestive list of elements from the list 
+		 	"element1", 
+		 	"element2"
+		 ],
+		 "search" : {
+			"url" : "http://domain.com/location/file.csv",
+			"value" : "column name in CSV or field name of JSON where value is located. This can be eval-js:$id+':'+$name",
+			"v:title" : "column name in CSV of field name of JSON where title is located. This can be eval-js:$id+':'+$name",
+			"v:show" : [ "name of columns to show in selection table", "another column" ],
+			"format" : "json or csv" 
+		 } ,
+		 "search+" : {
+			"url" : "http://domain.com/location/file.csv",
+			"value" : "column name in CSV or field name of JSON where value is located",
+			"v:title" : "column name in CSV of field name of JSON where title is located. This can be eval-js:$id+':'+$name",
+			"v:show" : [ "name of columns to show in selection table", "another column" ],
+			"format" : "json or csv" 
+		 }
+	},
+	"_write" :  "writeability of the fields can be true|false. Default for this field is false.",
+	"_vital" : "non mandatory fields, can be true|false. Default for this field is false.",
+	"_default" : "default value. No default value exists for this field",
+	"_plural" : "multivalue field can be true|false. Default for this field is false.",
+	"_infect" : "list of actions infected.",
+	
+	"v:layout" : "complex fields can be eithe array|list, the default is list",	
+	"v:hidden" : "hidden fields can be true|false. Default for this field is false.",
+	"v:pswd" : "password fields cannot be seen.",  
+	"v:role" : "can be input|output|parameter|etc. parameter is default", 
+	"v:order" : "order by which elements are sorted during visualizations",
+	
+	"_prm" : [
+		{
+			"access" : "level of access: read, browse, execute",
+			"actions" : "for example one may allow read for the field if level of access is browse" 
+		}
+	],				
+	"prm:_dep" : "list of fields used for propagation of permission rules" // permissions and security
+	
+}

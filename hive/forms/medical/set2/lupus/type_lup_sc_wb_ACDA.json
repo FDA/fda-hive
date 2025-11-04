@@ -1,0 +1,237 @@
+{
+    "568": {
+        "_id": "$type.lup_sc_wb_ACDA",
+        "_type": "type",
+        "name": "lup_sc_wb_ACDA",
+        "title": "PBMCs (Whole Blood)",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "PBMCs (Whole Blood) - 3 Tubes with Yellow Caps",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "sample_collected",
+                "field_title": "Was the sample collected?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "sample_not_collected_reason",
+                "field_title": "Please select the reason why the sample was not collected",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Study participant declined|Personnel for sample collection unavailable|Damaged or occluded veins|Sample collection kits unavailable|Collection tube damaged|Other\r\n>is_shown_fg=$(sample_collected)=='false'"
+            },
+            "1.4": {
+                "field_name": "sample_not_collected_reason_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "{\"maxlength\":\"50\"}\r\n>is_shown_fg=$(sample_collected)=='false'&&$(sample_not_collected_reason)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.5": {
+                "field_name": "how_many_tubes_collected",
+                "field_title": "How many tubes were collected?",
+                "field_type": "integer",
+                "field_order": 4.5,
+                "field_constraint_data": "1-3\r\n>is_shown_fg=$(sample_collected)=='true'"
+            },
+            "1.6": {
+                "field_name": "why_not_all_tubes",
+                "field_title": "Please select the reason why not all tubes were collected",
+                "field_type": "string",
+                "field_order": 4.6,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Study participant declined|Damaged or occluded veins|Collection tube damaged|Other\r\n>is_shown_fg=$(sample_collected)=='true'&&parseInt($(how_many_tubes_collected))<3&&$(how_many_tubes_collected)!=''"
+            },
+            "1.7": {
+                "field_name": "why_not_all_tubes_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 4.7,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(why_not_all_tubes)=='Other'&&$(how_many_tubes_collected)<2",
+                "field_constraint_description": "subquestion"
+            },
+            "1.8": {
+                "field_name": "collection_datetime",
+                "field_title": "Date and time of collection",
+                "field_type": "datetime",
+                "field_order": 5,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(sample_collected)=='true';if($(this)!=''&&(($(shipped_1)=='true'&&$(shipment_date_1)!=''&&this.dateStrFormatNoTZ('$(this)')>this.dateStrFormatNoTZ('$(shipment_date_1)'))||($(shipped_2)=='true'&&$(shipment_date_2)!=''&&this.dateStrFormatNoTZ('$(this)')>this.dateStrFormatNoTZ('$(shipment_date_2)'))||($(shipped_3)=='true'&&$(shipment_date_3)!=''&&this.dateStrFormatNoTZ('$(this)')>this.dateStrFormatNoTZ('$(shipment_date_3)')))){ has_error=true;error_message=\"Collection date can't be greater than shipment date.\";}else if($(this)!=''){has_error=false;error_message=null;}"
+            },
+            "1.9": {
+                "field_name": "collected_lab_manual",
+                "field_title": "Were the samples collected and stored per the Laboratory Manual?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'"
+            },
+            "1.10": {
+                "field_name": "why_not_per_collected_lab_manual",
+                "field_title": "Please explain why samples were not collected per the Laboratory Manual",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(collected_lab_manual)=='false'"
+            },
+            "1.11": {
+                "field_name": "subtitle_2",
+                "field_title": "Please scan the tubes and indicate if they were shipped",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(how_many_tubes_collected)>=1",
+                "field_constraint_description": "subtitle",
+                "field_description": "Scan each tube's QR code and scan the shipping envelope barcode"
+            },
+            "1.12": {
+                "field_name": "tube_1",
+                "field_title": "Tube 1",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "{\"maxlength\":\"11\"}\r\n>is_shown_fg=$(sample_collected)=='true'&&parseInt($(how_many_tubes_collected))>=1;if($(this)!=''&&[$(this),$(tube_2),$(tube_3)].filter(x=>x=='$(this)').length > 1){ has_error=true;error_message=\"Duplicate tube/vial code detected, please make sure you have scanned the correct tubes/vials\";}else if($(this)!=''){has_error=false;error_message=null;}",
+                "field_constraint_description": "scanner"
+            },
+            "1.13": {
+                "field_name": "shipped_1",
+                "field_title": "Shipped",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(how_many_tubes_collected)>=1",
+                "field_constraint_description": "checkbox"
+            },
+            "1.14": {
+                "field_name": "tracking_no_1",
+                "field_title": "Shipment Tracking Number",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(shipped_1)=='true'&&$(how_many_tubes_collected)>=1",
+                "field_constraint_description": "barcode"
+            },
+            "1.15": {
+                "field_name": "shipment_date_1",
+                "field_title": "Shipment Date",
+                "field_type": "date",
+                "field_order": 12,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(sample_collected)=='true'&&$(shipped_1)=='true'&&$(how_many_tubes_collected)>=1"
+            },
+            "1.16": {
+                "field_name": "all_in_one_envelope",
+                "field_title": "All samples shipped in same envelope",
+                "field_type": "bool",
+                "field_order": 12.5,
+                "field_constraint_data": "is_shown_fg=$(tracking_no_1)!=''&&$(shipment_date_1)!=''",
+                "field_constraint_description": "checkbox"
+            },
+            "1.17": {
+                "field_name": "tube_2",
+                "field_title": "Tube 2",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "{\"maxlength\":\"11\"}\r\n>is_shown_fg=$(sample_collected)=='true'&&parseInt($(how_many_tubes_collected))>=2;if($(this)!=''&&[$(this),$(tube_1),$(tube_3)].filter(x=>x=='$(this)').length > 1){ has_error=true;error_message=\"Duplicate tube/vial code detected, please make sure you have scanned the correct tubes/vials\";}else if($(this)!=''){has_error=false;error_message=null;}",
+                "field_constraint_description": "scanner"
+            },
+            "1.18": {
+                "field_name": "shipped_2",
+                "field_title": "Shipped",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(how_many_tubes_collected)>=2;if($(all_in_one_envelope)=='true'&&!is_hidden){value_fg=true;}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.19": {
+                "field_name": "tracking_no_2",
+                "field_title": "Shipment Tracking Number",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(shipped_2)=='true'&&$(how_many_tubes_collected)>=2;if($(this)==''&&$(all_in_one_envelope)=='true'){value_fg=$(tracking_no_1);}",
+                "field_constraint_description": "barcode"
+            },
+            "1.20": {
+                "field_name": "shipment_date_2",
+                "field_title": "Shipment Date",
+                "field_type": "date",
+                "field_order": 16,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(sample_collected)=='true'&&$(shipped_2)=='true'&&$(how_many_tubes_collected)>=2;if($(this)==''&&$(all_in_one_envelope)=='true'){value_fg=$(shipment_date_1);}"
+            },
+            "1.21": {
+                "field_name": "tube_3",
+                "field_title": "Tube 3",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "{\"maxlength\":\"11\"}\r\n>is_shown_fg=$(sample_collected)=='true'&&parseInt($(how_many_tubes_collected))>=3;if($(this)!=''&&[$(this),$(tube_1),$(tube_2)].filter(x=>x=='$(this)').length > 1){ has_error=true;error_message=\"Duplicate tube/vial code detected, please make sure you have scanned the correct tubes/vials\";}else if($(this)!=''){has_error=false;error_message=null;}",
+                "field_constraint_description": "scanner"
+            },
+            "1.22": {
+                "field_name": "shipped_3",
+                "field_title": "Shipped",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(how_many_tubes_collected)>=3;if($(all_in_one_envelope)=='true'&&!is_hidden){value_fg=true;}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.23": {
+                "field_name": "tracking_no_3",
+                "field_title": "Shipment Tracking Number",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(shipped_3)=='true'&&$(how_many_tubes_collected)>=3;if($(this)==''&&$(all_in_one_envelope)=='true'){value_fg=$(tracking_no_1);}",
+                "field_constraint_description": "barcode"
+            },
+            "1.24": {
+                "field_name": "shipment_date_3",
+                "field_title": "Shipment Date",
+                "field_type": "date",
+                "field_order": 20,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(sample_collected)=='true'&&$(shipped_3)=='true'&&$(how_many_tubes_collected)>=3;if($(this)==''&&$(all_in_one_envelope)=='true'){value_fg=$(shipment_date_1);}"
+            },
+            "1.25": {
+                "field_name": "not_shipped_same_day",
+                "field_title": "Please explain why samples were not shipped on the same day",
+                "field_type": "string",
+                "field_order": 21,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Shipping envelope unavailable|Sample collection too late for carrier pick-up|Envelope was not collected by carrier|Other\r\n>is_shown_fg=$(sample_collected)=='true'&&$(collection_datetime)!=''&&(($(shipped_1)=='true'&&this.dateToStrFormatNoTZ('$(shipment_date_1)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)'))||\r\n($(shipped_2)=='true'&&this.dateToStrFormatNoTZ('$(shipment_date_2)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)'))||\r\n($(shipped_3)=='true'&&this.dateToStrFormatNoTZ('$(shipment_date_3)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)')));"
+            },
+            "1.26": {
+                "field_name": "not_shipped_same_day_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 22,
+                "field_constraint_data": "{\"maxlength\":\"50\"}\r\n>is_shown_fg=$(sample_collected)=='true'&&$(not_shipped_same_day)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.27": {
+                "field_name": "stored_conditions",
+                "field_title": "Please specify how the samples were stored prior to shipment",
+                "field_type": "text",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(collection_datetime)!=''&&(($(shipped_1)=='true'&&this.dateToStrFormatNoTZ('$(shipment_date_1)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)'))||\r\n($(shipped_2)=='true'&&this.dateToStrFormatNoTZ('$(shipment_date_2)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)'))||\r\n($(shipped_3)=='true'&&this.dateToStrFormatNoTZ('$(shipment_date_3)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)')));"
+            }
+        },
+        "parent": {
+            "3": "$type.lup_sample_collection"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

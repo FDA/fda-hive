@@ -1,0 +1,373 @@
+{
+    "489": {
+        "_id": "$type.hep_healthcare_utilization",
+        "_type": "type",
+        "name": "hep_healthcare_utilization",
+        "title": "Healthcare Utilization",
+        "fields": {
+            "1.1": {
+                "field_name": "date_last_form",
+                "field_title": "Date of Last Form",
+                "field_type": "date",
+                "field_order": 1,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.2": {
+                "field_name": "date_current_form",
+                "field_title": "Date of Current Form",
+                "field_type": "date",
+                "field_order": 2,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.3": {
+                "field_name": "days_form_covers",
+                "field_title": "# of days form covers",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "subtitle_1",
+                "field_title": "Participant Work",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_description": "subtitle"
+            },
+            "1.5": {
+                "field_name": "participant_working",
+                "field_title": "Is the Participant Working?",
+                "field_type": "bool",
+                "field_order": 5
+            },
+            "1.6": {
+                "field_name": "last_form_number",
+                "field_title": "Since the last form, number of working days lost for participant (days per week)",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(participant_working)=='true'"
+            },
+            "1.7": {
+                "field_name": "subtitle_2",
+                "field_title": "Caregiver Assistance",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_description": "subtitle"
+            },
+            "1.8": {
+                "field_name": "participant_caregiver",
+                "field_title": "Does the Participant have a Caregiver?",
+                "field_type": "bool",
+                "field_order": 8
+            },
+            "1.9": {
+                "field_name": "from_an_unpaid_caregiver_as_a_result",
+                "field_title": "Since the last form, was assistance needed from an unpaid caregiver as a result of the participant’s epilepsy?",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'"
+            },
+            "1.10": {
+                "field_name": "full_time_assistance",
+                "field_title": "Is this full-time assistance?",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'&&$(from_an_unpaid_caregiver_as_a_result)=='true'"
+            },
+            "1.11": {
+                "field_name": "hours_of_support",
+                "field_title": "If not full-time assistance, specify the number of hours of support? (hrs per week)",
+                "field_type": "integer",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'&&$(from_an_unpaid_caregiver_as_a_result)=='true'&&$(full_time_assistance)=='false'"
+            },
+            "1.12": {
+                "field_name": "working days_for_caregiver",
+                "field_title": "Number of working days lost for caregiver (days per week)",
+                "field_type": "integer",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'&&$(from_an_unpaid_caregiver_as_a_result)=='true'"
+            },
+            "1.13": {
+                "field_name": "from_an_paid_caregiver_as_a_result",
+                "field_title": "Since the last form, was assistance needed from a paid caregiver as a result of the participant’s epilepsy?",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'"
+            },
+            "1.14": {
+                "field_name": "is_this_full_time_assistance",
+                "field_title": "Is this full-time assistance?",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'&&$(from_an_paid_caregiver_as_a_result)=='true'"
+            },
+            "1.15": {
+                "field_name": "not_full_time_assistance",
+                "field_title": "If not full-time assistance, specify the number of hours of support?",
+                "field_type": "string",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'&&$(from_an_paid_caregiver_as_a_result)=='true'&&$(is_this_full_time_assistance)=='false'"
+            },
+            "1.16": {
+                "field_name": "services",
+                "field_title": "Type of services used",
+                "field_type": "string",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "nurse home visit|therapists home visit|physiotherapists|Other, specify\n>is_shown_fg=$(participant_caregiver)=='true'&&$(from_an_paid_caregiver_as_a_result)=='true'",
+                "field_constraint_description": "nurse home visit|therapists home visit|physiotherapists|Other, specify"
+            },
+            "1.17": {
+                "field_name": "servises_other",
+                "field_type": "string",
+                "field_order": 16.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(participant_caregiver)=='true'&&$(services)=='Other, specify'"
+            },
+            "1.18": {
+                "field_name": "non_study_visits",
+                "field_title": "Health Care Provider Non Study Visits",
+                "field_type": "array",
+                "field_order": 17,
+                "field_is_multi_fg": true
+            },
+            "1.19": {
+                "field_name": "non_study_visits_performed",
+                "field_title": "Were any non-study visits performed since the last form?",
+                "field_type": "string",
+                "field_parent": "non_study_visits",
+                "field_order": 1,
+                "field_constraint_data": "Yes|No"
+            },
+            "1.20": {
+                "field_name": "date_of_consultation",
+                "field_title": "Date of Consultation (Month, Day, Year)",
+                "field_type": "date",
+                "field_parent": "non_study_visits",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(non_study_visits_performed)=='Yes'"
+            },
+            "1.21": {
+                "field_name": "type_of _provider",
+                "field_title": "Type of Provider",
+                "field_type": "string",
+                "field_parent": "non_study_visits",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Epileptologist|General neurologist|Other specialist, specify\n>is_shown_fg=$(non_study_visits_performed)=='Yes'"
+            },
+            "1.22": {
+                "field_name": "type_of _provider_other",
+                "field_title": "Specify",
+                "field_type": "text",
+                "field_parent": "non_study_visits",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(type_of _provider)=='Other specialist, specify'"
+            },
+            "1.23": {
+                "field_name": "site_of_care",
+                "field_title": "Site of Care",
+                "field_type": "string",
+                "field_parent": "non_study_visits",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Outpatient provider  office|Participant home|ER\n>is_shown_fg=$(non_study_visits_performed)=='Yes'"
+            },
+            "1.24": {
+                "field_name": "unscheduled_visit",
+                "field_title": "Unscheduled Visit",
+                "field_type": "string",
+                "field_parent": "non_study_visits",
+                "field_order": 6,
+                "field_constraint_data": "Yes|No\n>is_shown_fg=$(non_study_visits_performed)=='Yes'"
+            },
+            "1.25": {
+                "field_name": "unscheduled_visit_type",
+                "field_title": "Unscheduled Visit Related to",
+                "field_type": "string",
+                "field_parent": "non_study_visits",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Seizures|Adverse event|Non epilepsy|Urgent|Other provider\n>is_shown_fg=$(unscheduled_visit)=='Yes'&&$(non_study_visits_performed)=='Yes'"
+            },
+            "1.26": {
+                "field_name": "unscheduled_visit_type_urgent",
+                "field_title": "If urgent, specify",
+                "field_type": "text",
+                "field_parent": "non_study_visits",
+                "field_order": 8.5,
+                "field_constraint_data": "is_shown_fg=$(unscheduled_visit)=='Yes'&&$(non_study_visits_performed)=='Yes'&&$(unscheduled_visit_type)=='Urgent'"
+            },
+            "1.27": {
+                "field_name": "unscheduled_visit_type_other",
+                "field_title": "If other, specify",
+                "field_type": "text",
+                "field_parent": "non_study_visits",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(unscheduled_visit)=='Yes'&&$(non_study_visits_performed)=='Yes'&&$(unscheduled_visit_type)=='Other provider'"
+            },
+            "1.28": {
+                "field_name": "scheduled_visit",
+                "field_title": "Scheduled Visit",
+                "field_type": "string",
+                "field_parent": "non_study_visits",
+                "field_order": 9,
+                "field_constraint_data": "Yes|No\n>is_shown_fg=$(non_study_visits_performed)=='Yes'"
+            },
+            "1.29": {
+                "field_name": "scheduled_visit_type",
+                "field_title": "Scheduled Visit Related to",
+                "field_type": "string",
+                "field_parent": "non_study_visits",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Epilepsy|Adverse event|Elective procedure|Non epilepsy|Urgent|Other provider\n>is_shown_fg=$(scheduled_visit)=='Yes'&&$(non_study_visits_performed)=='Yes'"
+            },
+            "1.30": {
+                "field_name": "scheduled_visit_type_urgent",
+                "field_title": "If urgent, specify",
+                "field_type": "text",
+                "field_parent": "non_study_visits",
+                "field_order": 11.5,
+                "field_constraint_data": "is_shown_fg=$(scheduled_visit)=='Yes'&&$(non_study_visits_performed)=='Yes'&&$(scheduled_visit_type)=='Urgent'"
+            },
+            "1.31": {
+                "field_name": "scheduled_visit_type_other",
+                "field_title": "If other, specify",
+                "field_type": "text",
+                "field_parent": "non_study_visits",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(scheduled_visit)=='Yes'&&$(non_study_visits_performed)=='Yes'&&$(scheduled_visit_type)=='Other provider'"
+            },
+            "1.32": {
+                "field_name": "labs_collected",
+                "field_title": "Were labs collected since the last time this form was completed?",
+                "field_type": "bool",
+                "field_order": 18
+            },
+            "1.33": {
+                "field_name": "completed_form_times",
+                "field_title": "If Yes, how many times?",
+                "field_type": "integer",
+                "field_order": 19,
+                "field_constraint_data": "is_shown_fg=$(labs_collected)=='true'"
+            },
+            "1.34": {
+                "field_name": "description_aed_collected",
+                "field_type": "string",
+                "field_order": 19.5,
+                "field_constraint_data": "is_shown_fg=$(labs_collected)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "If AED levels were collected, complete the AED Plasma Concentration form"
+            },
+            "1.35": {
+                "field_name": "number_of_ambulance_transportations",
+                "field_title": "Number of ambulance transportations to the hospital/consultation for treatment",
+                "field_type": "integer",
+                "field_order": 20
+            },
+            "1.36": {
+                "field_name": "number_of_times_ems",
+                "field_title": "Number of times EMS was called, but you did not go to the hospital/consultation for treatment",
+                "field_type": "integer",
+                "field_order": 21
+            },
+            "1.37": {
+                "field_name": "hospital",
+                "field_title": "Were you in the hospital since the last time this form was completed?",
+                "field_type": "bool",
+                "field_order": 22
+            },
+            "1.38": {
+                "field_name": "days_hospitalized",
+                "field_title": "If yes, number of days hospitalized",
+                "field_type": "integer",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(hospital)=='true'"
+            },
+            "1.39": {
+                "field_name": "intensive_care_unit",
+                "field_title": "Were you in the Intensive Care Unit?",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_data": "is_shown_fg=$(hospital)=='true'"
+            },
+            "1.40": {
+                "field_name": "care_unit_types",
+                "field_title": "Care Unit types",
+                "field_type": "string",
+                "field_order": 25,
+                "field_constraint_data": "Epilepsy scheduled admission|Epilepsy emergency admission due to seizure|Epilepsy emergency admission due to adverse event|Other, specify\n>is_shown_fg=$(intensive_care_unit)=='true'"
+            },
+            "1.41": {
+                "field_name": "care_unit_types_other",
+                "field_title": "Specify",
+                "field_type": "text",
+                "field_order": 26,
+                "field_constraint_data": "is_shown_fg=$(care_unit_types)=='Other, specify'"
+            },
+            "1.42": {
+                "field_name": "concomitant_medical_procedures",
+                "field_title": "Concomitant medical procedures",
+                "field_type": "bool",
+                "field_order": 27
+            },
+            "1.43": {
+                "field_name": "procedures_types",
+                "field_title": "Procedures Types",
+                "field_type": "string",
+                "field_order": 28,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Video EEG monitoring|Routine EEG|Ambulatory EEG|Intubation|MRI|CT scan|Chest X-Ray|EKG|Other\n>is_shown_fg=$(concomitant_medical_procedures)=='true'"
+            },
+            "1.44": {
+                "field_name": "procedures_types_other",
+                "field_title": "If other, specify",
+                "field_type": "text",
+                "field_order": 28.5,
+                "field_constraint_data": "is_shown_fg=$(procedures_types).includes(\"Other\")&&$(concomitant_medical_procedures)=='true'"
+            },
+            "1.45": {
+                "field_name": "require_inpatient_rehabilitation_care",
+                "field_title": "Did you require inpatient rehabilitation care?",
+                "field_type": "bool",
+                "field_order": 29
+            },
+            "1.46": {
+                "field_name": "specify_reason",
+                "field_title": "If yes, please specify reason why and # of days",
+                "field_type": "text",
+                "field_order": 30,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(require_inpatient_rehabilitation_care)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

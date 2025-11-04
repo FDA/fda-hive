@@ -1,0 +1,24 @@
+{
+    "58": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "description": "Choose this option to view the general and subject specific HIVE hexagon pages used to align sequence reads to a reference genomes using the HIVE-Hexagon native engine",
+        "icon": "img/hive-hexagon.gif",
+        "order": 1,
+        "url": "?cmd=menu&root=tools&selected=alignment/dnaseq/hexagon",
+        "title": "HIVE-Hexagon Menu",
+        "path": "/tools/alignment/dnaseq/hexagon",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

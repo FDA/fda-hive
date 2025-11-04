@@ -1,0 +1,50 @@
+{
+    "266": {
+        "_id": "$type.dicom",
+        "_type": "type",
+        "name": "dicom",
+        "title": "DICOM file",
+        "description": "//\nlocation: hive.app.dm.dmArchiver",
+        "prefetch": true,
+        "fields": {
+            "1.0": {
+                "field_name": "icon",
+                "field_title": "Icon file name",
+                "field_type": "string",
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.u-file"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,170 @@
+.btn {
+    display: inline-block;
+    padding: 6px 25px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.42857143em;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    background-image: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    border: 1px solid transparent;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+}
+
+@media (max-width:1366px) {
+    .btn {
+        font-size: 12px;
+    }
+}
+
+@media (min-width:1920px) {
+    .btn {
+        font-size: 16px;
+    }
+}
+
+.btn_wide,
+.red_btn {
+    width: 200px;
+    letter-spacing: 1px;
+    border-radius: 0px;
+    padding-top: 5px;
+    margin-top: 10px;
+    background-color: #e8442d;
+}
+
+.btn-secondary {
+    padding-left: 60px;
+    padding-right: 60px;
+    padding-top: 5px;
+    margin-top: 10px;
+    border-radius: 0px;
+    letter-spacing: 1px;
+}
+
+.btn-third {
+    font-weight: lighter;
+    letter-spacing: 1px;
+    border-radius: 0px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 7px;
+    margin-top: 10px;
+    color: #333333;
+}
+
+.btn-primary:focus,
+.btn-primary.focus {
+    color: #fff;
+    background-color: #4294cc;
+}
+
+.blue-btn {
+    margin-right: 20px;
+    background-color: #194EA1;
+    color: #fff;
+}
+
+.blue-btn:hover {
+    background-color: #105cc6;
+}
+
+.red-btn {
+    color: #fff;
+    background-color: #e8442d;
+    margin-right: 20px;
+}
+
+.red-btn:hover {
+    background-color: #c72e18;
+}
+
+.red-border-btn {
+    font-weight: 500i;
+    color: #e8442d;
+    background-color: #fff;
+    border-color: #e8442d;
+    margin-right: 20px;
+    border: 1px solid;
+}
+
+.red-border-btn:hover {
+    color: #fff;
+    background-color: #c72e18;
+}
+
+lg-btn {}
+
+md-btn {}
+
+sm-btn {}
+
+
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+.panel-heading .btn {
+    margin-left: 5px;
+    margin-right: 5px;
+    padding: 4px 5px;
+    line-height: 0px;
+    color: #767676;
+    border-radius: 2px !important;
+}
+
+.panel-heading .btn:hover {
+    color: #1056A5;
+    
+}
+
+.panel-heading .btn:focus,
+.panel-heading button:focus{
+    outline: none !important;
+    box-shadow: none;
+}
+
+.panel-heading .btn:active,
+.panel-heading button:active{
+    background-color: #dedede;
+}
+
+.grid-stack-item-panel .infobox-toolbar .btn {}
+
+.grid-stack-item-content .infobox-toolbar .btn i {
+    font-size: 12px;
+}

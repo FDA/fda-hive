@@ -1,0 +1,43 @@
+
+seqID  
+	
+
+
+
+{
+	seqID
+	feature: {
+		pos {
+			start
+			end 
+		} [],
+
+		info : {
+			tag	
+			value
+		} [],		
+	}
+} [] 
+
+
+
+
+
+seqID feature {start end} [] tag = value [] 
+
+
+
+variation: {
+	rsID: 123
+	info: NS=3;DP=14;AF=0.5;DB;H2
+	info : { 
+		NS=3,
+		DP=14
+	}
+
+
+}
+	all features from GB 
+	all features from GTF, GFF
+	all features that are QC related
+	all features 

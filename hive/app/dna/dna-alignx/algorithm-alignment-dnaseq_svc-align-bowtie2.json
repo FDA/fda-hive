@@ -1,0 +1,24 @@
+{
+    "207": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Bow Tie 2 Algorithm ",
+        "icon": "?cmd=~dna~svc-align-bowtie.gif",
+        "title": "Bow-Tie2",
+        "version": "2.1.0",
+        "name": "svc-align-bowtie2",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

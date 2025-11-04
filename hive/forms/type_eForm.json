@@ -1,0 +1,123 @@
+{
+    "83": {
+        "_id": "$type.eForm",
+        "_type": "type",
+        "name": "eForm",
+        "title": "eForm",
+        "is_abstract_fg": true,
+        "singleton": 0,
+        "fields": {
+            "1.1": {
+                "field_name": "questionary_type",
+                "field_title": "Questionary type",
+                "field_type": "string",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_virtual_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.2": {
+                "field_name": "is_draft",
+                "field_title": "Is Draft",
+                "field_type": "bool",
+                "field_default_value": "false",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.3": {
+                "field_name": "visit_id",
+                "field_title": "Visit ID",
+                "field_type": "string",
+                "field_order": 3,
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.4": {
+                "field_name": "creator_id",
+                "field_title": "Creator ID",
+                "field_type": "string",
+                "field_order": 4,
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.6": {
+                "field_name": "submission",
+                "field_title": "Submission",
+                "field_type": "list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "submission_time",
+                "field_title": "Time",
+                "field_type": "integer",
+                "field_parent": "submission",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.8": {
+                "field_name": "submission_attempts",
+                "field_title": "Attempts",
+                "field_type": "integer",
+                "field_parent": "submission",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.9": {
+                "field_name": "submission_confirmed",
+                "field_title": "Confirmation",
+                "field_type": "integer",
+                "field_parent": "submission",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice"
+            }
+        },
+        "parent": {
+            "3": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

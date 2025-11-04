@@ -1,0 +1,262 @@
+<script type="text/javascript" src="js-obj-new/svc-algorlda.js"></script>
+
+<script type="application/javascript" language="JavaScript1.1" src="js/vjTableViewX2.js" ></script>
+
+<script  src='js/vjSVGView.js'> </script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+<script  src='js/vjTreeSeries.js'> </script>
+<script  src='js-graph/vjSVG_Phylogram.js'> </script>
+<script  src='js-graph/vjSVG_base.js'> </script>
+<script  src='js-graph/vjSVG_primitive.js'> </script>
+<script  src='js-graph/vjSVG_plot.js'> </script>
+<script  src='js-graph/vjSVG_HeatMap.js'> </script>
+<script  src='js/vjIFrameView.js'> </script>
+<script  src='js-graph/vjSVG_SOM.js'></script>
+<script  type="text/javascript" src="d3js/core/d3.js"></script>
+<script  type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/3d_scatter.js"> </script>
+<script  type="text/javascript" src="d3js/stackable_group_bars.js"></script>
+<script  type="text/javascript" src="d3js/phylog_tree.js"></script>
+<script  type="text/javascript" src="d3js/radar_plot.js"></script>
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.tableWidgetController.js');
+</script>
+
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;visibility:hidden;" id="jumpNewPage">
+    <a href = "#">
+        Click to go to old RLDA webpage
+    </a>
+</div>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+
+
+<script>
+    google.load("visualization", "1", { packages: ["corechart"] });
+
+    var process_formName = "algoForm";
+    var process_ID = docLocValue("id");if (!process_ID) process_ID = 0;
+    var algoProcess, algoProgress;
+    var clsNames=[];
+
+    setLocationTitle("HIVE-FuncDA Classification Tool");
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var process_svc="svc-algorlda";
+    var process_qpsvc = "algorlda";
+
+    var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
+
+    algoProcess.visibleParameters = ["name", "matrixGroup", "categsGroup", "classifier", "dataMode","readNumsAsNums"];
+    algoProcess.docLocsToBorrow = ["id"];
+    algoProcess.initialPresets = { name: "> " };
+
+    vjDS.add("infrastructure: matrix", "dsMatrix" , "static:
+    vjDS.add("infrastructure: matrix", "dsCategs" , "static:
+    vjDS["dsMatrix"].register_callback(matrix_file_selected);
+    vjDS["dsCategs"].register_callback(categ_file_selected);
+      
+    algoProcess.inputChanged = function(viewer, elem) {
+        var isAllowNameChange = true;
+        if( elem.name.indexOf(".name")>0 ) {
+            isAllowNameChange = algoProcess.getValue("name") ? false : true;
+        }
+        
+        var cls=algoProcess.getValue("classifier", "join");
+        if(cls<clsNames.length)
+            cls=clsNames[cls];
+        var mat=algoProcess.getValue("matrixFile", "join") || algoProcess.getValue("matrix", "join");
+        var cat=algoProcess.getValue("categsFile", "join") || algoProcess.getValue("categs", "join");
+        if( isAllowNameChange) {
+            if( isok(mat) && isok(cls) && isok(cat)  ) {
+                algoProcess.setValueList({name: "query:q=["+mat+"] as objlist;s=["+cat+"] as objlist; cnt=((int)s)-1; a=q[0].name; if(cnt>0){ a=cat(a,\" and \", cnt, \" more\");}  return cat(\""+ cls +" for \", a, \" + \", s[0].name);"});
+            }
+        }
+        
+        cat=algoProcess.getValue("categs", "join");
+        if(isok(cat)){
+            categ_file_selected(viewer,cat);
+        }
+    
+        return loaded_reparse_tbls(viewer,elem);
+    };
+    
+    algoProcess.initialPresets = isok(process_ID) ? null : algoProcess.initialPresets;
+    algoProcess.toolBar="processToolbar";
+    algoProcess.callbackProgressComputing = progressComputing;
+    
+    
+    var matrixTableViewer=new vjTableView( { 
+        data: 'dsMatrix',
+        name: 'matrix',
+        icon:'table',
+        formObject: document.forms[process_formName],
+        bgColors:['#f2f2f2','white'],
+        defaultEmptyText:'no accessible information to show',
+        geometry:{ width:'100%'},
+        selectCallback: selectSample
+    });
+    var matrixHtmlView = new vjHTMLView({data: 'dsRVMatrixGroup'});
+    
+    var categsTableViewer=new vjTableView( { 
+        data: 'dsCategs',
+        name: 'categs',
+        icon:'table',
+        formObject: document.forms[process_formName],
+        bgColors:['#f2f2f2','white'],
+        defaultEmptyText:'no accessible information to show',
+        callbackRendered:rendered_table_class,
+        selectCallback: selectSample,
+        geometry:{ width:'100%'}
+    });
+    var categsHtmlView = new vjHTMLView({data: 'dsRVCategsGroup'});
+    var busy=false;
+    var vlists=[ 'dvSourceViewers.Tables.0', 'dvSourceViewers.Tables.1', 'dvResultViewer2.Translation.0', 'dvResultViewer2.Source.0'  ];
+
+    algoProcess.inputLoaded = function (viewer) {
+        if(busy)return ;
+        
+        algoProcess.readFromDocLoc(["matrixFile","categsFile","classifier"]);
+        algoProcess.setValue("split", "nrepeat");
+        algoProcess.setValue("nrepeat", "1");
+            
+        
+        var d=docLocValue("categsFile");
+        if(d){
+            loaded_reparse_tbls(viewer,{fld:{name:"categsFile"},value:d});
+        }
+        var cat=algoProcess.getValue("categs", "join");
+        if(isok(cat)){
+            categ_file_selected(viewer,cat);
+            
+        }
+        
+        loaded_reparse_tbls();
+    };
+
+    function loaded_reparse_tbls(viewer,elem ) 
+    {
+        if(busy)return ;
+        if(elem && elem.value && elem.fld.name=="categsFile"){
+            vjDS["dsCategs"].reload("http:
+        }else if(elem && elem.value && elem.fld.name=="matrixFile"){
+            vjDS["dsMatrix"].reload("http:
+        }else {         
+        }
+    };
+
+    function selectSample(viewer,node) {
+        for ( var iv=0; iv<vlists.length; ++iv) { 
+            var pair=vjDV.locate(vlists[iv]);
+            if(!pair || viewer.name==pair.name) continue;
+            pair.enumerate("node.selected=(node.cols[0]=='"+node.cols[0]+"') ? 1 : 0 ;");
+            pair.refresh();
+        }
+    };
+
+    function categ_file_selected(viewer,txt)
+    {
+        var t= new vjTable(txt,null,vjTable_hasHeader);
+        algoProcess.setValue("categs", txt+"\n...more");
+        tbl_parse_class(t);
+    }
+    function matrix_file_selected(viewer,txt)
+    {
+        var t= new vjTable(txt,null,vjTable_hasHeader);
+        algoProcess.setValue("matrix", txt+"\n...more");
+    }
+
+    function rendered_table_class(viewer)
+    {
+        if(busy)return ;
+        if(!algoProcess || !algoProcess.viewer)
+            return ;
+        tbl_parse_class(viewer.tblArr);
+    }
+
+    function tbl_parse_class(tblArr) {
+        
+        var recView = vjDV[algoProcess.recViewerName];
+        if(!algoProcess || !recView)
+            return ;
+        
+        var t="";
+        clsNames=[];
+        for ( var i=1 ; i < tblArr.hdr.length ; ++i ){
+              if(i>1) t += "|";
+              t += (i-1) + "
+              clsNames.push(tblArr.hdr[i].name);
+        }
+        
+        var fld = recView.fldTree.findByName( "classifier" );
+        
+        fld.constraint_data = t;
+        busy = true;
+        recView.redraw();
+        busy = false;
+    }
+
+    function progressComputing(viewer, reqid, stat) {
+        algoWidgetObj.moveTab("general", {top:"0%", left: "20%", right: "75%", bottom: "50%"}, 0);
+    }
+    
+    gInitList += "rldaInit();";
+    function rldaInit () {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: process_svc,
+            algoTitle: "AlgoRLDA"
+        });
+        
+        $("#jumpNewPage").on("click", function (eventData){
+            var url = window.location.href;
+            setCookie("jumpNewRlda", "false", 7);
+            
+            if (url.indexOf("&") >= 0)
+                linkURL("?cmd=algorlda" + url.substring(url.indexOf("&")));
+            else
+                linkURL("?cmd=algorlda");
+            
+            eventData.preventDefault();
+        }) ;
+    };
+    
+</script>
+
+
+<div id='DDDsampleMatrix' class='sectHid' >Samples,gene1,gene2,gene3,gene4,gene5,gene6,gene7,gene8
+Sample1,1,1,0,1,2,2,0,9
+Sample2,1,1,0,0,2,3,3,9
+Sample3,1,5,0,3,2,0,3,1
+Sample4,1,5,0,0,2,1,8,1
+Sample5,1,5,0,1,2,0,4,2
+Sample6,0,5,1,1,1,0,4,2
+Sample7,0,0,1,0,1,1,7,8
+Sample8,0,6,1,3,1,3,8,1
+Sample9,0,1,1,0,1,0,0,8
+Sampl10,0,-1,1,3,1,3,-1,10
+</div>
+<div id='DDDsampleCategs' class='sectHid' >Samples,Disease,Race,Smoking
+Sample1,No,African,Smoker
+Sample2,No,Hindo-European,Smoker
+Sample3,No,Hindo-European,Non-Smoker
+Sample4,No,Asian,Non-Smoker
+Sample5,No,Hindo-European,Non-Smoker
+Sample6,Yes,Hindo-European,Non-Smoker
+Sample7,Yes,Asian,Smoker
+Sample8,Yes,Asian,Non-Smoker
+Sample9,Yes,African,Smoker
+Sampl10,Yes,African,Smoker
+</div>
+

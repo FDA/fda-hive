@@ -1,0 +1,127 @@
+{
+    "type.14": {
+        "_id": "type.14",
+        "_type": "type",
+        "name": "email",
+        "title": "Email Message",
+        "parent": {
+            "1": "type.67"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "bcc",
+                "field_title": "Bcc",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.2": {
+                "field_name": "body",
+                "field_title": "Message",
+                "field_type": "text",
+                "field_order": 7,
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "cc",
+                "field_title": "Cc",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.4": {
+                "field_name": "err_msg",
+                "field_title": "Error",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "from",
+                "field_title": "From",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_readonly_fg": 1
+            },
+            "1.6": {
+                "field_name": "sent",
+                "field_title": "Was sent",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.7": {
+                "field_name": "sent_dtm",
+                "field_title": "Sent Time",
+                "field_type": "datetime",
+                "field_order": 6,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "subject",
+                "field_title": "Subject",
+                "field_type": "string",
+                "field_order": 5,
+                "field_brief": "<b>$_(t)</b>: $_(v)"
+            },
+            "1.9": {
+                "field_name": "to",
+                "field_title": "To",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_multi_fg": true
+            },
+            "1.10": {
+                "field_name": "try_count",
+                "field_title": "Retries",
+                "field_type": "integer",
+                "field_order": 9,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "draft",
+                "field_title": "Is Draft",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_is_optional_fg": false,
+                "field_default_value": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

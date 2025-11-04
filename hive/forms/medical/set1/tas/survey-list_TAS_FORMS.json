@@ -1,0 +1,76 @@
+{
+    "390": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "TAS_FORMS",
+        "readable_name": "The Aesthetic Society Forms",
+        "sl_order": 1,
+        "survey": {
+            "12": {
+                "name": "$type.tas_patient_demographics",
+                "order": 1,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "optional_fields": 0
+            },
+            "15": {
+                "name": "$type.tas_provider_demographics",
+                "order": 2,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "optional_fields": 0
+            },
+            "16": {
+                "name": "$type.tas_device_details",
+                "order": 3,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "optional_fields": 0
+            },
+            "31": {
+                "name": "$type.tas_breast_aug_op_form",
+                "order": 4,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "optional_fields": 0
+            },
+            "47": {
+                "name": "$type.tas_op_form_recon",
+                "order": 5,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "optional_fields": 0
+            },
+            "48": {
+                "name": "$type.tas_op_form_revision",
+                "order": 6,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "optional_fields": 0
+            }
+        },
+        "visit_types_ref": {
+            "27": 405
+        },
+        "_perm": [
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

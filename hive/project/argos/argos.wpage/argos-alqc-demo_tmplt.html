@@ -1,0 +1,48 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script type="application/javascript">
+
+    setLocationTitle("ARGOS 1.4 Assembly QC: HIVE Demo");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "argos", "svc-argos-alqc-demo");
+    algoProcess.visibleParameters=["name","wflow-folder","metadata","wflow-codingTable", "wflow-asm", "wflow-srr"];
+    algoProcess.submitButtonName="Submit";
+    
+    algoProcess.initialPresets={pipeline:"query:alloftype('workflow',{name:'argos-cflow'})"};     
+    
+     algoProcess.inputLoaded = function (viewer, elem){
+        algoProcess.inputChanged(viewer, elem);
+    } 
+
+    algoProcess.inputChanged= function (viewer, elem){
+    }
+
+    
+    gInitList += "argosInit();";
+    function argosInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-args-alqc',
+            algoTitle: "ARGOS pipeline Demo"
+        });
+        
+    };
+</script>
+
+

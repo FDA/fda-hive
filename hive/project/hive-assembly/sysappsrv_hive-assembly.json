@@ -1,0 +1,23 @@
+{
+    "265611": {
+        "_id": "$upsert()",
+        "_type": "sysappsrv",
+        "name": "hive-assembly",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

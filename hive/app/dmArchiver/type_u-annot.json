@@ -1,0 +1,48 @@
+{
+    "type.45": {
+        "_id": "type.45",
+        "_type": "type",
+        "name": "u-annot",
+        "title": "Annotation File",
+        "description": "Sequence Annotation Object",
+        "parent": {
+            "1": "type.22"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "locusRecords",
+                "field_title": "Number of annotated Records",
+                "field_type": "integer"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

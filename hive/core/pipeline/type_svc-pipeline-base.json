@@ -1,0 +1,55 @@
+{
+    "type.399": {
+        "_id": "type.399",
+        "_type": "type",
+        "name": "svc-pipeline-base",
+        "title": "Pipeline",
+        "description": "Base type for pipelines",
+        "is_abstract_fg": true,
+        "fields": {
+            "1.2": {
+                "field_name": "workflow",
+                "field_title": "Pipeline workflow",
+                "field_type": "list"
+            },
+            "1.4": {
+                "field_name": "splitOnFrontEnd",
+                "field_type": "bool",
+                "field_default_value": "false",
+                "field_role": "parameter",
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "18": "type.16"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

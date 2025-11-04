@@ -1,0 +1,278 @@
+{
+    "workflows" : {
+        "name" : "exotvi1",
+        "title" : "Excision OTVI pipeline 1",
+        "description" : "parameters to be specified externally folder,ut_fwd,ut_rev,uc_fwd,uc_rev,tr_fwd,tr_rev,gblock_ref,noeditbar_ref,nominated_ref,hiv_ref,aav_ref,hg_ref,barcode",
+        "sample_launch" : "~/out/debug-Linux-x86_64/bin/wfl -preset app.verbose=1;debug on;folder='oct10722';barcodes='CGGTCA;ACGCGA';barcode.length=6;umi_size=5;ut_fwd=24194;ut_rev=24195;uc_fwd=24198;uc_rev=24199;tr_fwd=24216;tr_rev=24217;gblock_ref=24250;nominated_ref=18816;aav_ref=24205;hiv_ref=24201;hg_ref=24209;  -pipeline ~/code/hive/app/expipe/ex-otvi5.json",
+        "comment" : "argos qc pipeline",
+        "extra" : [
+            "align_gblock$#0.trimLowScoreEndsMaxMismatches=1;align_gblock$#0.trimLowScoreEndsWindow=barcode.length;",
+            "HIVE.archiveHexagonReads(align_targethuman$#0._id,merger$#0.name+'-sitesonly.fastq','1&subRange=27-245','align_targethuman$#0_sitesonly');",
+            "align_spikes$#0.must_have_subsequences=barcodes;align_spikes$#0.must_have_subsequences_umishift=umi_size;align_spikes$#0.must_have_subsequences_revcomp=1;"
+        ],
+        "_type" : "workflow",
+        "config" : [
+            {
+                "name" : "hive.cfg",
+                "execute" : [
+                    "hive.tmpdir='/hive/data/download/SRR/';"
+                ],
+                "status" : "done",
+                "set" : "folder='nov2522';\nbarcodes='CGGTCA;ACGCGA';\nbarcode.length='6';\numi_size='5';\nut_fwd='24194';\nut_rev='24195';\nuc_fwd='24198';\nuc_rev='24199';\ntr_fwd='24216';\ntr_rev='24217';\ngblock_ref='24250';\nnoeditbar_ref='24636';\nnominated_ref='18816';\naav_ref='24205';\nhiv_ref='24201';\nhg_ref='24209';\nwflow.waiting='waiting';\nwflow.done='done';\nhive.tmpdir='/hive/data/download/SRR/';\nhive.cfg.status='done'"
+            }
+        ],
+        "steps" : [
+            {
+                "name" : "setup",
+                "execute" : [
+                    "samples='ut';",
+                    "refset=''+nominated_ref+';'+hiv_ref+';'+aav_ref",
+                    "folderID=HIVE.folderCreate(folder);"
+                ],
+                "status" : "done",
+                "set" : "samples='ut';\nrefset='18816;24201;24205';\nfolderID='24904';\nsetup.status='done'"
+            },
+            {
+                "name" : "merger",
+                "clone" : [
+                    "samples"
+                ],
+                "execute" : [
+                    "merger$#0.fwd=eval($0+'_fwd');merger$#0.rev=eval($0+'_rev');merger$#0.algo=2;merger$#0.folder=folderID;",
+                    "merger$#0.name=string.extract(HIVE.list('ids='+merger$#0.fwd,'name',false,$0),0,'.fastq');",
+                    "merger$#0.name=folder+'_'+$0+'.fastq';",
+                    "HIVE.launchReadMerger('merger$#0');"
+                ],
+                "status" : "done",
+                "set" : "merger.status='done'"
+            },
+            {
+                "name" : "find_spikes",
+                "clone" : [
+                    "samples"
+                ],
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "merger$#0.status==wflow.done;",
+                    "comment --=====  Aligning sequences to spike constructs to delineate spikes sequences =====-- ",
+                    "find_spikes$#0.minMatchLen=90;find_spikes$#0.minMatchUnit=1;find_spikes$#0.maxMissQueryPercent=1;find_spikes$#0.folder=folderID;",
+                    "find_spikes$#0.query=merger$#0.mergedID;find_spikes$#0.subject=gblock_ref;find_spikes$#0.name=merger$#0.name+'-merged vs gBlocks';",
+                    "find_spikes$#0.must_have_subsequences=barcodes;find_spikes$#0.must_have_subsequences_umishift=umi_size;find_spikes$#0.must_have_subsequences_revcomp=1;",
+                    "HIVE.launchHexagon('find_spikes'+#0);",
+                    "comment --=====  Retrieve spiked sequences into separate fastq  =====-- ",
+                    "HIVE.archiveHexagonReads(find_spikes$#0._id,merger$#0.name+'-spike.fastq',1,'find_spikes$#0_spike');"
+                ],
+                "status" : "done",
+                "set" : "find_spikes.status='done'"
+            },
+            {
+                "name" : "find_sites",
+                "clone" : [
+                    "samples"
+                ],
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "merger$#0.status==wflow.done;",
+                    "comment --=====  Aligning sequences to nominated sites (cutpositions) , AAV, HIV =====-- ",
+                    "align_nominated$#0.minMatchLen=90;align_nominated$#0.minMatchUnit=1;align_nominated$#0.maxMissQueryPercent=7;align_nominated$#0.folder=folderID;",
+                    "align_nominated$#0.trimLowScoreEndsMaxMismatches=7;align_nominated$#0.trimLowScoreEndsWindow=1;",
+                    "align_nominated$#0.must_cover_ref_position_relative_to='cutsite=';align_nominated$#0.must_cover_ref_positions='10,-16';",
+                    "align_nominated$#0.query=merger$#0.mergedID;align_nominated$#0.subject=refset;align_nominated$#0.name=merger$#0.name+'-merged vs Nominated';",
+                    "HIVE.launchHexagon('align_nominated'+#0);",
+                    "comment --======  Retrieve sequences that are aligned to nominated sites, AAV, HIV  =====-- ",
+                    "HIVE.archiveHexagonReads(align_nominated$#0._id,merger$#0.name+'-target.fastq',1,'align_nominated$#0_target');",
+                    "comment --======  Aligning (aligned) sequences to human genome to see if there is a better alignment on human =====-- ",
+                    "align_targethuman$#0.minMatchLen=90;align_targethuman$#0.minMatchUnit=1;align_targethuman$#0.maxMissQueryPercent=7;align_targethuman$#0.folder=folderID;align_targethuman$#0.keepAllMatches=3;",
+                    "align_targethuman$#0.trimLowScoreEndsMaxMismatches=10;align_targethuman$#0.trimLowScoreEndsWindow=10;align_targethuman$#0.seed=14;",
+                    "align_targethuman$#0.query=align_nominated$#0_target._ids;align_targethuman$#0.subject=''+hg_ref+';'+refset;align_targethuman$#0.name=merger$#0.name+'-target vs Human';",
+                    "HIVE.launchHexagon('align_targethuman'+#0);",
+                    "comment --======  Retrieve sequences that best align to nmominhuman genome to see if there is a better alignment on human =====-- ",
+                    "HIVE.archiveHexagonReads(align_targethuman$#0._id,merger$#0.name+'-sitesonly.fastq','1&subRange=27-245','find_sites$#0_sites');"
+                ],
+                "status" : "done",
+                "set" : "find_sites.status='done'"
+            },
+            {
+                "name" : "align_spikes",
+                "clone" : [
+                    "samples"
+                ],
+                "condition" : [
+                    "find_spikes.status==wflow.done"
+                ],
+                "execute" : [
+                    "find_spikes$#0.status==wflow.done;",
+                    "comment --======  Aligning spike sequences to human unedited barcoded constructs human =====-- ",
+                    "align_spikes$#0.minMatchLen=90;align_spikes$#0.minMatchUnit=1;align_spikes$#0.maxMissQueryPercent=15;align_spikes$#0.folder=folderID;",
+                    "align_spikes$#0.trimLowScoreEndsMaxMismatches=10;align_spikes$#0.trimLowScoreEndsWindow=10;",
+                    "align_spikes$#0.must_cover_ref_position_relative_to='cutsite=';align_spikes$#0.must_cover_ref_positions='10,-16';",
+                    "align_spikes$#0.query=find_spikes$#0_spike._ids;align_spikes$#0.subject=noeditbar_ref;align_spikes$#0.name=merger$#0.name+'-spike vs BarcodedNominated';",
+                    "HIVE.launchHexaHeptagon('align_spikes'+#0);"
+                ],
+                "status" : "done",
+                "set" : "align_spikes.status='done'"
+            },
+            {
+                "name" : "align_sites",
+                "clone" : [
+                    "samples"
+                ],
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "find_targets$#0.status==wflow.done;",
+                    "comment --======  Aligning sequences that have the best alignment to nominated sites, AAV and HIV to their references only ======-- ",
+                    "align_sites$#0.minMatchLen=90;align_sites$#0.minMatchUnit=1;align_sites$#0.maxMissQueryPercent=15;align_sites$#0.folder=folderID;",
+                    "align_sites$#0.trimLowScoreEndsMaxMismatches=10;align_sites$#0.trimLowScoreEndsWindow=10;",
+                    "align_sites$#0.must_cover_ref_position_relative_to='cutsite=';align_sites$#0.must_cover_ref_positions='10,-16';",
+                    "align_sites$#0.query=find_spikes$#0_sites._ids;align_sites$#0.subject=refset;align_sites$#0.name=merger$#0.name+'-sitesonly vs Nominated';",
+                    "HIVE.launchHexaHeptagon('align_sites'+#0);"
+                ],
+                "status" : "done",
+                "set" : "align_sites.status='done'"
+            },
+            {
+                "name" : "merger0",
+                "execute" : [
+                    "merger$#0.fwd=eval($0+'_fwd');merger$#0.rev=eval($0+'_rev');merger$#0.algo=2;merger$#0.folder=folderID;",
+                    "merger$#0.name=string.extract(HIVE.list('ids='+merger$#0.fwd,'name',false,$0),0,'.fastq');",
+                    "merger$#0.name=folder+'_'+$0+'.fastq';",
+                    "HIVE.launchReadMerger('merger$#0');"
+                ],
+                "status" : "done",
+                "set" : "#0=0;$0='ut';#=1;#-iterator=0;#0='0';\n$0='ut';\n#='1';\n#-iterator='0';\nmerger0.fwd='24194';\nmerger0.rev='24195';\nmerger0.algo='2';\nmerger0.folder='24904';\nut.name='EXBL001_PBMCs_gDNA-1_R1_001.fastq';\nmerger0.name='nov2522_ut.fastq';\nmerger0.split='query';\nmerger0.autoArchive='true';\nmerger0.minLength='75';\nmerger0.random_seed='0';\nmerger0.scissors='hiveseq';\nmerger0.nrepeat='1';\nmerger0.slice='500000';\nmerger0.isPostponed='false';\nmerger0.reqPriority='0';\nmerger0.trimPolyG='true';\nmerger0._id='24924';\nmerger0.created='1669405400';\nmerger0.submitter='dna-pear';\nmerger0.reqID='303327';\nmerger0.svcTitle='Paired end collapsing utility';\nmerger0.svc='dna-pear';\nmerger0.progress='101290220';\nmerger0.status='done';\nmerger0.action='2';\nmerger0.progress100='100';\nmerger0.modified='1669409660';\nmerger0._ids='24925';\nmerger0.completed='1669407810';\nmerger0.started='1669405404';\nmerger0[0]._id='24925';\nmerger0[0].base_tag='merger/24924';\nmerger0.mergedID='24925'"
+            },
+            {
+                "name" : "find_spikes0",
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "merger$#0.status==wflow.done;",
+                    "comment --=====  Aligning sequences to spike constructs to delineate spikes sequences =====-- ",
+                    "find_spikes$#0.minMatchLen=90;find_spikes$#0.minMatchUnit=1;find_spikes$#0.maxMissQueryPercent=1;find_spikes$#0.folder=folderID;",
+                    "find_spikes$#0.query=merger$#0.mergedID;find_spikes$#0.subject=gblock_ref;find_spikes$#0.name=merger$#0.name+'-merged vs gBlocks';",
+                    "find_spikes$#0.must_have_subsequences=barcodes;find_spikes$#0.must_have_subsequences_umishift=umi_size;find_spikes$#0.must_have_subsequences_revcomp=1;",
+                    "HIVE.launchHexagon('find_spikes'+#0);",
+                    "comment --=====  Retrieve spiked sequences into separate fastq  =====-- ",
+                    "HIVE.archiveHexagonReads(find_spikes$#0._id,merger$#0.name+'-spike.fastq',1,'find_spikes$#0_spike');"
+                ],
+                "status" : "done",
+                "set" : "#0=0;$0='ut';#=1;#-iterator=0;find_spikes0.status='done';\nfind_spikes0.minMatchLen='90';\nfind_spikes0.minMatchUnit='1';\nfind_spikes0.maxMissQueryPercent='1';\nfind_spikes0.folder='24904';\nfind_spikes0.query='24925';\nfind_spikes0.subject='24250';\nfind_spikes0.name='nov2522_ut.fastq-merged vs gBlocks';\nfind_spikes0.must_have_subsequences='ACGCGA';\nfind_spikes0.must_have_subsequences_umishift='5';\nfind_spikes0.must_have_subsequences_revcomp='1';\nfind_spikes0.alignmentEngine='1';\nfind_spikes0.allowShorterEnds='0';\nfind_spikes0.costGapNext='-4';\nfind_spikes0.costGapOpen='-12';\nfind_spikes0.costMatch='5';\nfind_spikes0.costMismatch='-4';\nfind_spikes0.costMismatchNext='-6';\nfind_spikes0.isglobal='0';\nfind_spikes0.seed='11';\nfind_spikes0.searchRepeatsAndTrans='0';\nfind_spikes0.maxMatchLen='0';\nfind_spikes0.minMatchLenSubPerc='0';\nfind_spikes0.maxMatchLenSubPerc='0';\nfind_spikes0.considerGoodSubalignments='1';\nfind_spikes0.trimLowScoreEndsWindow='0';\nfind_spikes0.complexityEntropy='0';\nfind_spikes0.complexityWindow='0';\nfind_spikes0.maximumPercentLowQualityAllowed='0';\nfind_spikes0.complexityRefEntropy='0';\nfind_spikes0.complexityRefWindow='0';\nfind_spikes0.acceptNNNQuaTrheshold='0';\nfind_spikes0.computeDiagonalWidth='auto';\nfind_spikes0.created='1669660678';\nfind_spikes0.doubleHash='0';\nfind_spikes0.doubleStagePerfect='1';\nfind_spikes0.must_have_subsequences.1='CGGTCA';\nfind_spikes0.must_have_subsequences.2='ACGCGA';\nfind_spikes0.must_have_negative='0';\nfind_spikes0.hashCompileStp='auto';\nfind_spikes0.hashStp='auto';\nfind_spikes0.isbackward='1';\nfind_spikes0.isextendtails='0';\nfind_spikes0.isoptimize='1';\nfind_spikes0.keepAllMatches='4';\nfind_spikes0.looseExtenderMinimumLengthPercent='66';\nfind_spikes0.looseExtenderMismatchesPercent='25';\nfind_spikes0.maxExtensionGaps='0';\nfind_spikes0.maxHashBin='50';\nfind_spikes0.maxHitsPerRead='200';\nfind_spikes0.maxNumberQuery='all';\nfind_spikes0.maxSubjectBasesToCompile='128';\nfind_spikes0.modified='1669660838';\nfind_spikes0.random_seed='0';\nfind_spikes0.resolveConfictsUnique='0';\nfind_spikes0.reverseEngine='0';\nfind_spikes0.scissors='hiveseq';\nfind_spikes0.scoreFilter='None';\nfind_spikes0.selfQueryPosJumpInNonPerfectAlignment='1';\nfind_spikes0.split='query';\nfind_spikes0.nrepeat='1';\nfind_spikes0.slice='500000';\nfind_spikes0.splitField='query';\nfind_spikes0.splitSize='500000';\nfind_spikes0.splitType='sequences';\nfind_spikes0.isPostponed='false';\nfind_spikes0.reqPriority='0';\nfind_spikes0.useRedundSim='1';\nfind_spikes0.alignSelector='svc-align-hexagon';\nfind_spikes0.force_reindex='false';\nfind_spikes0._id='24984';\nfind_spikes0.submitter='dna-hexagon';\nfind_spikes0.reqID='304474';\nfind_spikes0.svcTitle='HIVE-hexagon Alignment';\nfind_spikes0.svc='dna-hexagon';\nfind_spikes0.progress='21604396';\nfind_spikes0.action='2';\nfind_spikes0.progress100='100';\nfind_spikes0._ids='24984';\nfind_spikes0.completed='1669660692';\nfind_spikes0.started='1669660681';\nfind_spikes0_spike._id='304570';\nfind_spikes0_spike[0]._id='24987';\nfind_spikes0_spike[0].base_tag='indexed/nov2522_ut.fastq-spike.fastq';\nfind_spikes0_spike._ids='24987';\nfind_spikes0_spike.objID='24987'"
+            },
+            {
+                "name" : "find_sites0",
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "merger$#0.status==wflow.done;",
+                    "comment --=====  Aligning sequences to nominated sites (cutpositions) , AAV, HIV =====-- ",
+                    "align_nominated$#0.minMatchLen=90;align_nominated$#0.minMatchUnit=1;align_nominated$#0.maxMissQueryPercent=7;align_nominated$#0.folder=folderID;",
+                    "align_nominated$#0.trimLowScoreEndsMaxMismatches=10;align_nominated$#0.trimLowScoreEndsWindow=10;",
+                    "align_nominated$#0.must_cover_ref_position_relative_to='cutsite=';align_nominated$#0.must_cover_ref_positions='10,-16';",
+                    "align_nominated$#0.query=merger$#0.mergedID;align_nominated$#0.subject=refset;align_nominated$#0.name=merger$#0.name+'-merged vs Nominated';",
+                    "HIVE.launchHexagon('align_nominated'+#0);",
+                    "comment --======  Retrieve sequences that are aligned to nominated sites, AAV, HIV  =====-- ",
+                    "HIVE.archiveHexagonReads(align_nominated$#0._id,merger$#0.name+'-target.fastq',1,'align_nominated$#0_target');",
+                    "comment --======  Aligning (aligned) sequences to human genome to see if there is a better alignment on human =====-- ",
+                    "align_targethuman$#0.minMatchLen=90;align_targethuman$#0.minMatchUnit=1;align_targethuman$#0.maxMissQueryPercent=7;align_targethuman$#0.folder=folderID;align_targethuman$#0.keepAllMatches=3;",
+                    "align_targethuman$#0.trimLowScoreEndsMaxMismatches=10;align_targethuman$#0.trimLowScoreEndsWindow=10;align_targethuman$#0.seed=14;",
+                    "align_targethuman$#0.query=align_nominated$#0_target._ids;align_targethuman$#0.subject=''+hg_ref+';'+refset;align_targethuman$#0.name=merger$#0.name+'-target vs Human';",
+                    "HIVE.launchHexagon('align_targethuman'+#0);",
+                    "comment --======  Retrieve sequences that best align to nmominhuman genome to see if there is a better alignment on human =====-- ",
+                    "HIVE.archiveHexagonReads(align_targethuman$#0._id,merger$#0.name+'-sitesonly.fastq','1&subRange=27-245','find_sites$#0_sites');"
+                ],
+                "status" : "done",
+                "set" : "#0=0;$0='ut';#=1;#-iterator=0;find_sites0.status='done';\nalign_nominated0.minMatchLen='90';\nalign_nominated0.minMatchUnit='1';\nalign_nominated0.maxMissQueryPercent='7';\nalign_nominated0.folder='24904';\nalign_nominated0.trimLowScoreEndsMaxMismatches='7';\nalign_nominated0.trimLowScoreEndsWindow='1';\nalign_nominated0.must_cover_ref_position_relative_to='cutsite=';\nalign_nominated0.must_cover_ref_positions='10,-16';\nalign_nominated0.query='24925';\nalign_nominated0.subject='24205';\nalign_nominated0.name='nov2522_ut.fastq-merged vs Nominated';\nalign_nominated0.alignmentEngine='1';\nalign_nominated0.allowShorterEnds='0';\nalign_nominated0.costGapNext='-4';\nalign_nominated0.costGapOpen='-12';\nalign_nominated0.costMatch='5';\nalign_nominated0.costMismatch='-4';\nalign_nominated0.costMismatchNext='-6';\nalign_nominated0.isglobal='0';\nalign_nominated0.seed='11';\nalign_nominated0.searchRepeatsAndTrans='0';\nalign_nominated0.maxMatchLen='0';\nalign_nominated0.minMatchLenSubPerc='0';\nalign_nominated0.maxMatchLenSubPerc='0';\nalign_nominated0.considerGoodSubalignments='1';\nalign_nominated0.complexityEntropy='0';\nalign_nominated0.complexityWindow='0';\nalign_nominated0.maximumPercentLowQualityAllowed='0';\nalign_nominated0.complexityRefEntropy='0';\nalign_nominated0.complexityRefWindow='0';\nalign_nominated0.acceptNNNQuaTrheshold='0';\nalign_nominated0.computeDiagonalWidth='auto';\nalign_nominated0.created='1669660679';\nalign_nominated0.doubleHash='0';\nalign_nominated0.doubleStagePerfect='1';\nalign_nominated0.must_have_negative='0';\nalign_nominated0.must_have_subsequences_revcomp='1';\nalign_nominated0.hashCompileStp='auto';\nalign_nominated0.hashStp='auto';\nalign_nominated0.isbackward='1';\nalign_nominated0.isextendtails='0';\nalign_nominated0.isoptimize='1';\nalign_nominated0.keepAllMatches='4';\nalign_nominated0.looseExtenderMinimumLengthPercent='66';\nalign_nominated0.looseExtenderMismatchesPercent='25';\nalign_nominated0.maxExtensionGaps='0';\nalign_nominated0.maxHashBin='50';\nalign_nominated0.maxHitsPerRead='200';\nalign_nominated0.maxNumberQuery='all';\nalign_nominated0.maxSubjectBasesToCompile='128';\nalign_nominated0.modified='1669661912';\nalign_nominated0.random_seed='0';\nalign_nominated0.resolveConfictsUnique='0';\nalign_nominated0.reverseEngine='0';\nalign_nominated0.scissors='hiveseq';\nalign_nominated0.scoreFilter='None';\nalign_nominated0.selfQueryPosJumpInNonPerfectAlignment='1';\nalign_nominated0.split='query';\nalign_nominated0.nrepeat='1';\nalign_nominated0.slice='500000';\nalign_nominated0.splitField='query';\nalign_nominated0.splitSize='500000';\nalign_nominated0.splitType='sequences';\nalign_nominated0.subject.1='18816';\nalign_nominated0.subject.2='24201';\nalign_nominated0.subject.3='24205';\nalign_nominated0.isPostponed='false';\nalign_nominated0.reqPriority='0';\nalign_nominated0.useRedundSim='1';\nalign_nominated0.alignSelector='svc-align-hexagon';\nalign_nominated0.force_reindex='false';\nalign_nominated0._id='24985';\nalign_nominated0.submitter='dna-hexagon';\nalign_nominated0.reqID='304475';\nalign_nominated0.svcTitle='HIVE-hexagon Alignment';\nalign_nominated0.svc='dna-hexagon';\nalign_nominated0.progress='26885908';\nalign_nominated0.status='done';\nalign_nominated0.action='2';\nalign_nominated0.progress100='100';\nalign_nominated0._ids='24985';\nalign_nominated0.completed='1669661174';\nalign_nominated0.started='1669660831';\nalign_nominated0_target._id='304571';\nalign_nominated0_target[0]._id='24989';\nalign_nominated0_target[0].base_tag='indexed/nov2522_ut.fastq-target.fastq';\nalign_nominated0_target._ids='24989';\nalign_nominated0_target.objID='24989';\nalign_targethuman0.minMatchLen='90';\nalign_targethuman0.minMatchUnit='1';\nalign_targethuman0.maxMissQueryPercent='7';\nalign_targethuman0.folder='24904';\nalign_targethuman0.keepAllMatches='3';\nalign_targethuman0.trimLowScoreEndsMaxMismatches='10';\nalign_targethuman0.trimLowScoreEndsWindow='10';\nalign_targethuman0.seed='14';\nalign_targethuman0.query='24989';\nalign_targethuman0.subject='24205';\nalign_targethuman0.name='nov2522_ut.fastq-target vs Human';\nalign_targethuman0.alignmentEngine='1';\nalign_targethuman0.allowShorterEnds='0';\nalign_targethuman0.costGapNext='-4';\nalign_targethuman0.costGapOpen='-12';\nalign_targethuman0.costMatch='5';\nalign_targethuman0.costMismatch='-4';\nalign_targethuman0.costMismatchNext='-6';\nalign_targethuman0.isglobal='0';\nalign_targethuman0.searchRepeatsAndTrans='0';\nalign_targethuman0.maxMatchLen='0';\nalign_targethuman0.minMatchLenSubPerc='0';\nalign_targethuman0.maxMatchLenSubPerc='0';\nalign_targethuman0.considerGoodSubalignments='1';\nalign_targethuman0.complexityEntropy='0';\nalign_targethuman0.complexityWindow='0';\nalign_targethuman0.maximumPercentLowQualityAllowed='0';\nalign_targethuman0.complexityRefEntropy='0';\nalign_targethuman0.complexityRefWindow='0';\nalign_targethuman0.acceptNNNQuaTrheshold='0';\nalign_targethuman0.computeDiagonalWidth='auto';\nalign_targethuman0.created='1669662135';\nalign_targethuman0.doubleHash='0';\nalign_targethuman0.doubleStagePerfect='1';\nalign_targethuman0.must_have_negative='0';\nalign_targethuman0.must_have_subsequences_revcomp='1';\nalign_targethuman0.hashCompileStp='auto';\nalign_targethuman0.hashStp='auto';\nalign_targethuman0.isbackward='1';\nalign_targethuman0.isextendtails='0';\nalign_targethuman0.isoptimize='1';\nalign_targethuman0.looseExtenderMinimumLengthPercent='66';\nalign_targethuman0.looseExtenderMismatchesPercent='25';\nalign_targethuman0.maxExtensionGaps='0';\nalign_targethuman0.maxHashBin='50';\nalign_targethuman0.maxHitsPerRead='200';\nalign_targethuman0.maxNumberQuery='all';\nalign_targethuman0.maxSubjectBasesToCompile='128';\nalign_targethuman0.modified='1669666763';\nalign_targethuman0.random_seed='0';\nalign_targethuman0.resolveConfictsUnique='0';\nalign_targethuman0.reverseEngine='0';\nalign_targethuman0.scissors='hiveseq';\nalign_targethuman0.scoreFilter='None';\nalign_targethuman0.selfQueryPosJumpInNonPerfectAlignment='1';\nalign_targethuman0.split='query';\nalign_targethuman0.nrepeat='1';\nalign_targethuman0.slice='500000';\nalign_targethuman0.splitField='query';\nalign_targethuman0.splitSize='500000';\nalign_targethuman0.splitType='sequences';\nalign_targethuman0.subject.1='24209';\nalign_targethuman0.subject.2='18816';\nalign_targethuman0.subject.3='24201';\nalign_targethuman0.subject.4='24205';\nalign_targethuman0.isPostponed='false';\nalign_targethuman0.reqPriority='0';\nalign_targethuman0.useRedundSim='1';\nalign_targethuman0.alignSelector='svc-align-hexagon';\nalign_targethuman0.force_reindex='false';\nalign_targethuman0._id='24990';\nalign_targethuman0.submitter='dna-hexagon';\nalign_targethuman0.reqID='304588';\nalign_targethuman0.svcTitle='HIVE-hexagon Alignment';\nalign_targethuman0.svc='dna-hexagon';\nalign_targethuman0.progress='8967824';\nalign_targethuman0.status='done';\nalign_targethuman0.action='2';\nalign_targethuman0.progress100='100';\nalign_targethuman0._ids='24990';\nalign_targethuman0.completed='1669666744';\nalign_targethuman0.started='1669662138';\nfind_sites0_sites._id='304675';\nfind_sites0_sites[0]._id='25017';\nfind_sites0_sites[0].base_tag='indexed/nov2522_ut.fastq-sitesonly.fastq';\nfind_sites0_sites[1]._id='25012';\nfind_sites0_sites[1].base_tag='indexed/nov2522_ut.fastq-sitesonly.fastq';\nfind_sites0_sites[2]._id='25009';\nfind_sites0_sites[2].base_tag='indexed/nov2522_ut.fastq-sitesonly.fastq';\nfind_sites0_sites._ids='25017,25012,25009';\nfind_sites0_sites.objID='25017,25012,25009'"
+            },
+            {
+                "name" : "align_spikes0",
+                "condition" : [
+                    "find_spikes.status==wflow.done"
+                ],
+                "execute" : [
+                    "find_spikes$#0.status==wflow.done;",
+                    "comment --======  Aligning spike sequences to human unedited barcoded constructs human =====-- ",
+                    "align_spikes$#0.minMatchLen=90;align_spikes$#0.minMatchUnit=1;align_spikes$#0.maxMissQueryPercent=15;align_spikes$#0.folder=folderID;",
+                    "align_spikes$#0.trimLowScoreEndsMaxMismatches=10;align_spikes$#0.trimLowScoreEndsWindow=10;",
+                    "align_spikes$#0.must_cover_ref_position_relative_to='cutsite=';align_spikes$#0.must_cover_ref_positions='10,-16';",
+                    "align_spikes$#0.query=find_spikes$#0_spike._ids;align_spikes$#0.subject=noeditbar_ref;align_spikes$#0.name=merger$#0.name+'-spike vs BarcodedNominated';",
+                    "HIVE.launchHexaHeptagon('align_spikes'+#0);"
+                ],
+                "status" : "done",
+                "set" : "#0=0;$0='ut';#=1;#-iterator=0;align_spikes0.status='done';\nalign_spikes0.minMatchLen='90';\nalign_spikes0.minMatchUnit='1';\nalign_spikes0.maxMissQueryPercent='15';\nalign_spikes0.folder='24904';\nalign_spikes0.trimLowScoreEndsMaxMismatches='10';\nalign_spikes0.trimLowScoreEndsWindow='10';\nalign_spikes0.must_cover_ref_position_relative_to='cutsite=';\nalign_spikes0.must_cover_ref_positions='10,-16';\nalign_spikes0.query='24987';\nalign_spikes0.subject='24636';\nalign_spikes0.name='nov2522_ut.fastq-spike vs BarcodedNominated';\nalign_spikes0.alignmentEngine='1';\nalign_spikes0.allowShorterEnds='0';\nalign_spikes0.costGapNext='-4';\nalign_spikes0.costGapOpen='-12';\nalign_spikes0.costMatch='5';\nalign_spikes0.costMismatch='-4';\nalign_spikes0.costMismatchNext='-6';\nalign_spikes0.isglobal='0';\nalign_spikes0.seed='11';\nalign_spikes0.searchRepeatsAndTrans='0';\nalign_spikes0.maxMatchLen='0';\nalign_spikes0.minMatchLenSubPerc='0';\nalign_spikes0.maxMatchLenSubPerc='0';\nalign_spikes0.considerGoodSubalignments='1';\nalign_spikes0.complexityEntropy='0';\nalign_spikes0.complexityWindow='0';\nalign_spikes0.maximumPercentLowQualityAllowed='0';\nalign_spikes0.complexityRefEntropy='0';\nalign_spikes0.complexityRefWindow='0';\nalign_spikes0.acceptNNNQuaTrheshold='0';\nalign_spikes0.computeDiagonalWidth='auto';\nalign_spikes0.created='1669662135';\nalign_spikes0.doubleHash='0';\nalign_spikes0.doubleStagePerfect='1';\nalign_spikes0.must_have_negative='0';\nalign_spikes0.must_have_subsequences_revcomp='1';\nalign_spikes0.hashCompileStp='auto';\nalign_spikes0.hashStp='auto';\nalign_spikes0.isbackward='1';\nalign_spikes0.isextendtails='0';\nalign_spikes0.isoptimize='1';\nalign_spikes0.keepAllMatches='4';\nalign_spikes0.looseExtenderMinimumLengthPercent='66';\nalign_spikes0.looseExtenderMismatchesPercent='25';\nalign_spikes0.maxExtensionGaps='0';\nalign_spikes0.maxHashBin='50';\nalign_spikes0.maxHitsPerRead='200';\nalign_spikes0.maxNumberQuery='all';\nalign_spikes0.maxSubjectBasesToCompile='128';\nalign_spikes0.modified='1669662145';\nalign_spikes0.random_seed='0';\nalign_spikes0.resolveConfictsUnique='0';\nalign_spikes0.reverseEngine='0';\nalign_spikes0.scissors='hiveseq';\nalign_spikes0.scoreFilter='None';\nalign_spikes0.selfQueryPosJumpInNonPerfectAlignment='1';\nalign_spikes0.split='query';\nalign_spikes0.nrepeat='1';\nalign_spikes0.slice='500000';\nalign_spikes0.splitField='query';\nalign_spikes0.splitSize='500000';\nalign_spikes0.splitType='sequences';\nalign_spikes0.isPostponed='false';\nalign_spikes0.reqPriority='0';\nalign_spikes0.useRedundSim='1';\nalign_spikes0.alignSelector='svc-align-hexagon';\nalign_spikes0.force_reindex='false';\nalign_spikes0._id='24991';\nalign_spikes0.submitter='dna-hexagon';\nalign_spikes0.reqID='304589';\nalign_spikes0.svcTitle='HIVE-hexagon Alignment';\nalign_spikes0.svc='dna-hexagon';\nalign_spikes0.progress='138';\nalign_spikes0.action='2';\nalign_spikes0.progress100='100';\nalign_spikes0._ids='24991';\nalign_spikes0.completed='1669662142';\nalign_spikes0.started='1669662142';\nalign_spikes0_heptagon.parent_proc_ids='24991';\nalign_spikes0_heptagon.name='nov2522_ut.fastq-spike vs BarcodedNominated';\nalign_spikes0_heptagon.folder='24904';\nalign_spikes0_heptagon.collapseRpts='true';\nalign_spikes0_heptagon.countAAs='0';\nalign_spikes0_heptagon.created='1669669248';\nalign_spikes0_heptagon.cutEnds='do not cut';\nalign_spikes0_heptagon.directionalityInfo='false';\nalign_spikes0_heptagon.disbalanceFR='0';\nalign_spikes0_heptagon.entrCutoff='-1';\nalign_spikes0_heptagon.filterZeros='0';\nalign_spikes0_heptagon.generateIon='false';\nalign_spikes0_heptagon.histograms='1';\nalign_spikes0_heptagon.lenPercCutoff='no cutoff';\nalign_spikes0_heptagon.maxLowQua='no cutoff';\nalign_spikes0_heptagon.maxMissmatchPercCutoff='0';\nalign_spikes0_heptagon.maxRptIns='0';\nalign_spikes0_heptagon.minCover='1';\nalign_spikes0_heptagon.minImportantEntropy='0.0';\nalign_spikes0_heptagon.modified='1669669265';\nalign_spikes0_heptagon.noiseFilterParams='none';\nalign_spikes0_heptagon.noiseProfileMax='0.01';\nalign_spikes0_heptagon.noiseProfileResolution='0.0001';\nalign_spikes0_heptagon.random_seed='0';\nalign_spikes0_heptagon.scissors='hiveseq';\nalign_spikes0_heptagon.SEARCHFORREPEATS='0';\nalign_spikes0_heptagon.snpCompare='1';\nalign_spikes0_heptagon.split='query';\nalign_spikes0_heptagon.nrepeat='1';\nalign_spikes0_heptagon.slice='500000';\nalign_spikes0_heptagon.splitField='parent_proc_ids';\nalign_spikes0_heptagon.splitSize='100000';\nalign_spikes0_heptagon.splitType='alignments';\nalign_spikes0_heptagon.supportedDeletions='true';\nalign_spikes0_heptagon.isPostponed='false';\nalign_spikes0_heptagon.reqPriority='0';\nalign_spikes0_heptagon.minFreqIgnoreSNP='0';\nalign_spikes0_heptagon.minFreqPercent='0';\nalign_spikes0_heptagon.useQuaFilter='0';\nalign_spikes0_heptagon.aaThreshold='0.001';\nalign_spikes0_heptagon._id='25018';\nalign_spikes0_heptagon.action='2';\nalign_spikes0_heptagon.progress='1652';\nalign_spikes0_heptagon.progress100='100';\nalign_spikes0_heptagon.reqID='304676';\nalign_spikes0_heptagon.status='done';\nalign_spikes0_heptagon.submitter='dna-heptagon';\nalign_spikes0_heptagon.svc='dna-heptagon';\nalign_spikes0_heptagon.svcTitle='HIVE-heptagon Profiler';\nalign_spikes0_heptagon._ids='25018';\nalign_spikes0_heptagon.completed='1669669254';\nalign_spikes0_heptagon.started='1669669249'"
+            },
+            {
+                "name" : "align_sites0",
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "find_sites$#0.status==wflow.done;",
+                    "comment --======  Aligning sequences that have the best alignment to nominated sites, AAV and HIV to their references only ======-- ",
+                    "align_sites$#0.minMatchLen=90;align_sites$#0.minMatchUnit=1;align_sites$#0.maxMissQueryPercent=15;align_sites$#0.folder=folderID;",
+                    "align_sites$#0.trimLowScoreEndsMaxMismatches=10;align_sites$#0.trimLowScoreEndsWindow=10;",
+                    "align_sites$#0.must_cover_ref_position_relative_to='cutsite=';align_sites$#0.must_cover_ref_positions='10,-16';",
+                    "align_sites$#0.query=find_sites$#0_sites._ids;align_sites$#0.subject=refset;align_sites$#0.name=merger$#0.name+'-sitesonly vs Nominated';",
+                    "HIVE.launchHexaHeptagon('align_sites'+#0);"
+                ],
+                "status" : "done",
+                "set" : "#0=0;$0='ut';#=1;#-iterator=0;align_sites0.status='done';\nalign_sites0.minMatchLen='90';\nalign_sites0.minMatchUnit='1';\nalign_sites0.maxMissQueryPercent='15';\nalign_sites0.folder='24904';\nalign_sites0.trimLowScoreEndsMaxMismatches='10';\nalign_sites0.trimLowScoreEndsWindow='10';\nalign_sites0.must_cover_ref_position_relative_to='cutsite=';\nalign_sites0.must_cover_ref_positions='10,-16';\nalign_sites0.query='25009';\nalign_sites0.subject='24205';\nalign_sites0.name='nov2522_ut.fastq-sitesonly vs Nominated';\nalign_sites0.alignmentEngine='1';\nalign_sites0.allowShorterEnds='0';\nalign_sites0.costGapNext='-4';\nalign_sites0.costGapOpen='-12';\nalign_sites0.costMatch='5';\nalign_sites0.costMismatch='-4';\nalign_sites0.costMismatchNext='-6';\nalign_sites0.isglobal='0';\nalign_sites0.seed='11';\nalign_sites0.searchRepeatsAndTrans='0';\nalign_sites0.maxMatchLen='0';\nalign_sites0.minMatchLenSubPerc='0';\nalign_sites0.maxMatchLenSubPerc='0';\nalign_sites0.considerGoodSubalignments='1';\nalign_sites0.complexityEntropy='0';\nalign_sites0.complexityWindow='0';\nalign_sites0.maximumPercentLowQualityAllowed='0';\nalign_sites0.complexityRefEntropy='0';\nalign_sites0.complexityRefWindow='0';\nalign_sites0.acceptNNNQuaTrheshold='0';\nalign_sites0.computeDiagonalWidth='auto';\nalign_sites0.created='1669669248';\nalign_sites0.doubleHash='0';\nalign_sites0.doubleStagePerfect='1';\nalign_sites0.must_have_negative='0';\nalign_sites0.must_have_subsequences_revcomp='1';\nalign_sites0.hashCompileStp='auto';\nalign_sites0.hashStp='auto';\nalign_sites0.isbackward='1';\nalign_sites0.isextendtails='0';\nalign_sites0.isoptimize='1';\nalign_sites0.keepAllMatches='4';\nalign_sites0.looseExtenderMinimumLengthPercent='66';\nalign_sites0.looseExtenderMismatchesPercent='25';\nalign_sites0.maxExtensionGaps='0';\nalign_sites0.maxHashBin='50';\nalign_sites0.maxHitsPerRead='200';\nalign_sites0.maxNumberQuery='all';\nalign_sites0.maxSubjectBasesToCompile='128';\nalign_sites0.modified='1669669588';\nalign_sites0.random_seed='0';\nalign_sites0.resolveConfictsUnique='0';\nalign_sites0.reverseEngine='0';\nalign_sites0.scissors='hiveseq';\nalign_sites0.scoreFilter='None';\nalign_sites0.selfQueryPosJumpInNonPerfectAlignment='1';\nalign_sites0.split='query';\nalign_sites0.nrepeat='1';\nalign_sites0.slice='500000';\nalign_sites0.splitField='query';\nalign_sites0.splitSize='500000';\nalign_sites0.splitType='sequences';\nalign_sites0.subject.1='18816';\nalign_sites0.subject.2='24201';\nalign_sites0.subject.3='24205';\nalign_sites0.isPostponed='false';\nalign_sites0.reqPriority='0';\nalign_sites0.useRedundSim='1';\nalign_sites0.alignSelector='svc-align-hexagon';\nalign_sites0.force_reindex='false';\nalign_sites0.query.1='25017';\nalign_sites0.query.2='25012';\nalign_sites0.query.3='25009';\nalign_sites0._id='25019';\nalign_sites0.action='2';\nalign_sites0.progress='12484503';\nalign_sites0.progress100='100';\nalign_sites0.reqID='304677';\nalign_sites0.submitter='dna-hexagon';\nalign_sites0.svc='dna-hexagon';\nalign_sites0.svcTitle='HIVE-hexagon Alignment';\nalign_sites0._ids='25019';\nalign_sites0.completed='1669669543';\nalign_sites0.started='1669669249';\nalign_sites0_heptagon.parent_proc_ids='25019';\nalign_sites0_heptagon.name='nov2522_ut.fastq-sitesonly vs Nominated';\nalign_sites0_heptagon.folder='24904';\nalign_sites0_heptagon.collapseRpts='true';\nalign_sites0_heptagon.countAAs='0';\nalign_sites0_heptagon.created='1669669616';\nalign_sites0_heptagon.cutEnds='do not cut';\nalign_sites0_heptagon.directionalityInfo='false';\nalign_sites0_heptagon.disbalanceFR='0';\nalign_sites0_heptagon.entrCutoff='-1';\nalign_sites0_heptagon.filterZeros='0';\nalign_sites0_heptagon.generateIon='false';\nalign_sites0_heptagon.histograms='1';\nalign_sites0_heptagon.lenPercCutoff='no cutoff';\nalign_sites0_heptagon.maxLowQua='no cutoff';\nalign_sites0_heptagon.maxMissmatchPercCutoff='0';\nalign_sites0_heptagon.maxRptIns='0';\nalign_sites0_heptagon.minCover='1';\nalign_sites0_heptagon.minImportantEntropy='0.0';\nalign_sites0_heptagon.modified='1669669706';\nalign_sites0_heptagon.noiseFilterParams='none';\nalign_sites0_heptagon.noiseProfileMax='0.01';\nalign_sites0_heptagon.noiseProfileResolution='0.0001';\nalign_sites0_heptagon.random_seed='0';\nalign_sites0_heptagon.scissors='hiveseq';\nalign_sites0_heptagon.SEARCHFORREPEATS='0';\nalign_sites0_heptagon.snpCompare='1';\nalign_sites0_heptagon.split='query';\nalign_sites0_heptagon.nrepeat='1';\nalign_sites0_heptagon.slice='500000';\nalign_sites0_heptagon.splitField='parent_proc_ids';\nalign_sites0_heptagon.splitSize='100000';\nalign_sites0_heptagon.splitType='alignments';\nalign_sites0_heptagon.supportedDeletions='true';\nalign_sites0_heptagon.isPostponed='false';\nalign_sites0_heptagon.reqPriority='0';\nalign_sites0_heptagon.minFreqIgnoreSNP='0';\nalign_sites0_heptagon.minFreqPercent='0';\nalign_sites0_heptagon.useQuaFilter='0';\nalign_sites0_heptagon.aaThreshold='0.001';\nalign_sites0_heptagon._id='25022';\nalign_sites0_heptagon.action='2';\nalign_sites0_heptagon.progress='205983488';\nalign_sites0_heptagon.progress100='100';\nalign_sites0_heptagon.reqID='304694';\nalign_sites0_heptagon.status='done';\nalign_sites0_heptagon.submitter='dna-heptagon';\nalign_sites0_heptagon.svc='dna-heptagon';\nalign_sites0_heptagon.svcTitle='HIVE-heptagon Profiler';\nalign_sites0_heptagon._ids='25022';\nalign_sites0_heptagon.completed='1669669663';\nalign_sites0_heptagon.started='1669669630'"
+            },
+            {
+                "name" : "find_pulldown",
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "merger$#0.status==wflow.done;",
+                    "comment --=====  Aligning sequences to probes for HC sequences =====-- ",
+                    "find_pulldown$#0.minMatchLen=40;find_pulldown$#0.minMatchUnit=0;find_pulldown$#0.maxMissQueryPercent=7;find_pulldown$#0.folder=folderID;",
+                    "find_pulldown$#0.trimLowScoreEndsMaxMismatches=10;find_pulldown$#0.trimLowScoreEndsWindow=10;",
+                    "find_pulldown$#0.query=merger$#0.mergedID;find_pulldown$#0.subject=prob_ref;find_pulldown$#0.name=merger$#0.name+'-merged vs Probes';",
+                    "HIVE.launchHexagon('find_pulldown'+#0);",
+                    "comment --======  Retrieve sequences that are aligned to nominated sites, AAV, HIV  =====-- ",
+                    "HIVE.archiveHexagonReads(find_pulldown$#0._id,merger$#0.name+'-pulldown.fastq',1,'find_pulldown$#0_pulldown');"
+                ],
+                "status" : "done",
+                "set" : "find_pulldown0.minMatchLen='40';\nfind_pulldown0.minMatchUnit='0';\nfind_pulldown0.maxMissQueryPercent='7';\nfind_pulldown0.folder='24904';\nfind_pulldown0.trimLowScoreEndsMaxMismatches='10';\nfind_pulldown0.trimLowScoreEndsWindow='10';\nfind_pulldown0.query='24925';\nfind_pulldown0.subject='24394';\nfind_pulldown0.name='nov2522_ut.fastq-merged vs Probes';\nfind_pulldown0.alignmentEngine='1';\nfind_pulldown0.allowShorterEnds='0';\nfind_pulldown0.costGapNext='-4';\nfind_pulldown0.costGapOpen='-12';\nfind_pulldown0.costMatch='5';\nfind_pulldown0.costMismatch='-4';\nfind_pulldown0.costMismatchNext='-6';\nfind_pulldown0.isglobal='0';\nfind_pulldown0.seed='11';\nfind_pulldown0.searchRepeatsAndTrans='0';\nfind_pulldown0.maxMatchLen='0';\nfind_pulldown0.minMatchLenSubPerc='0';\nfind_pulldown0.maxMatchLenSubPerc='0';\nfind_pulldown0.considerGoodSubalignments='1';\nfind_pulldown0.complexityEntropy='0';\nfind_pulldown0.complexityWindow='0';\nfind_pulldown0.maximumPercentLowQualityAllowed='0';\nfind_pulldown0.complexityRefEntropy='0';\nfind_pulldown0.complexityRefWindow='0';\nfind_pulldown0.acceptNNNQuaTrheshold='0';\nfind_pulldown0.computeDiagonalWidth='auto';\nfind_pulldown0.created='1669738186';\nfind_pulldown0.doubleHash='0';\nfind_pulldown0.doubleStagePerfect='1';\nfind_pulldown0.must_have_negative='0';\nfind_pulldown0.must_have_subsequences_revcomp='1';\nfind_pulldown0.hashCompileStp='auto';\nfind_pulldown0.hashStp='auto';\nfind_pulldown0.isbackward='1';\nfind_pulldown0.isextendtails='0';\nfind_pulldown0.isoptimize='1';\nfind_pulldown0.keepAllMatches='4';\nfind_pulldown0.looseExtenderMinimumLengthPercent='66';\nfind_pulldown0.looseExtenderMismatchesPercent='25';\nfind_pulldown0.maxExtensionGaps='0';\nfind_pulldown0.maxHashBin='50';\nfind_pulldown0.maxHitsPerRead='200';\nfind_pulldown0.maxNumberQuery='all';\nfind_pulldown0.maxSubjectBasesToCompile='128';\nfind_pulldown0.modified='1669740910';\nfind_pulldown0.random_seed='0';\nfind_pulldown0.resolveConfictsUnique='0';\nfind_pulldown0.reverseEngine='0';\nfind_pulldown0.scissors='hiveseq';\nfind_pulldown0.scoreFilter='None';\nfind_pulldown0.selfQueryPosJumpInNonPerfectAlignment='1';\nfind_pulldown0.split='query';\nfind_pulldown0.nrepeat='1';\nfind_pulldown0.slice='500000';\nfind_pulldown0.splitField='query';\nfind_pulldown0.splitSize='500000';\nfind_pulldown0.splitType='sequences';\nfind_pulldown0.isPostponed='false';\nfind_pulldown0.reqPriority='0';\nfind_pulldown0.useRedundSim='1';\nfind_pulldown0.alignSelector='svc-align-hexagon';\nfind_pulldown0.force_reindex='false';\nfind_pulldown0._id='25100';\nfind_pulldown0.action='2';\nfind_pulldown0.progress='132686254';\nfind_pulldown0.progress100='100';\nfind_pulldown0.reqID='305472';\nfind_pulldown0.status='done';\nfind_pulldown0.submitter='dna-hexagon';\nfind_pulldown0.svc='dna-hexagon';\nfind_pulldown0.svcTitle='HIVE-hexagon Alignment';\nfind_pulldown0._ids='25100';\nfind_pulldown.status='waiting';\nfind_pulldown0.completed='1669739530';\nfind_pulldown0.started='1669738186';\nfind_pulldown0_probes._id='305467';\nfind_pulldown0.systemVersion='0';\nfind_pulldown0_probes[0]._id='25102';\nfind_pulldown0_probes[0].base_tag='indexed/nov2522_ut.fastq-pulldown.fastq';\nfind_pulldown0_probes._ids='25102';\nfind_pulldown0_probes.objID='25102';\nfind_pulldown0_pulldown._id='305819';\nfind_pulldown0_pulldown[0]._id='25102';\nfind_pulldown0_pulldown[0].base_tag='indexed/nov2522_ut.fastq-pulldown.fastq';\nfind_pulldown0_pulldown._ids='25102';\nfind_pulldown0_pulldown.objID='25102';"                
+            },
+            {
+                "name" : "align_pulldown_partial",
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "find_pulldown$#0.status==wflow.done;",
+                    "comment --======  Aligning (probe aligned) sequences to nominated sequences, AAV and HIV =====-- ",
+                    "align_partial_nominated$#0.minMatchLen=40;align_partial_nominated$#0.minMatchUnit=1;align_partial_nominated$#0.minMatchLenSubPerc=25;align_partial_nominated$#0.maxMatchLenSubPerc=75;align_partial_nominated$#0.maxMissQueryPercent=7;align_partial_nominated$#0.folder=folderID;",
+                    "align_partial_nominated$#0.trimLowScoreEndsMaxMismatches=10;align_partial_nominated$#0.trimLowScoreEndsWindow=10;",
+                    "align_partial_nominated$#0.keepAllMatches=3;",
+                    "align_partial_nominated$#0.query=find_pulldown$#0_pulldown._ids;align_partial_nominated$#0.subject=refset;align_partial_nominated$#0.name=merger$#0.name+'-pulldown vs Nominated';",
+                    "HIVE.launchHexagon('align_partial_nominated'+#0);"
+                ]
+            },
+            {
+                "name" : "align_spikes_partial",
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "find_spikes$#0.status==wflow.done;",
+                    "comment --======  Aligning spike sequences to nominated barcoded sequences, AAV and HIV =====-- ",
+                    "align_partial_spikes$#0.minMatchLen=40;align_partial_spikes$#0.minMatchUnit=1;align_partial_spikes$#0.minMatchLenSubPerc=25;align_partial_spikes$#0.maxMatchLenSubPerc=75;align_partial_spikes$#0.maxMissQueryPercent=7;align_partial_spikes$#0.folder=folderID;",
+                    "align_partial_spikes$#0.trimLowScoreEndsMaxMismatches=10;align_partial_spikes$#0.trimLowScoreEndsWindow=10;",
+                    "align_partial_spikes$#0.keepAllMatches=3;",
+                    "align_partial_spikes$#0.query=find_spikes$#0_spike._ids;align_partial_spikes$#0.subject=''+noeditbar_ref+';'+hiv_ref+';'+aav_ref;align_partial_spikes$#0.name=merger$#0.name+'-spike vs BarcodedNominated';",
+                    "HIVE.launchHexagon('align_partial_spikes'+#0);"
+                ]
+            }
+        ]
+    }
+}

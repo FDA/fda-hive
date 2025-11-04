@@ -1,0 +1,107 @@
+{
+    "512": {
+        "_id": "$type.hep_past_nonEpilepsy_treatment",
+        "_type": "type",
+        "name": "hep_past_nonEpilepsy_treatment",
+        "title": "Pre-HEP Non Anti-Epileptic Medication",
+        "fields": {
+            "1.1": {
+                "field_name": "medications_parent",
+                "field_title": "Record all medications the subject was taking at the time of study enrollment and/or the 6 months before enrollment in the study. These can include prescription medications, over the counter drugs, vitamins, supplements, minerals, complementary/alternative medications, etc.",
+                "field_type": "array",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "col-3"
+            },
+            "1.2": {
+                "field_name": "medication_name",
+                "field_title": "Generic Name of Medication",
+                "field_type": "string",
+                "field_parent": "medications_parent",
+                "field_order": 1
+            },
+            "1.3": {
+                "field_name": "daily_dose",
+                "field_title": "Total Daily Dose or PRN Dose (specify units)",
+                "field_type": "string",
+                "field_parent": "medications_parent",
+                "field_order": 2
+            },
+            "1.4": {
+                "field_name": "indication",
+                "field_title": "Indication",
+                "field_type": "string",
+                "field_parent": "medications_parent",
+                "field_order": 3,
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Infection|Hypertension|Cholesterol|Depression|Bi-polar Disorder|Anxiety|Headache Pain|Non-headache Pain|Arthritis|Other"
+            },
+            "1.5": {
+                "field_name": "other_specify",
+                "field_title": "If other, please specify",
+                "field_type": "string",
+                "field_parent": "medications_parent",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(indication)=='Other'"
+            },
+            "1.6": {
+                "field_name": "dose_units",
+                "field_title": "Dose Units",
+                "field_type": "string",
+                "field_parent": "medications_parent",
+                "field_order": 5,
+                "field_constraint_data": "gram|grain|drop|microgram|microliter|milligram|milliliter|ounce|spray/squirt|suppository|tablespoon|other|unknown"
+            },
+            "1.7": {
+                "field_name": "other_dose_specify",
+                "field_title": "If other, please specify",
+                "field_type": "string",
+                "field_parent": "medications_parent",
+                "field_order": 6,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(dose_units)=='other'"
+            },
+            "1.8": {
+                "field_name": "prn_med",
+                "field_title": "PRN med?",
+                "field_type": "bool",
+                "field_parent": "medications_parent",
+                "field_order": 7,
+                "field_is_optional_fg": false
+            },
+            "1.9": {
+                "field_name": "average_frequency",
+                "field_title": "If PRN, Average Frequency (times per month)",
+                "field_type": "integer",
+                "field_parent": "medications_parent",
+                "field_order": 8,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(prn_med)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

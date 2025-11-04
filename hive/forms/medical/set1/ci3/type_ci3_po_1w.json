@@ -1,0 +1,29 @@
+{
+    "346": {
+        "_id": "$type.ci3_po_1w",
+        "_type": "type",
+        "name": "ci3_po_1w",
+        "title": "Post-op outcomes and recurrence (1 week after discharge)",
+        "parent": {
+            "3": "$type.ci3_recurrence"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

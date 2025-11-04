@@ -1,0 +1,2606 @@
+{
+  "_core:descriptions": {
+    "_type": "type of the object",
+    "_id": "identifier of the object",
+    "_field": "list of fields",
+    "_abstr": "abstract type",
+    "_limit": {
+      "descr": "constraints on fields",
+      "eval-c/c++": "C/C++ evaluation constructs",
+      "eval-js": "Javascript evaluation constructs",
+      "__sub": "@commonalities@703",
+      "__dim": 3,
+      "__start": 0,
+      "__tot": 3,
+      "__cnt": 3
+    },
+    "_write": "writeability of the fields can be once|true|false",
+    "_vital": "mandatory fields, can be true|false",
+    "_default": "default value",
+    "_plural": "multivalue field can be true|false",
+    "_layout": "complex fields can be eithe array|list, the default is list",
+    "_public": "public fields can be true|false",
+    "_hidden": "hidden fields can be true|false",
+    "_inherit": "list of types this type inherits from",
+    "_infect": "list of fields used for propagation of rules",
+    "descr": "description of system variables",
+    "__sub": "@induce@203",
+    "__dim": 15,
+    "__start": 0,
+    "__tot": 18,
+    "__cnt": 15
+  },
+  "primitives": {
+    "descr": "primitives branch",
+    "bool": {
+      "_type": "core",
+      "_limit": {
+        "choice": {
+          "true": "1",
+          "false": "0",
+          "__sub": "@segments@1A03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "__sub": "@eccentric@1903",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 3,
+        "__cnt": 1
+      },
+      "__sub": "@dinosaur@1703",
+      "__dim": 2,
+      "__start": 0,
+      "__tot": 5,
+      "__cnt": 2
+    },
+    "int": {
+      "_type": "core",
+      "__sub": "@lacteal@1D03",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "uint": {
+      "_type": "int",
+      "_limit": {
+        "eval-c/c++": "$val>=0",
+        "__sub": "@opioids@2003",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "__sub": "@lasting@1E03",
+      "__dim": 2,
+      "__start": 0,
+      "__tot": 3,
+      "__cnt": 2
+    },
+    "string": {
+      "_type": "core",
+      "__sub": "@astronomer@2203",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "text": {
+      "_type": "core",
+      "__sub": "@lumpiness@2303",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "memory": {
+      "_type": "uint",
+      "__sub": "@encyclopaedia@2403",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "cmdline": {
+      "_type": "text",
+      "__sub": "@northerner@2603",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "datetime": {
+      "_type": "core",
+      "_default": "1464383651",
+      "__sub": "@conglomeration@2803",
+      "__dim": 2,
+      "__start": 0,
+      "__tot": 2,
+      "__cnt": 2
+    },
+    "timespan": {
+      "_type": "core",
+      "start": {
+        "_type": "datetime",
+        "__sub": "@sulked@2B03",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "end": {
+        "_type": "datetime",
+        "__sub": "@sculled@2D03",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "__sub": "@perpetually@2A03",
+      "__dim": 3,
+      "__start": 0,
+      "__tot": 5,
+      "__cnt": 3
+    },
+    "ref": {
+      "_type": "core",
+      "source": {
+        "_type": "string",
+        "_default": "HIVE",
+        "__sub": "@boleyn@2F03",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "db": {
+        "_type": "string",
+        "__sub": "@untenable@3203",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "id": {
+        "_type": "string",
+        "__sub": "@trafficker@3303",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "__sub": "@matriculation@2E03",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 8,
+      "__cnt": 4
+    },
+    "password": {
+      "_type": "string",
+      "__sub": "@codling@3403",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "email": {
+      "_type": "string",
+      "__sub": "@central@3503",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "keyval": {
+      "_type": "core",
+      "key": {
+        "_type": "string",
+        "__sub": "@bonnet@3703",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "value": {
+        "_type": "string",
+        "_plural": "true",
+        "__sub": "@germicides@3803",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "__sub": "@cuddly@3603",
+      "__dim": 3,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 3
+    },
+    "hiveid": {
+      "_type": "string",
+      "__sub": "@garter@3A03",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    },
+    "__sub": "@copse@1503",
+    "__dim": 15,
+    "__start": 0,
+    "__tot": 52,
+    "__cnt": 15
+  },
+  "types": {
+    "descr": "types branch",
+    "hc_devel_test": {
+      "_type": "type",
+      "_id": "55",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "title": "NAME",
+          "_limit": {
+            "search+": {
+              "url": "http://10.107.2.14/usr/alexp/dna.cgi?cmd=objList&mode=csv&actions=1&parIds=14847&parP=child&prop=_brief,created,submitter,status,_type&info=1&cnt=50&start=0&raw=1&bust=1464377502199",
+              "value": "value",
+              "title": "eval-js:$id+':'+$name",
+              "show": [ "name", "value" ]
+            }
+          }
+        },
+        "os": {
+          "_type": "string",
+          "_vital": "true"
+        },
+        "ip4": {
+          "_type": "string",
+          "_default": "nslookup comb | grep Server  | awk '{print $2}'"
+        },
+        "category": {
+          "_type": "string",
+          "_plural": "eval-js:$os.indexOf('Linux')!=-1"
+        },
+        "active": {
+          "_type": "bool",
+          "_hidden": "eval-js: $memory > $storage"
+        },
+        "cores": {
+          "_type": "string",
+          "_limit": {
+            "choice": [
+              "user",
+              {
+                "value": "system",
+                "title": "System Value"
+              },
+              "service"
+            ]
+          }
+        },
+        "memory": {
+          "_type": "memory",
+          "_limit": {
+            "eval-js": "($memory>=0 && $capacity<12)"
+          }
+
+        },
+        "storage": {
+          "_type": "memory"
+        },
+        "capacity": {
+          "_type": "uint",
+          "choice+": [ 3, 8 ]
+        },
+        "layout": {
+          "_type": "string",
+          "_limit": {
+            "choice": [
+              "array",
+              "list"
+            ]
+          }
+        },
+        "simple table": {
+          "version": {
+            "_type": "string"
+          },
+          "pars": {
+            "_type": "int"
+          },
+          "date": {
+            "_type": "datetime"
+          },
+          "trace": {
+            "_type": "string",
+	    "_hidden": "eval-js: $capacity > 3"
+          },
+          "_plural": "true",
+          "_layout": "eval-js: $layout"
+        },
+        "config": {
+          "version": {
+            "_type": "string"
+          },
+          "pars": {
+            "_type": "keyval",
+            "_plural": "true"
+          },
+          "app": {
+            "_type": "hc_app"
+          },
+          "_plural": "true",
+          "_layout": "array"
+        }
+      },
+      "_inherit": "hc_sbase",
+      "name": "hc_host",
+      "title": "host type"
+    },
+    "hc_devel_test_light": {
+      "_type": "type",
+      "_id": "555",
+      "_field": {
+        "capacity": {
+          "_type": "uint",
+          "choice+": [ 3, 8 ]
+        },
+        "layout": {
+          "_type": "string",
+          "_limit": {
+            "choice": [
+              "array",
+              "list"
+            ]
+          }
+        },
+        "simple table": {
+          "version": {
+            "_type": "string"
+          },
+          "pars": {
+            "_type": "int"
+          },
+          "date": {
+            "_type": "datetime"
+          },
+          "trace": {
+            "_type": "string",
+	    "_hidden": "eval-js: $capacity > 3"
+          },
+          "_plural": "true",
+          "_layout": "eval-js: $layout"
+        }
+      },
+      "_inherit": "hc_sbase",
+      "name": "hc_host",
+      "title": "host type"
+    },
+    "hc_life": {
+      "_type": "type",
+      "ctime": {
+        "_type": "datetime",
+        "_vital": "true",
+        "__sub": "@passively@3F03",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "mtime": {
+        "_type": "datetime",
+        "__sub": "@rejoins@4003",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "ltime": {
+        "start": {
+          "_type": "datetime",
+          "__sub": "@enjoins@4203",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "end": {
+          "_type": "datetime",
+          "__sub": "@transport@4303",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@comeback@4103",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 4,
+        "__cnt": 2
+      },
+      "expires": {
+        "soft": {
+          "_type": "datetime",
+          "__sub": "@beret@4503",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "hard": {
+          "_type": "datetime",
+          "__sub": "@crafter@4603",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@trifling@4403",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 4,
+        "__cnt": 2
+      },
+      "psswd": {
+        "_type": "password",
+        "_hidden": "true",
+        "__sub": "@haulages@4703",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "__sub": "@recto@3D03",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 19,
+      "__cnt": 6
+    },
+    "hc_type": {
+      "_type": "type",
+      "_id": "0",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@vicepresident@4B03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "title": {
+          "_type": "string",
+          "_public": "true",
+          "__sub": "@boding@4C03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "descr": {
+          "_type": "text",
+          "__sub": "@bourgeoisie@4D03",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "_id": {
+          "_type": "hiveid",
+          "_public": "true",
+          "_vital": "true",
+          "__sub": "@audiovisual@4E03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "__sub": "@equalised@4A03",
+        "__dim": 4,
+        "__start": 0,
+        "__tot": 12,
+        "__cnt": 4
+      },
+      "_inherit": "hc_life",
+      "name": "hc_type",
+      "title": "type construct",
+      "descr": "Type for all types",
+      "__sub": "@narcosis@4903",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 19,
+      "__cnt": 7
+    },
+    "hc_base": {
+      "_type": "type",
+      "_id": "1",
+      "_field": {
+        "_id": {
+          "_type": "hiveid",
+          "_public": "true",
+          "_vital": "true",
+          "_hidden":  "true",
+          "__sub": "@trite@5603",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "__sub": "@repugnance@5503",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 4,
+        "__cnt": 1
+      },
+      "_inherit": "hc_life",
+      "name": "hc_base",
+      "title": "base type",
+      "descr": "Base type for all types",
+      "__sub": "@seamen@5403",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 11,
+      "__cnt": 7
+    },
+    "hc_sbase": {
+      "_type": "type",
+      "_id": "2",
+      "_inherit": "hc_base",
+      "name": "hc_sbase",
+      "title": "base system type",
+      "descr": "Base type for all system types",
+      "__sub": "@auriculas@5A03",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 6
+    },
+    "hc_ubase": {
+      "_type": "type",
+      "_id": "3",
+      "_inherit": "hc_base",
+      "name": "hc_ubase",
+      "title": "base user type",
+      "descr": "Base type for all user visible types",
+      "__sub": "@dreadfulness@5F03",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 6
+    },
+    "hc_party": {
+      "_type": "type",
+      "_id": "4",
+      "_field": {
+        "inactive": {
+          "_type": "bool",
+          "title": "is user inactive",
+          "__sub": "@confidante@6703",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "is_admin": {
+          "_type": "bool",
+          "__sub": "@primrose@6A03",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "category": {
+          "_limit": {
+            "choice": [
+              "user",
+              "system",
+              "service"
+            ],
+            "__[]choice": {
+              "__sub": "#dwarfish@6D03",
+              "__dim": 3,
+              "__start": 0,
+              "__tot": 3,
+              "__cnt": 3
+            },
+            "__sub": "@tepee@6C03",
+            "__dim": 1,
+            "__start": 0,
+            "__tot": 4,
+            "__cnt": 1
+          },
+          "__sub": "@pioneered@6B03",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 5,
+          "__cnt": 1
+        },
+        "__sub": "@acceded@6603",
+        "__dim": 3,
+        "__start": 0,
+        "__tot": 11,
+        "__cnt": 3
+      },
+      "_inherit": "hc_sbase",
+      "name": "hc_party",
+      "title": "all parties",
+      "descr": "Base type for groups and users",
+      "__sub": "@longitudes@6403",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 18,
+      "__cnt": 7
+    },
+    "hc_user": {
+      "_type": "type",
+      "_id": "5",
+      "_field": {
+        "fst_name": {
+          "_type": "string",
+          "title": "first Name",
+          "_public": "true",
+          "__sub": "@uneventfully@7703",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "lst_name": {
+          "_type": "string",
+          "title": "last Name",
+          "_public": "true",
+          "__sub": "@devalue@7903",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "email": {
+          "_type": "email",
+          "_vital": "true",
+          "__sub": "@gossipy@7B03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "ok_email": {
+          "_type": "bool",
+          "title": "needs email validation",
+          "__sub": "@poppy@7D03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "sessions": {
+          "_type": "int",
+          "_hidden": "true",
+          "title": "Maximum number of session",
+          "__sub": "@hand@7F03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "psswd": {
+          "title":  "Password",
+          "_type": "password",
+          "_vital": "true",
+          "_hidden": "true",
+          "__sub": "@convalescing@8103",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "pwd_res": {
+          "_type": "string",
+          "_hidden": "true",
+          "__sub": "@bee@8203",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "pwd_prev": {
+          "_type": "password",
+          "_plural": "true",
+          "_hidden": "true",
+          "__sub": "@solvents@8303",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "log_count": {
+          "_type": "int",
+          "__sub": "@dolled@8403",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "log_time": {
+          "_type": "password",
+          "__sub": "@secretive@8503",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@disinvestment@7603",
+        "__dim": 10,
+        "__start": 0,
+        "__tot": 33,
+        "__cnt": 10
+      },
+      "_inherit": "hc_party",
+      "name": "hc_user",
+      "title": "user type",
+      "descr": "Information about users",
+      "__sub": "@affectations@7403",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 40,
+      "__cnt": 7
+    },
+    "hc_group": {
+      "_type": "type",
+      "_id": "6",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@belfries@8C03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "title": {
+          "_type": "string",
+          "_public": "true",
+          "__sub": "@cookbooks@8D03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "email": {
+          "_type": "email",
+          "__sub": "@immiscible@8E03",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "members": {
+          "_type": "hc_user",
+          "_plural": "true",
+          "_layout": "array",
+          "_infect": "*",
+          "__sub": "@conic@8F03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "__sub": "@staffing@8B03",
+        "__dim": 4,
+        "__start": 0,
+        "__tot": 12,
+        "__cnt": 4
+      },
+      "_inherit": "hc_party",
+      "name": "hc_group",
+      "title": "group type",
+      "descr": "Information about groups",
+      "__sub": "@definable@8903",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 19,
+      "__cnt": 7
+    },
+    "hc_act": {
+      "_type": "type",
+      "_id": "7",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@hipsters@9703",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "title": {
+          "_type": "string",
+          "_public": "true",
+          "__sub": "@poult@9803",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "descr": {
+          "_type": "text",
+          "__sub": "@scrutiny@9903",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@cytoplasm@9603",
+        "__dim": 3,
+        "__start": 0,
+        "__tot": 8,
+        "__cnt": 3
+      },
+      "_inherit": "hc_sbase",
+      "name": "hc_permission",
+      "title": "permission",
+      "descr": "Honeycomb permission",
+      "__sub": "@ringlet@9403",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 15,
+      "__cnt": 7
+    },
+    "hc_rule": {
+      "_type": "type",
+      "_id": "8",
+      "_field": {
+        "act": {
+          "_type": "hc_act",
+          "_plural": "true",
+          "_vital": "true",
+          "__sub": "@seemlier@A003",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "party": {
+          "_type": "hc_party",
+          "_plural": "true",
+          "_vital": "true",
+          "__sub": "@furies@A203",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "obj": {
+          "_type": "hc_base",
+          "_plural": "true",
+          "_vital": "true",
+          "__sub": "@strengthens@A303",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "_infect": {
+          "party": {
+            "_type": "string",
+            "_plural": "true",
+            "__sub": "@routeing@A503",
+            "__dim": 2,
+            "__start": 0,
+            "__tot": 2,
+            "__cnt": 2
+          },
+          "obj": {
+            "_type": "string",
+            "_plural": "true",
+            "__sub": "@capitalism@A603",
+            "__dim": 2,
+            "__start": 0,
+            "__tot": 2,
+            "__cnt": 2
+          },
+          "_layout": "array",
+          "__sub": "@undercarriage@A403",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 7,
+          "__cnt": 3
+        },
+        "__sub": "@conservatoire@9F03",
+        "__dim": 4,
+        "__start": 0,
+        "__tot": 20,
+        "__cnt": 4
+      },
+      "name": "hc_rule",
+      "title": "rule",
+      "descr": "Honeycomb rule connecting permission to objects and users",
+      "__sub": "@protrudes@9D03",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 26,
+      "__cnt": 6
+    },
+    "hc_file": {
+      "_type": "type",
+      "_id": "9",
+      "_field": {
+        "ext": {
+          "_type": "string",
+          "_public": "true",
+          "title": "extension",
+          "__sub": "@motioned@AE03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "md5": {
+          "_type": "string",
+          "title": "MD5",
+          "__sub": "@quaff@B003",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "_public": "true",
+          "__sub": "@hassle@B203",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "orig_name": {
+          "_type": "string",
+          "title": "original name",
+          "__sub": "@defensible@B303",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "size": {
+          "_type": "int",
+          "_write": "once",
+          "__sub": "@operations@B503",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "zsize": {
+          "_type": "int",
+          "_write": "once",
+          "title": "compressed size",
+          "__sub": "@novel@B703",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "source": {
+          "_type": "string",
+          "__sub": "@skinniest@B903",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@loch@AD03",
+        "__dim": 7,
+        "__start": 0,
+        "__tot": 23,
+        "__cnt": 7
+      },
+      "name": "hc_file",
+      "title": "file type",
+      "descr": "Base type for all file types",
+      "__sub": "@unseated@AB03",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 29,
+      "__cnt": 6
+    },
+    "hc_system_file": {
+      "_type": "type",
+      "_id": "10",
+      "_inherit": [
+        "hc_file",
+        "hc_sbase"
+      ],
+      "__[]_inherit": {
+        "__sub": "#strangles@BF03",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "name": "hc_system_file",
+      "title": "system file",
+      "__sub": "@histories@BD03",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "hc_user_file": {
+      "_type": "type",
+      "_id": "11",
+      "_inherit": [
+        "hc_file",
+        "hc_ubase"
+      ],
+      "__[]_inherit": {
+        "__sub": "#cinders@C403",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "name": "hc_user_file",
+      "title": "user file",
+      "__sub": "@neverending@C203",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "hc_dir": {
+      "_type": "type",
+      "_id": "12",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "_public": "true",
+          "__sub": "@starving@CA03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "orig-name": {
+          "_type": "string",
+          "title": "original name",
+          "__sub": "@centrifuged@CB03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "source": {
+          "_type": "string",
+          "__sub": "@flammable@CC03",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "children": {
+          "_type": "hiveid",
+          "_plural": "true",
+          "_infect": [
+            "browse"
+          ],
+          "__[]_infect": {
+            "__sub": "#strode@CE03",
+            "__dim": 1,
+            "__start": 0,
+            "__tot": 1,
+            "__cnt": 1
+          },
+          "__sub": "@nougat@CD03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 4,
+          "__cnt": 3
+        },
+        "__sub": "@commitment@C903",
+        "__dim": 4,
+        "__start": 0,
+        "__tot": 14,
+        "__cnt": 4
+      },
+      "name": "hc_dir",
+      "title": "directory type",
+      "descr": "Base type for all directory types",
+      "__sub": "@corrupts@C703",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 20,
+      "__cnt": 6
+    },
+    "hc_system_dir": {
+      "_type": "type",
+      "_id": "13",
+      "_inherit": [
+        "hc_dir",
+        "hc_sbase"
+      ],
+      "__[]_inherit": {
+        "__sub": "#discharges@D503",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "name": "hc_system_dir",
+      "title": "system directory",
+      "__sub": "@doctrines@D303",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "hc_user_dir": {
+      "_type": "type",
+      "_id": "14",
+      "_inherit": [
+        "hc_dir",
+        "hc_ubase"
+      ],
+      "__[]_inherit": {
+        "__sub": "#inefficient@DA03",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "name": "hc_user_dir",
+      "title": "user directory",
+      "__sub": "@paste@D803",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "hc_app": {
+      "_type": "type",
+      "_id": "15",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@smoothing@E003",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "version": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@emissivities@E103",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "title": {
+          "_type": "string",
+          "_vital": "true",
+          "_public": "true",
+          "__sub": "@statistic@E203",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "cmdline": {
+          "_type": "cmdline",
+          "_plural": "true",
+          "__sub": "@bedlam@E303",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "script": {
+          "_type": "text",
+          "__sub": "@tube@E503",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "descr": {
+          "_type": "text",
+          "__sub": "@enforcing@E603",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@transmuting@DF03",
+        "__dim": 6,
+        "__start": 0,
+        "__tot": 17,
+        "__cnt": 6
+      },
+      "_inherit": "hc_sbase",
+      "name": "hc_app",
+      "title": "app type",
+      "descr": "Base type for all apps",
+      "__sub": "@underplay@DD03",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 24,
+      "__cnt": 7
+    },
+    "hc_svc": {
+      "_type": "type",
+      "_id": "16",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@whispers@ED03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "version": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@witchlike@EE03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "title": {
+          "_type": "string",
+          "__sub": "@dairy@EF03",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "descr": {
+          "_type": "text",
+          "__sub": "@nicer@F003",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "categories": {
+          "_type": "string",
+          "_plural": "true",
+          "__sub": "@bindweed@F103",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "svc-type": {
+          "_limit": {
+            "choice": [
+              "push",
+              "pull"
+            ],
+            "__[]choice": {
+              "__sub": "#uncross@F403",
+              "__dim": 2,
+              "__start": 0,
+              "__tot": 2,
+              "__cnt": 2
+            },
+            "__sub": "@writing@F303",
+            "__dim": 1,
+            "__start": 0,
+            "__tot": 3,
+            "__cnt": 1
+          },
+          "__sub": "@adopt@F203",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 4,
+          "__cnt": 1
+        },
+        "max-jobs": {
+          "_type": "uint",
+          "_default": "1",
+          "__sub": "@brambles@F703",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "nice": {
+          "_type": "uint",
+          "_default": "0",
+          "__sub": "@childish@F803",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "parallel-jobs": {
+          "_type": "uint",
+          "_default": "0",
+          "__sub": "@peal@F903",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "max-loops": {
+          "_type": "uint",
+          "_default": "100",
+          "__sub": "@dotting@FA03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "max-trials": {
+          "_type": "uint",
+          "_default": "3",
+          "__sub": "@weeds@FC03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "priority": {
+          "_type": "uint",
+          "_default": "0",
+          "__sub": "@sacramental@FD03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "run-multithread": {
+          "_type": "uint",
+          "_default": "1",
+          "__sub": "@buds@FE03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "active-job-reserve": {
+          "_type": "uint",
+          "_default": "0",
+          "__sub": "@mortify@FF03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "capacity-demand": {
+          "_type": "uint",
+          "_default": "1",
+          "__sub": "@caddied@10003",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "nograb-disconnect-after": {
+          "_type": "uint",
+          "_default": "5",
+          "__sub": "@gdansk@10103",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "nograb-exit-after": {
+          "_type": "uint",
+          "_default": "10",
+          "__sub": "@extrovert@10203",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "maxmem-soft-limit": {
+          "_type": "memory",
+          "__sub": "@resuscitating@10303",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "maxmem-hard-limit": {
+          "_type": "memory",
+          "__sub": "@solvency@10503",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "up-threads": {
+          "_type": "uint",
+          "__sub": "@disenfranchises@10603",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "emails": {
+          "_type": "email",
+          "_plural": "true",
+          "__sub": "@plain@10703",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "sleep-time-miliseconds": {
+          "_type": "uint",
+          "_default": "60000",
+          "__sub": "@cheaply@10803",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "delay-launch-seconds": {
+          "_type": "uint",
+          "_default": "1",
+          "__sub": "@meany@10A03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "polite-exit-timeout-seconds": {
+          "_type": "uint",
+          "_default": "60000",
+          "__sub": "@kettles@10B03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "knockout-seconds": {
+          "_type": "uint",
+          "_default": "900",
+          "__sub": "@dallying@10C03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "request-restart-seconds": {
+          "_type": "uint",
+          "_default": "1000",
+          "__sub": "@ingesting@10E03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "cleanup-days": {
+          "_type": "uint",
+          "_default": "28",
+          "__sub": "@seedlings@11003",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "lazy-report-seconds": {
+          "_type": "uint",
+          "_default": "10",
+          "__sub": "@eulogise@11203",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "delayed-action-seconds": {
+          "_type": "uint",
+          "_default": "0",
+          "__sub": "@unfamiliarity@11303",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "host": {
+          "_type": "string",
+          "_plural": "true",
+          "_default": "QPrideSrv",
+          "__sub": "@saltiness@11403",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "config": {
+          "version": {
+            "_type": "string",
+            "__sub": "@polemics@11703",
+            "__dim": 1,
+            "__start": 0,
+            "__tot": 1,
+            "__cnt": 1
+          },
+          "pars": {
+            "_type": "keyval",
+            "_plural": "true",
+            "__sub": "@stringy@11803",
+            "__dim": 2,
+            "__start": 0,
+            "__tot": 2,
+            "__cnt": 2
+          },
+          "app": {
+            "_type": "hc_app",
+            "__sub": "@tentacle@11A03",
+            "__dim": 1,
+            "__start": 0,
+            "__tot": 1,
+            "__cnt": 1
+          },
+          "_plural": "true",
+          "_layout": "array",
+          "__sub": "@skate@11603",
+          "__dim": 5,
+          "__start": 0,
+          "__tot": 9,
+          "__cnt": 5
+        },
+        "__sub": "@joyous@EC03",
+        "__dim": 31,
+        "__start": 0,
+        "__tot": 98,
+        "__cnt": 31
+      },
+      "_inherit": "hc_sbase",
+      "name": "hc_svc",
+      "title": "service type",
+      "descr": "Base type for all services",
+      "__sub": "@nuisance@EA03",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 105,
+      "__cnt": 7
+    },
+    "hc_proc": {
+      "_type": "type",
+      "_id": "17",
+      "_field": {
+        "started": {
+          "_type": "datetime",
+          "_default": "$now()",
+          "__sub": "@fairsex@12103",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "completed": {
+          "_type": "datetime",
+          "__sub": "@earmark@12303",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "requestID": {
+          "_type": "int",
+          "__sub": "@lampshades@12403",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "priority": {
+          "_type": "int",
+          "__sub": "@unspent@12503",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "progress": {
+          "_type": "int",
+          "__sub": "@arthritis@12603",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "progress100": {
+          "_type": "int",
+          "__sub": "@invigilators@12703",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "action": {
+          "_type": "int",
+          "__sub": "@deadened@12803",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "status": {
+          "_type": "int",
+          "_vital": "true",
+          "__sub": "@cockatoos@12903",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "submitter": {
+          "_type": "string",
+          "__sub": "@mermaids@12A03",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "service": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@feudal@12B03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "__sub": "@stonecold@12003",
+        "__dim": 10,
+        "__start": 0,
+        "__tot": 23,
+        "__cnt": 10
+      },
+      "name": "hc_proc",
+      "title": "process type",
+      "descr": "Base type for all process types",
+      "__sub": "@conjugate@11E03",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 29,
+      "__cnt": 6
+    },
+    "hc_sproc": {
+      "_type": "type",
+      "_id": "18",
+      "_inherit": [
+        "hc_proc",
+        "hc_sbase"
+      ],
+      "__[]_inherit": {
+        "__sub": "#sunbeam@13103",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "name": "hc_sproc",
+      "title": "system process type",
+      "__sub": "@anemic@12F03",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "hc_uproc": {
+      "_type": "type",
+      "_id": "19",
+      "_inherit": [
+        "hc_proc",
+        "hc_ubase"
+      ],
+      "__[]_inherit": {
+        "__sub": "#strudels@13603",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "name": "hc_uproc",
+      "title": "user process type",
+      "__sub": "@necrotic@13403",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "hc_host": {
+      "_type": "type",
+      "_id": "20",
+      "_field": {
+        "name": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@latrine@13C03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "os": {
+          "_type": "string",
+          "_vital": "true",
+          "__sub": "@coathanger@13D03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "ip4": {
+          "_type": "string",
+          "_default": "nslookup comb | grep Server  | awk \\'{print $2}\\'",
+          "__sub": "@debuts@13E03",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "category": {
+          "_type": "string",
+          "_plural": "true",
+          "__sub": "@deadpan@14003",
+          "__dim": 2,
+          "__start": 0,
+          "__tot": 2,
+          "__cnt": 2
+        },
+        "os": {
+          "_type": "string",
+          "__sub": "@overpressure@14103",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "active": {
+          "_type": "bool",
+          "__sub": "@worthier@14203",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "cores": {
+          "_type": "uint",
+          "__sub": "@luminal@14303",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "memory": {
+          "_type": "memory",
+          "__sub": "@astrological@14403",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "storage": {
+          "_type": "memory",
+          "__sub": "@dooms@14503",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "capacity": {
+          "_type": "uint",
+          "__sub": "@fails@14603",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@deftly@13B03",
+        "__dim": 10,
+        "__start": 0,
+        "__tot": 24,
+        "__cnt": 10
+      },
+      "_inherit": "hc_sbase",
+      "name": "hc_host",
+      "title": "host type",
+      "__sub": "@bulging@13903",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 30,
+      "__cnt": 6
+    },
+    "hc_hostgroup": {
+      "_type": "type",
+      "_id": "21",
+      "_field": {
+        "members": {
+          "_type": "string",
+          "_vital": "true",
+          "_plural": "true",
+          "__sub": "@recures@14C03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 3,
+          "__cnt": 3
+        },
+        "__sub": "@burdening@14B03",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 4,
+        "__cnt": 1
+      },
+      "_inherit": "hc_host",
+      "name": "hc_hostgroup",
+      "title": "host group type",
+      "__sub": "@date@14903",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 10,
+      "__cnt": 6
+    },
+    "__sub": "@potentates@3B03",
+    "__dim": 24,
+    "__start": 0,
+    "__tot": 492,
+    "__cnt": 24
+  },
+  "users": {
+    "descr": "users branch",
+    "qpride": {
+      "_type": "hc_user",
+      "_id": "22",
+      "category": "service",
+      "fst_name": "QPride",
+      "lst_name": "Service",
+      "is_admin": "true",
+      "email": "qpride@hive",
+      "__sub": "@vainer@15103",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 6
+    },
+    "nomiS": {
+      "_type": "hc_user",
+      "_id": "23",
+      "category": "system",
+      "fst_name": "nomiS-HIVE-creator",
+      "lst_name": "Vahan Simonyan",
+      "is_admin": "true",
+      "email": "vahansim@gmail.com",
+      "passwd": "-install-only-",
+      "__sub": "@annuity@15603",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 7
+    },
+    "dataqueen": {
+      "descr":  "Data Queen user",
+      "_type": "hc_user",
+      "_id": "24",
+      "fst_name": "Data",
+      "lst_name": "Queen",
+      "__sub": "@condemnatory@15C03",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "appqueen": {
+      "_type": "hc_user",
+      "_id": "25",
+      "fst_name": "Application",
+      "lst_name": "Queen",
+      "__sub": "@indubitable@16003",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "guest": {
+      "_type": "hc_user",
+      "_id": "26",
+      "category": "user",
+      "fst_name": "Guest",
+      "lst_name": "Unregistered",
+      "email": "scream@world.all",
+      "passwd": "guess",
+      "__sub": "@koalas@16303",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 6
+    },
+    "__sub": "@gridlock@14F03",
+    "__dim": 6,
+    "__start": 0,
+    "__tot": 33,
+    "__cnt": 6
+  },
+  "groups": {
+    "descr": "groups branch",
+    "systems": {
+      "_type": "hc_group",
+      "_id": "27",
+      "is_admin": "true",
+      "name": "systems",
+      "title": "System group",
+      "email": "systems@aol.com",
+      "members": [
+        "22",
+        "23"
+      ],
+      "__[]members": {
+        "__sub": "#dams@16F03",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "__sub": "@hydrangea@16B03",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "queens": {
+      "_type": "hc_group",
+      "_id": "28",
+      "name": "queens",
+      "title": "Queen Group",
+      "members": [
+        "24",
+        "25"
+      ],
+      "__[]members": {
+        "__sub": "#vulcanologist@17303",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "__sub": "@teasing@17003",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "humans": {
+      "_type": "hc_group",
+      "_id": "29",
+      "name": "humans",
+      "title": "Human Group",
+      "members": [
+        "23"
+      ],
+      "__[]members": {
+        "__sub": "#tribesman@17803",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "__sub": "@merchant@17403",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 5
+    },
+    "projects": {
+      "_type": "hc_group",
+      "_id": "30",
+      "name": "projects",
+      "title": "Project Infrastructure",
+      "__sub": "@flagging@17903",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "organizations": {
+      "_type": "hc_group",
+      "_id": "31",
+      "name": "organizations",
+      "title": "Organization infrastructure",
+      "__sub": "@caliper@17D03",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "guests": {
+      "_type": "hc_group",
+      "_id": "32",
+      "name": "guests",
+      "title": "Guests",
+      "members": [
+        "26"
+      ],
+      "__[]members": {
+        "__sub": "#usual@18503",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "__sub": "@drub@18103",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 5
+    },
+    "__sub": "@deceptive@16903",
+    "__dim": 7,
+    "__start": 0,
+    "__tot": 41,
+    "__cnt": 7
+  },
+  "acts": {
+    "descr": "actions branch",
+    "browse": {
+      "_type": "hc_perm",
+      "_id": "33",
+      "name": "browse",
+      "descr": "browsing permission",
+      "__sub": "@dustmen@18803",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "read": {
+      "_type": "hc_perm",
+      "_id": "34",
+      "name": "read",
+      "descr": "reading permission",
+      "__sub": "@bugbear@18C03",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "download": {
+      "_type": "hc_perm",
+      "_id": "35",
+      "name": "download",
+      "descr": "downloadng permission",
+      "__sub": "@ballyhoo@19003",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "write": {
+      "_type": "hc_perm",
+      "_id": "36",
+      "name": "write",
+      "descr": "modification permission",
+      "__sub": "@kitchenette@19403",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "remove": {
+      "_type": "hc_perm",
+      "_id": "37",
+      "name": "remove",
+      "descr": "removal permission",
+      "__sub": "@deluding@19803",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "execute": {
+      "_type": "hc_perm",
+      "_id": "38",
+      "name": "execute",
+      "descr": "execution permission",
+      "__sub": "@mountainsides@19C03",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "share": {
+      "_type": "hc_perm",
+      "_id": "39",
+      "name": "share",
+      "descr": "sharing permission",
+      "__sub": "@loll@1A003",
+      "__dim": 4,
+      "__start": 0,
+      "__tot": 4,
+      "__cnt": 4
+    },
+    "__sub": "@stresses@18603",
+    "__dim": 8,
+    "__start": 0,
+    "__tot": 36,
+    "__cnt": 8
+  },
+  "apps": {
+    "descr": "applications branch",
+    "ionapp": {
+      "_type": "hc_app",
+      "_id": "40",
+      "name": "ionapp",
+      "version": "1.0",
+      "title": "Ion Manager",
+      "cmdline": "ionapp",
+      "descr": "This app manages all ION databases",
+      "__sub": "@spite@1A603",
+      "__dim": 7,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 7
+    },
+    "qapp": {
+      "_type": "hc_app",
+      "_id": "41",
+      "name": "qapp",
+      "version": "1.0",
+      "title": "Queue Manager",
+      "script": "shell",
+      "cmdline": "qapp",
+      "descr": "This app manages queue operations and data",
+      "__sub": "@fluoresce@1AC03",
+      "__dim": 8,
+      "__start": 0,
+      "__tot": 8,
+      "__cnt": 8
+    },
+    "qsrv": {
+      "_type": "hc_app",
+      "_id": "42",
+      "name": "qsrv",
+      "version": "1.0",
+      "title": "QPride Server",
+      "descr": "This app supports HIVE services on hosts",
+      "__sub": "@yiddish@1B203",
+      "__dim": 6,
+      "__start": 0,
+      "__tot": 6,
+      "__cnt": 6
+    },
+    "__sub": "@sewer@1A403",
+    "__dim": 4,
+    "__start": 0,
+    "__tot": 25,
+    "__cnt": 4
+  },
+  "svcs": {
+    "descr": "services branch",
+    "qsrv": {
+      "_type": "hc_svc",
+      "_id": "43",
+      "name": "qsrv",
+      "version": "1.0",
+      "title": "Core HIVE service",
+      "descr": "This service maintains operations of HIVE nodes",
+      "categories": [
+        "system"
+      ],
+      "__[]categories": {
+        "__sub": "#thunderbolt@1BD03",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "svc-type": "pull",
+      "max-jobs": "1",
+      "nice": "0",
+      "parallel-jobs": "1",
+      "max-loops": "100",
+      "max-trials": "3",
+      "priority": "0",
+      "run-multithread": "1",
+      "active-job-reserve": "0",
+      "capacity-demand": "1",
+      "nograb-disconnect-after": "5",
+      "nograb-exit-after": "10",
+      "maxmem-soft-limit": "0",
+      "maxmem-hard-limit": "0",
+      "up-threads": "0",
+      "emails": [
+        "vahansim@gmail.com"
+      ],
+      "__[]emails": {
+        "__sub": "#hats@1BE03",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "sleep-time-seconds": "60000",
+      "delay-launch-seconds": "1",
+      "polite-exit-timeout-seconds": "60000",
+      "knockout-seconds": "900",
+      "request-restart-seconds": "1000",
+      "cleanup-days": "28",
+      "lazy-report-seconds": "10",
+      "delayed-action-seconds": "0",
+      "host": [
+        "QPrideSrv"
+      ],
+      "__[]host": {
+        "__sub": "#blowdrying@1BF03",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 1,
+        "__cnt": 1
+      },
+      "config": [
+        {
+          "version": "1",
+          "pars": [
+            {
+              "key": "par1",
+              "value": "val1",
+              "__sub": "@sheathe@1C303",
+              "__dim": 2,
+              "__start": 0,
+              "__tot": 2,
+              "__cnt": 2
+            },
+            {
+              "key": "par2",
+              "value": "val2",
+              "__sub": "@enrobe@1C603",
+              "__dim": 2,
+              "__start": 0,
+              "__tot": 2,
+              "__cnt": 2
+            },
+            {
+              "key": "host",
+              "value": [
+                "host123",
+                "hostgrroup123"
+              ],
+              "__[]value": {
+                "__sub": "#preservatives@1CB03",
+                "__dim": 2,
+                "__start": 0,
+                "__tot": 2,
+                "__cnt": 2
+              },
+              "__sub": "@epigrammatic@1C903",
+              "__dim": 2,
+              "__start": 0,
+              "__tot": 4,
+              "__cnt": 2
+            }
+          ],
+          "__[]pars": {
+            "__sub": "#blench@1C203",
+            "__dim": 3,
+            "__start": 0,
+            "__tot": 11,
+            "__cnt": 3
+          },
+          "app": "42",
+          "__sub": "@fuhrer@1C103",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 14,
+          "__cnt": 3
+        },
+        {
+          "name": "2",
+          "pars": [
+            {
+              "key": "par3",
+              "value": "val2",
+              "__sub": "@blight@1D003",
+              "__dim": 2,
+              "__start": 0,
+              "__tot": 2,
+              "__cnt": 2
+            },
+            {
+              "key": "par4",
+              "value": "val4",
+              "__sub": "@budgetary@1D203",
+              "__dim": 2,
+              "__start": 0,
+              "__tot": 2,
+              "__cnt": 2
+            },
+            {
+              "key": "host",
+              "value": [
+                "host456",
+                "hostgrroup456"
+              ],
+              "__[]value": {
+                "__sub": "#surveyors@1D603",
+                "__dim": 2,
+                "__start": 0,
+                "__tot": 2,
+                "__cnt": 2
+              },
+              "__sub": "@internalising@1D503",
+              "__dim": 2,
+              "__start": 0,
+              "__tot": 4,
+              "__cnt": 2
+            }
+          ],
+          "__[]pars": {
+            "__sub": "#steeples@1CF03",
+            "__dim": 3,
+            "__start": 0,
+            "__tot": 11,
+            "__cnt": 3
+          },
+          "app": "42",
+          "__sub": "@doubting@1CE03",
+          "__dim": 3,
+          "__start": 0,
+          "__tot": 14,
+          "__cnt": 3
+        }
+      ],
+      "__[]config": {
+        "__sub": "#baleen@1C003",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 30,
+        "__cnt": 2
+      },
+      "__sub": "@authenticating@1B903",
+      "__dim": 33,
+      "__start": 0,
+      "__tot": 66,
+      "__cnt": 33
+    },
+    "__sub": "@universally@1B703",
+    "__dim": 2,
+    "__start": 0,
+    "__tot": 68,
+    "__cnt": 2
+  },
+  "hosts": {
+    "descr": "hosts branch",
+    "QPrideSrv": {
+      "_type": "hc_host",
+      "_id": "44",
+      "name": "QPrideSrv",
+      "title": "HIVE orchestrator server",
+      "descr": "QPrideSrv is the main unit of HIVE orchestration",
+      "ip4": "eval-shell(uname -n)",
+      "category": [
+        "system",
+        "worker",
+        "storage"
+      ],
+      "__[]category": {
+        "__sub": "#chemosynthesis@1E003",
+        "__dim": 3,
+        "__start": 0,
+        "__tot": 3,
+        "__cnt": 3
+      },
+      "os": "Linux-x86_64",
+      "active": "true",
+      "cores": "32",
+      "memory": "512GB",
+      "storage": "4TB",
+      "capacity": "16",
+      "__sub": "@sourness@1DB03",
+      "__dim": 13,
+      "__start": 0,
+      "__tot": 16,
+      "__cnt": 13
+    },
+    "bee": {
+      "_type": "hc_host",
+      "_id": "45",
+      "name": "eval-shell(uname -n)",
+      "title": "HIVE default workstation",
+      "descr": "Basic type of a HIVE workstation",
+      "ip4": "eval-shell(nslookup comb | grep Server | awk \\'{print $2}\\')",
+      "category": [
+        "worker",
+        "storage"
+      ],
+      "__[]category": {
+        "__sub": "#gunpowder@1EB03",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "os": "Linux-x86_64",
+      "active": "true",
+      "cores": "48",
+      "memory": "256GB",
+      "storage": "2TB",
+      "capacity": "48",
+      "__sub": "@configuration@1E603",
+      "__dim": 13,
+      "__start": 0,
+      "__tot": 15,
+      "__cnt": 13
+    },
+    "comb": {
+      "_type": "hc_host",
+      "_id": "46",
+      "name": "eval-shell(uname -n)",
+      "title": "HIVE development unit",
+      "descr": "Development workstation with debugger, compiler and other developmental tools",
+      "cores": "24",
+      "memory": "256GB",
+      "storage": "24TB",
+      "capacity": "16",
+      "__sub": "@peartrees@1EF03",
+      "__dim": 9,
+      "__start": 0,
+      "__tot": 9,
+      "__cnt": 9
+    },
+    "workstations": {
+      "_type": "hc_hostgroup",
+      "_id": "47",
+      "members": [
+        "46",
+        "45"
+      ],
+      "__[]members": {
+        "__sub": "#vegetation@1F603",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "name": "Workstations",
+      "title": "Workstations group type",
+      "__sub": "@hampered@1F403",
+      "__dim": 5,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 5
+    },
+    "__sub": "@balconies@1D903",
+    "__dim": 5,
+    "__start": 0,
+    "__tot": 52,
+    "__cnt": 5
+  },
+  "procs": {
+    "descr": "processes branch",
+    "__sub": "@chintzy@1F903",
+    "__dim": 1,
+    "__start": 0,
+    "__tot": 1,
+    "__cnt": 1
+  },
+  "rules": [
+    {
+      "descr": "rules branch",
+      "__sub": "@shamed@1FC03",
+      "__dim": 1,
+      "__start": 0,
+      "__tot": 1,
+      "__cnt": 1
+    }
+  ],
+  "__[]rules": {
+    "__sub": "#quackish@1FB03",
+    "__dim": 1,
+    "__start": 0,
+    "__tot": 2,
+    "__cnt": 1
+  },
+  "devel_test": {
+    "_id": "155",
+    "memory": 2,
+    "storage": 1,
+    "os": "Linux",
+    "title": "DEVEL TEST",
+    "_type": "hc_devel_test"
+  },
+  "devel_test_light": {
+    "_id": "1555",
+    "_type": "hc_devel_test_light"
+  },
+  "system_last": {
+    "_id": "48",
+    "last_field": "true",
+    "hc_demo1": {
+      "_type": "type",
+      "_attribute": {
+        "filename": {
+          "_type": "string",
+          "__sub": "@menhir@20103",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@despicable@20003",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 1
+      },
+      "_inherit": [
+        "hc_user",
+        "hc_file"
+      ],
+      "__[]_inherit": {
+        "__sub": "#blockhead@20203",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "__sub": "@purify@1FF03",
+      "__dim": 3,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 3
+    },
+    "hc_demo2": {
+      "_type": "type",
+      "_fields": {
+        "filename": {
+          "_type": "string",
+          "__sub": "@postmarks@20603",
+          "__dim": 1,
+          "__start": 0,
+          "__tot": 1,
+          "__cnt": 1
+        },
+        "__sub": "@cheeses@20503",
+        "__dim": 1,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 1
+      },
+      "_inherit": [
+        "hc_user",
+        "hc_file"
+      ],
+      "__[]_inherit": {
+        "__sub": "#admirable@20703",
+        "__dim": 2,
+        "__start": 0,
+        "__tot": 2,
+        "__cnt": 2
+      },
+      "__sub": "@cinnamon@20403",
+      "__dim": 3,
+      "__start": 0,
+      "__tot": 7,
+      "__cnt": 3
+    },
+    "__sub": "@keepsakes@1FE03",
+    "__dim": 4,
+    "__start": 0,
+    "__tot": 18,
+    "__cnt": 4
+  },
+  "__sub": "$root",
+  "__dim": 12,
+  "__start": 0,
+  "__tot": 850,
+  "__cnt": 12
+}

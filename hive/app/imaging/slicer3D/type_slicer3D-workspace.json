@@ -1,0 +1,58 @@
+{
+    "268": {
+        "_id": "$type.slicer3D-workspace",
+        "_type": "type",
+        "name": "slicer3D-workspace",
+        "title": "Slicer Workspace",
+        "description": "//\nlocation: hive.app.imaging.slicer3D",
+        "fields": {
+            "1.0": {
+                "field_name": "cmd",
+                "field_title": "Command",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false
+            },
+            "1.2": {
+                "field_name": "uID",
+                "field_title": "Unique ID",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_key_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.u-file"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,41 @@
+{
+    "79": {
+        "_id": "$type.svc-sysop-base",
+        "_type": "type",
+        "name": "svc-sysop-base",
+        "title": "System operations",
+        "description": "//\nlocation: vlib.qlib",
+        "parent": {
+            "7": "$type.process"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

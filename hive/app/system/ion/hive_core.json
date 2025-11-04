@@ -1,0 +1,58 @@
+"_core:descriptions" : {
+	"descr" : "description of system variables",
+	 
+	"_type" : "type of the object",
+	"_id" : "identifier of the object",
+	"_field" : "list of fields",
+	"_abstr" : "abstract type",
+	"_inherit" : "list of types this type inherits from",
+				 
+	"_limit" :  { // synonym: _constraint
+		
+		"descr" : "constraints on fields",
+		 "eval-c++" : "C/C++ evaluation constructs",
+		 "eval-js" : "Javascript evaluation constructs",
+		 "range" :  {
+		      "min" : "minimal value",
+		      "max" : "maximal value"  
+		 }
+	},
+	"_dic" : { 
+		"_field": { } ,  // list of fields from this data source
+		"_type" : "existing_type",  
+		"choice" : [ // strictly constrained list of elements 
+	 		"element1" , 
+	 		"element2" , 
+	 		{ 
+	 			"title" : "element3 title here",
+	 			"value" : "element3 value here" 
+	 		}
+		 ],
+		 "collect" : "expression to collect for a value from sele cted elements of dictionary: value by default",
+		 "url" : "http:/domain.com/page" ,
+		 "mode" : "json|csv"
+	},
+	
+	"_unit" :  "an array definiing units of measures for measurable variables [{value: 1, title:'Byte'},{value:10,title:'DecaByte'}]",  
+	"_rdonly" :  "writeability of the fields can be writeable=0|false readonly=1|true programmatically=2 onlyonce=4. Default for this field is false.",
+	"_vital" : "non mandatory fields, can be true|false. Default for this field is false.",
+	"_default" : "default value. No default value exists for this field",
+	"_plural" : "multivalue field can be true|false. Default for this field is false.",
+	"_infect" : "list of actions infected.",
+	
+	"_layout" : "complex fields can be either array|list, the default is list",	
+	"_hidden" : "hidden fields can be true|false. Default for this field is false.",
+	"_pswd" : "password fields cannot be seen.",  
+	"_role" : "can be input|output|parameter|etc. parameter is default", 
+	"_order" : "order by which elements are sorted during visualizations",
+	
+	"_prm" : [
+		{
+			"access" : "level of access: read, browse, execute",
+			"actions" : "for example one may allow read for the field if level of access is browse" 
+		}
+	],				
+	"_dep" : "list of fields used for propagation of permission rules" // permissions and security
+	
+}
+

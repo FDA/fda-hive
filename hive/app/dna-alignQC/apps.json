@@ -1,0 +1,28 @@
+{
+    "47815": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Targeted-Alignment-QC",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-targetQC",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Post-Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

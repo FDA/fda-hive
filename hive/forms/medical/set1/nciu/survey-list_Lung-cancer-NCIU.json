@@ -1,0 +1,127 @@
+{
+    "33583": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "Lung-cancer-NCIU",
+        "survey": {
+            "10": {
+                "10.0": {
+                    "name": "$type.nciu2_demographics",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "11": {
+                "11.0": {
+                    "name": "$type.nciu2_exposures",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "12": {
+                "12.0": {
+                    "name": "$type.nciu2_family_history",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "13": {
+                "13.0": {
+                    "name": "$type.nciu2_diagnosis",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "14": {
+                "14.0": {
+                    "name": "$type.nciu2_treatment",
+                    "order": 5,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "15": {
+                "15.0": {
+                    "name": "$type.nciu2_follow_up",
+                    "order": 6,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "16": {
+                "16.0": {
+                    "name": "$type.nciu2_molecular_test",
+                    "order": 8,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "17": {
+                "17.0": {
+                    "name": "$type.nciu2_pathology_detail",
+                    "order": 9,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "28": {
+                "28.0": {
+                    "name": "$type.nciu2_adverse_event",
+                    "order": 7,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

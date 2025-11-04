@@ -1,0 +1,739 @@
+{
+    "139231": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_default": true,
+        "is_obj_action": true,
+        "name": "Open",
+        "order": 0,
+        "path": "/open",
+        "required_permission": 3,
+        "single_obj_only": true,
+        "target": "new",
+        "type_name": "process+",
+        "url": "?cmd=$(submitter)&id=$(ids)",
+        "title": "Open",
+        "confirmation": false,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "29": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "plus",
+        "name": "create",
+        "order": 0,
+        "required_permission": 0,
+        "target": "true",
+        "type_name": "base+",
+        "url": "?cmd=act&act=create&type=$(type)",
+        "title": "Create",
+        "description": "Create an object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "28": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "right",
+        "name": "search",
+        "order": 0,
+        "required_permission": 0,
+        "target": "ajax",
+        "type_name": "base+",
+        "url": "?cmd=objList&type=$(type)&prop_val=$(search)&start=$(start)&cnt=$(cnt)",
+        "title": "Search",
+        "description": "create",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "27": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "eye",
+        "is_obj_action": true,
+        "name": "detail",
+        "order": 10,
+        "required_permission": 2,
+        "single_obj_only": true,
+        "target": "true",
+        "type_name": "base+",
+        "url": "?cmd=record&ids=$(ids)&types=$(types)&readonly=1",
+        "title": "Details",
+        "description": "See objects metadata",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "26": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "img/edit.png",
+        "is_obj_action": true,
+        "name": "edit",
+        "order": 9,
+        "path": "/detail/edit",
+        "required_permission": 4,
+        "single_obj_only": true,
+        "target": "true",
+        "type_name": "base+",
+        "url": "?cmd=record&ids=$(ids)&types=$(types)",
+        "title": "Edit",
+        "description": "Examine, review, edit details of the object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "25": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "export_json",
+        "order": 10,
+        "path": "/Export/export_json",
+        "required_permission": 2,
+        "target": "true",
+        "type_name": "base+",
+        "url": "?cmd=propget&mode=json&ids=$(ids)&raw=1",
+        "title": "as JSON",
+        "description": "Export the object metadata",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "24": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "copy",
+        "is_obj_action": true,
+        "name": "copy",
+        "order": 4,
+        "path": "/cut/copy",
+        "required_permission": 2,
+        "type_name": "base+",
+        "url": "javascript:gClip.copy($(srcFolder),$(ids))",
+        "title": "Copy",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "23": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "cut",
+        "is_obj_action": true,
+        "name": "cut",
+        "order": 4,
+        "path": "/cut",
+        "required_permission": 2,
+        "type_name": "base+",
+        "url": "javascript:gClip.cut($(srcFolder),$(ids))",
+        "title": "Cut",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "22": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "confirmation": true,
+        "icon": "delete",
+        "is_obj_action": true,
+        "name": "delete",
+        "order": 3,
+        "required_permission": 16,
+        "response": "json",
+        "type_name": "base+",
+        "url": "javascript:gClip._delete( $(s:srcFolder),$(s:dcls),$(s:ids) )",
+        "title": "Delete",
+        "description": "Delete object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "20": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "share",
+        "is_obj_action": true,
+        "name": "share",
+        "order": 8,
+        "required_permission": 96,
+        "target": "true",
+        "type_name": "base+",
+        "url": "?cmd=sharing&ids=$(ids)",
+        "title": "Share",
+        "description": "share the object with other users of the system; esablish permissions.",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "19": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "img/edit.png",
+        "is_obj_action": true,
+        "name": "rename",
+        "order": 10,
+        "path": "/detail/rename",
+        "required_permission": 4,
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "file+,folder+,ionDB+,process+",
+        "url": "?cmd=propset&prop.$(ids).name.1=$(prompt_res)",
+        "title": "Rename",
+        "description": "Quickly rename an object.",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "18": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "folder-new",
+        "is_obj_action": true,
+        "name": "subfolder",
+        "order": 7,
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "directory+",
+        "url": "?cmd=folderCreate&ids=$(ids)&name=$(prompt_res)",
+        "title": "Create",
+        "description": "Create a folder",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "17": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "paste",
+        "is_obj_action": true,
+        "name": "paste",
+        "order": 6,
+        "required_permission": 4,
+        "single_obj_only": true,
+        "type_name": "directory+",
+        "url": "javascript:gClip.paste($(ids),$(s:dcls))",
+        "title": "Paste",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "16": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "download",
+        "is_obj_action": true,
+        "name": "download",
+        "order": -1,
+        "required_permission": 128,
+        "single_obj_only": true,
+        "type_name": "u-file+",
+        "url": "?cmd=objFile&ids=$(ids)",
+        "title": "Download file to local computer",
+        "description": "Download file",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "15": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2systemImage",
+        "order": 12,
+        "path": "/Convert/cast2systemImage",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "image",
+        "url": "?cmd=scast&type=system-image&ids=$(ids)",
+        "title": "Convert to system image",
+        "description": "Convert from Image to System Image",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "14": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2multimedia",
+        "order": 12,
+        "path": "/Convert/cast2multimedia",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=scast&type=multimedia&ids=$(ids)",
+        "title": "Convert to multimedia object",
+        "description": "Convert from File to Multimedia Object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "13": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "procClone",
+        "order": 12,
+        "required_permission": 2,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "process+",
+        "url": "?cmd=-qpProcClone&src_ids=$(ids)",
+        "title": "Resubmit",
+        "description": "Resubmit the process with same parameters (without confirmation)",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,368 @@
+{
+    "323": {
+        "_id": "$type.svc-spectraPeakDetection",
+        "_type": "type",
+        "name": "svc-spectraPeakDetection",
+        "title": "Mass Spectroscopy Peak Detection",
+        "description": "//Mass Spectroscopy Peak Detection\nlocation: hive.app.spectral.msPeakDetection",
+        "parent": {
+            "1": "$type.svc-spectral-base"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "Baseline",
+                "field_title": "Baselining Parameters",
+                "field_type": "list",
+                "field_order": 8,
+                "field_description": "Baseline Parameters"
+            },
+            "1.2": {
+                "field_name": "Daubechies",
+                "field_title": "Daubechies Wavelet Number",
+                "field_type": "integer",
+                "field_parent": "Denoising",
+                "field_default_value": "20",
+                "field_constraint": "choice",
+                "field_constraint_data": "4|12|20",
+                "field_description": "the number of Daubechies wavelet representing smoothed spectrum in denoising step"
+            },
+            "1.3": {
+                "field_name": "daubechiesFastFourier",
+                "field_title": "Number of Daubechies for Fast Fourier Analysis",
+                "field_type": "integer",
+                "field_parent": "fastFourierAnalysis",
+                "field_default_value": "20",
+                "field_description": "the number of wave packets for Fast Fourier analysis"
+            },
+            "1.4": {
+                "field_name": "DaubechiesFilter",
+                "field_title": "Underrepresented frequency filter (Percent)",
+                "field_type": "real",
+                "field_parent": "Denoising",
+                "field_default_value": "15",
+                "field_constraint": "choice+",
+                "field_constraint_data": "0|5|10|15|...|..|100",
+                "field_description": "all the wavelets having insensity less than 66% of the max are cut off"
+            },
+            "1.5": {
+                "field_name": "Denoising",
+                "field_title": "Denoising Parameters",
+                "field_type": "array",
+                "field_order": 6,
+                "field_description": "Denosing Parameters"
+            },
+            "1.6": {
+                "field_name": "fastFourierAnalysis",
+                "field_title": "Fast Fourier Analysis",
+                "field_type": "array",
+                "field_order": 7,
+                "field_description": "Fast Fourier analysis"
+            },
+            "1.7": {
+                "field_name": "findUnknownPeak",
+                "field_title": "Find The Unknown Peak",
+                "field_type": "bool",
+                "field_parent": "peakDetection",
+                "field_order": 3,
+                "field_default_value": "1",
+                "field_description": "Look for unknown peaks otherwise only known peaks will be detected"
+            },
+            "1.8": {
+                "field_name": "maxFastFourier",
+                "field_title": "the cutoff for highest frequency components",
+                "field_type": "integer",
+                "field_parent": "fastFourierAnalysis",
+                "field_default_value": "10000",
+                "field_description": "the cutoff for highest frequency components"
+            },
+            "1.9": {
+                "field_name": "maxFrequencyBaseline",
+                "field_title": "Maximum Accepted Frequency",
+                "field_type": "integer",
+                "field_parent": "Baseline",
+                "field_default_value": "100",
+                "field_constraint": "choice+",
+                "field_constraint_data": "0|...|1000",
+                "field_description": "all the peaks above this frequency will be cut off of the baseline"
+            },
+            "1.10": {
+                "field_name": "maxPeakCount",
+                "field_title": "Maximum Number of Peak Detected",
+                "field_type": "integer",
+                "field_parent": "peakDetection",
+                "field_order": 2,
+                "field_default_value": "300",
+                "field_constraint": "choice+",
+                "field_constraint_data": "1|...|1000",
+                "field_description": "The maximum number of peak detected"
+            },
+            "1.11": {
+                "field_name": "max_satelite_intensity",
+                "field_title": "Max Intensity",
+                "field_type": "real",
+                "field_parent": "satelites",
+                "field_order": 2,
+                "field_description": "Maximum Intensity for satellite peaks"
+            },
+            "1.12": {
+                "field_name": "minFastFourier",
+                "field_title": "the cutoff for lowest frequency components",
+                "field_type": "integer",
+                "field_parent": "fastFourierAnalysis",
+                "field_default_value": "10",
+                "field_description": "the cutoff for lowest frequency components"
+            },
+            "1.13": {
+                "field_name": "min_satelite_intensity",
+                "field_title": "Min Intensity",
+                "field_type": "real",
+                "field_parent": "satelites",
+                "field_order": 1,
+                "field_description": "Minimum Intensity for satellite peaks"
+            },
+            "1.14": {
+                "field_name": "outPutPeakFile",
+                "field_title": "Output Peak File",
+                "field_type": "bool",
+                "field_parent": "peakDetection",
+                "field_order": 5,
+                "field_default_value": "1",
+                "field_description": "Output the peak files"
+            },
+            "1.15": {
+                "field_name": "peakDetection",
+                "field_title": "Peak Detection Parameters",
+                "field_type": "list",
+                "field_order": 9,
+                "field_description": "Peak Detection Parameters"
+            },
+            "1.16": {
+                "field_name": "peakShape",
+                "field_title": "Peak Shape Parameters",
+                "field_type": "list",
+                "field_order": 10,
+                "field_description": "Peak Shape Parameters"
+            },
+            "1.17": {
+                "field_name": "Resolution",
+                "field_title": "Spectrum Resolution",
+                "field_type": "real",
+                "field_parent": "Spectrum",
+                "field_order": 1,
+                "field_default_value": "0.5",
+                "field_constraint": "choice+",
+                "field_constraint_data": "0.01|...|0.5",
+                "field_description": "Measures ability to resolve spectral features and bands into their separate components"
+            },
+            "1.18": {
+                "field_name": "satelites",
+                "field_title": "Satellites",
+                "field_type": "array",
+                "field_parent": "peakShape",
+                "field_is_multi_fg": true
+            },
+            "1.19": {
+                "field_name": "satelite_shift",
+                "field_title": "Shift",
+                "field_type": "integer",
+                "field_parent": "satelites",
+                "field_order": 3
+            },
+            "1.20": {
+                "field_name": "satelliteControlNum",
+                "field_title": "Satellite Control Number",
+                "field_type": "integer",
+                "field_parent": "peakShape",
+                "field_order": 3,
+                "field_constraint": "choice",
+                "field_description": "the peak used for autodetermination of satellite intensities"
+            },
+            "1.21": {
+                "field_name": "savGolDegree",
+                "field_title": "the degree of the polynomial",
+                "field_type": "integer",
+                "field_parent": "SavitskyGolayParameter",
+                "field_default_value": "8",
+                "field_constraint": "choice+",
+                "field_constraint_data": "1|2|3|4|5|6|7|8|9|...|...|20",
+                "field_description": "SavitskyGolayParameter the degree of the polynomial"
+            },
+            "1.22": {
+                "field_name": "savGolLeft",
+                "field_title": "Number of Points From Left",
+                "field_type": "integer",
+                "field_parent": "SavitskyGolayParameter",
+                "field_default_value": "5",
+                "field_constraint": "choice+",
+                "field_constraint_data": "2|3|4|5|6|7|8|9|10",
+                "field_description": "SavitskyGolayParameter Left"
+            },
+            "1.23": {
+                "field_name": "savGolRight",
+                "field_title": "Number of Points From Right",
+                "field_type": "integer",
+                "field_parent": "SavitskyGolayParameter",
+                "field_default_value": "5",
+                "field_constraint": "choice+",
+                "field_constraint_data": "2|3|4|5|6|7|8|9|10",
+                "field_description": "SavitskyGolayParameter Right"
+            },
+            "1.24": {
+                "field_name": "SavitskyGolayParameter",
+                "field_title": "Savitsky-Golay",
+                "field_type": "array",
+                "field_parent": "Smoothing",
+                "field_description": "Savitsky-Golay algorithm Parameters"
+            },
+            "1.25": {
+                "field_name": "scaleOut",
+                "field_title": "Scale Out",
+                "field_type": "bool",
+                "field_parent": "peakDetection",
+                "field_order": 6,
+                "field_default_value": "1",
+                "field_description": "Scale to a sum of 1 for all known peaks"
+            },
+            "1.26": {
+                "field_name": "selfDir",
+                "field_title": "flag to the object directory or process directory",
+                "field_type": "integer",
+                "field_order": 0,
+                "field_default_value": "0",
+                "field_description": "Flag to object directory or process directory"
+            },
+            "1.27": {
+                "field_name": "shiftIsoPeaks",
+                "field_title": "Shift Iso Peaks",
+                "field_type": "integer",
+                "field_parent": "peakDetection",
+                "field_order": 7,
+                "field_default_value": "0",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1000|-900|...|...|900|1000",
+                "field_description": "Min: -1000 ; Max: 1000"
+            },
+            "1.28": {
+                "field_name": "showOutcome",
+                "field_title": "Show Outcome",
+                "field_type": "integer",
+                "field_parent": "peakDetection",
+                "field_order": 4,
+                "field_default_value": "1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "1///First Stage|2///Second Stage",
+                "field_description": "show outcome for peak detection"
+            },
+            "1.29": {
+                "field_name": "Smoothing",
+                "field_title": "Smoothing Parameters",
+                "field_type": "list",
+                "field_order": 5,
+                "field_description": "Smoothing Parameters for Spectrum"
+            },
+            "1.30": {
+                "field_name": "SpectraFile",
+                "field_title": "Spectra Files",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "spectra-MS,u-file",
+                "field_description": "Data using for Mass Spectroscopy"
+            },
+            "1.31": {
+                "field_name": "SpectraLibrary",
+                "field_title": "Compound Library",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_constraint": "type",
+                "field_constraint_data": "spectra-lib",
+                "field_description": "Library using for the peak mapping"
+            },
+            "1.32": {
+                "field_name": "Spectrum",
+                "field_title": "Spectrum Parameters",
+                "field_type": "list",
+                "field_order": 4,
+                "field_description": "Parameters for spectrum"
+            },
+            "1.33": {
+                "field_name": "thresholdBaseline",
+                "field_title": "Threshold for Baselining",
+                "field_type": "real",
+                "field_parent": "Baseline",
+                "field_default_value": "0.0",
+                "field_description": "the threshold for baselining"
+            },
+            "1.34": {
+                "field_name": "thresholdPeakDetection",
+                "field_title": "Threshold for peakDetection",
+                "field_type": "real",
+                "field_parent": "peakDetection",
+                "field_order": 1,
+                "field_default_value": "0.1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "0.1 |0.2|0.3|...|0.9|10",
+                "field_description": "peaks having total insensity less than this fraction of the total are not accumulated"
+            },
+            "1.35": {
+                "field_name": "topPeakNum",
+                "field_title": "Top Peak Number",
+                "field_type": "integer",
+                "field_parent": "Spectrum",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_description": "TopPeakNum2 for spectrum params"
+            },
+            "1.36": {
+                "field_name": "widerLeftPeak",
+                "field_title": "Wider Left Peak",
+                "field_type": "real",
+                "field_parent": "peakShape",
+                "field_order": 1,
+                "field_default_value": "1.0",
+                "field_description": "Min: 0 ; Max: 4"
+            },
+            "1.37": {
+                "field_name": "widerRightPeak",
+                "field_title": "Wider Right Peak",
+                "field_type": "real",
+                "field_parent": "peakShape",
+                "field_order": 2,
+                "field_default_value": "1.0",
+                "field_description": "Min: 0 ; Max : 2"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

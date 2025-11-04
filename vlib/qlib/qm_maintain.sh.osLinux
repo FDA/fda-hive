@@ -1,0 +1,78 @@
+#!/bin/bash
+#/*
+# *  ::718604!
+# * 
+# * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+# * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+# * Affiliation: Food and Drug Administration (1), George Washington University (2)
+# * 
+# * All rights Reserved.
+# * 
+# * The MIT License (MIT)
+# * 
+# * Permission is hereby granted, free of charge, to any person obtaining
+# * a copy of this software and associated documentation files (the "Software"),
+# * to deal in the Software without restriction, including without limitation
+# * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# * and/or sell copies of the Software, and to permit persons to whom the
+# * Software is furnished to do so, subject to the following conditions:
+# * 
+# * The above copyright notice and this permission notice shall be included
+# * in all copies or substantial portions of the Software.
+# * 
+# * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# * DEALINGS IN THE SOFTWARE.
+# */
+
+source ~/.hive_bash_rc
+
+ps -f -u `id -u` | grep  "`basename $0`" | grep -v " $$ " >/dev/null
+if [[ $? -eq 0 ]]; then
+    # another copy is running, exit
+    exit 0
+fi
+
+nm=`basename $0 .sh.os${os}`
+
+ISUP=`echo "select MIN(IsUp) from QPSvc where name in ('qm', 'housekeeper')" | qdb -N`
+if [[ ${ISUP} -eq 0 ]]; then
+    exit 0;
+fi
+
+HTMP=`echo "select val from QPCfg where par = 'qm.tempDirectory'" | qdb -N`
+now=`date '+%j'`
+
+exec 2>&1 1>>${HTMP}${nm}_${USER}.${now}.log
+if [[ ! -d "${HTMP}" ]]; then
+    echo "qm.tempDirectory not valid path ${HTMP}"
+    exit 1
+fi
+
+RESROOT=`echo "select val from QPCfg where par = 'qm.resourceRoot'" | qdb -N`
+if [[ ! -d "${RESROOT}" ]]; then
+    echo "qm.resourceRoot not valid path ${RESROOT}"
+    exit 1
+fi
+
+export LD_LIBRARY_PATH=${RESROOT}:${LD_LIBRARY_PATH}
+
+# update system core
+# prooved to be distructive, disabled for now
+#${RESROOT}/qapp.osLinux logLevel -1 -init ${RESROOT} || exit 1
+
+# request housekeeper if not queued (TODO move to scheduler)
+HKEEP_QUEUE=`echo "select count(*) from QPReq where stat = 1 and act = 2 and svcid in (select svcid from QPSvc where name = 'housekeeper')" | qdb -N`
+if [[ ${HKEEP_QUEUE} -lt 1 ]]; then
+    ${RESROOT}/qapp.osLinux -user qpride -reqSubmit housekeeper -setForm cmd=update-usage -reqSetAction run
+    echo "housekeeper requested ($?)"
+fi
+echo 'quit' | ${RESROOT}/qsrv.osLinux setserviceName housekeeper logLevel -1 maintain 1
+echo "maintainance done ($?)"
+echo 'quit' | ${RESROOT}/qsrv.osLinux setserviceName housekeeper logLevel -1 emails 100
+echo 'SELECT txt FROM QPLog WHERE jobID IS NULL AND txt LIKE "%emails:%" ORDER BY cdate DESC LIMIT 1;' | qdb -N
+echo "emails done ($?)"

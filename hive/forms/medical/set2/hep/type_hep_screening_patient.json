@@ -1,0 +1,88 @@
+{
+    "516": {
+        "_id": "$type.hep_screening_patient",
+        "_type": "type",
+        "name": "hep_screening_patient",
+        "title": "Screening Questions For Patient",
+        "fields": {
+            "1.1": {
+                "field_name": "13_yo",
+                "field_title": "Are you 13 years old or older?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "diagnosed_seizures",
+                "field_title": "Were you diagnosed with seizures at or after the age of 8?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "absence_myoclonus_convulsion",
+                "field_title": "Have you had at least 1 absence, myoclonus or generalized tonic-clonic convulsion in the 6 months prior to treatment?",
+                "field_type": "bool",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "medication_seizures",
+                "field_title": "Have you been on medication for seizures for less than 12 months?",
+                "field_type": "bool",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "medications_history",
+                "field_title": "Can you provide a complete history of your medications (including doses and the approximate dates you were started on them)?",
+                "field_type": "bool",
+                "field_order": 5
+            },
+            "1.6": {
+                "field_name": "seizures_pregnancy",
+                "field_title": "Have ALL of your seizures occurred during pregnancy only?",
+                "field_type": "bool",
+                "field_order": 6
+            },
+            "1.7": {
+                "field_name": "drug_alcohol_abuse",
+                "field_title": "Have you been diagnosed with chronic drug or alcohol abuse within the last 2 years?",
+                "field_type": "bool",
+                "field_order": 7
+            },
+            "1.8": {
+                "field_name": "abuse_interferes_daily_living",
+                "field_title": "Clarify if abuse interferes with activities of daily living:",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(drug_alcohol_abuse)=='true'"
+            },
+            "1.9": {
+                "field_name": "abuse_interferes_daily_living_exclude",
+                "field_title": "If 'Yes\", exclude:",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(abuse_interferes_daily_living)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

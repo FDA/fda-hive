@@ -1,0 +1,23 @@
+{
+    "297": {
+        "_id": "$upsert()",
+        "_type": "sysappdep",
+        "name": "dna-metaphlan",
+        "executable": {
+            "2": "docker run --detach --quiet --rm -it --network host -v ${DB._dir}:/metaphlan/mdb -v ${input1._dir}:/metaphlan/data/input1 -v ${input2._dir}:/metaphlan/data/input2 -v ${._dir}:/metaphlan/data/output -w /metaphlan kraken-metaphlan-image -c \"metaphlan /metaphlan/data/input1/_.fastq.gz,/metaphlan/data/input2/_.fastq.gz --input_type fastq --bowtie2out /metaphlan/data/output/bowtie.bz2 --nproc 24 -o /metaphlan/data/output/out.txt --bowtie2db /metaphlan/mdb\""
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

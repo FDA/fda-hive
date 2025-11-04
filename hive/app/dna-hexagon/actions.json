@@ -1,0 +1,92 @@
+{
+    "181": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "confirmation": false,
+        "icon": "hive-hexagon",
+        "is_obj_action": true,
+        "name": "hexagon_nuc_read",
+        "order": -2,
+        "required_permission": 2,
+        "single_obj_only": false,
+        "target": "true",
+        "type_name": "nuc-read",
+        "url": "?cmd=menu&root=Portal&selected=Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon&query=$(ids)",
+        "title": "Hive-hexagon",
+        "description": "Align using hive-hexagon",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "180": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "confirmation": false,
+        "icon": "hive-hexagon",
+        "is_obj_action": true,
+        "name": "hexagon_genome",
+        "order": -2,
+        "required_permission": 2,
+        "single_obj_only": false,
+        "target": "true",
+        "type_name": "genome",
+        "url": "?cmd=menu&root=Portal&selected=Sequence_Alignment_on_Genome/DNA-seq/HIVE-Hexagon&subject=$(ids)",
+        "title": "Hive-hexagon",
+        "description": "Align using hive-hexagon",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

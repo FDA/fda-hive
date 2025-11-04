@@ -1,0 +1,45 @@
+{
+    "314": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2spectra",
+        "order": 12,
+        "path": "/Convert/To Spectra/cast2spectra",
+        "required_permission": 4,
+        "target": "new",
+        "type_name": "u-file",
+        "url": "?cmd=spectraPeakDetection&SpectraFile=$(ids)&selfDir=1",
+        "title": "Spectra",
+        "description": "Convert file formatted as CSV to a Spectra object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

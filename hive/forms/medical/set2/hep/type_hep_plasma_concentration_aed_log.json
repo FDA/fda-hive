@@ -1,0 +1,143 @@
+{
+    "513": {
+        "_id": "$type.hep_plasma_concentration_aed_log",
+        "_type": "type",
+        "name": "hep_plasma_concentration_aed_log",
+        "title": "Plasma Concentration Anti-Epileptic Drug (AED) Log",
+        "fields": {
+            "1.1": {
+                "field_name": "general_instructions",
+                "field_type": "string",
+                "field_order": 0.5,
+                "field_constraint_description": "description",
+                "field_description": "<h2>GENERAL INSTRUCTIONS</h2><br>\n\nThe Plasma Concentration Anti-Epileptic Drug (AED) Log tracks the study blood draw regimen for an individual study participant/subject across the duration of the study, in a log format. Additional pages may be required to capture the number of blood draws included in each study. For this reason, page numbers should be recorded. <br><br>\n\nFor each blood draw record the Name, Type, and Formulation of AED, Date and Time of Blood Draw, Amount of Last Dose Before Blood Draw, Date and Time of Last Dose Before Blood Draw, Plasma Concentration Result, Clinically Significant Non Adherence, and Comments.\n"
+            },
+            "1.2": {
+                "field_name": "aed_log_parent",
+                "field_title": "Please record all plasma concentrations over the course of the study",
+                "field_type": "array",
+                "field_order": 1,
+                "field_is_multi_fg": true
+            },
+            "1.3": {
+                "field_name": "aed_type",
+                "field_title": "AED Type",
+                "field_type": "string",
+                "field_parent": "aed_log_parent",
+                "field_order": 1,
+                "field_constraint_data": "Generic|Brand|Unknown"
+            },
+            "1.4": {
+                "field_name": "aed_name",
+                "field_title": "AED Name",
+                "field_type": "string",
+                "field_parent": "aed_log_parent",
+                "field_order": 2
+            },
+            "1.5": {
+                "field_name": "formulation",
+                "field_title": "Formulation",
+                "field_type": "string",
+                "field_parent": "aed_log_parent",
+                "field_order": 3,
+                "field_constraint_data": "IR|XR/ER|Other"
+            },
+            "1.6": {
+                "field_name": "other_formulation",
+                "field_title": "Formulation other",
+                "field_type": "text",
+                "field_parent": "aed_log_parent",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(formulation)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.7": {
+                "field_name": "blood_draw_datetime",
+                "field_title": "Date and Time of Blood Draw",
+                "field_type": "datetime",
+                "field_parent": "aed_log_parent",
+                "field_order": 5,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.8": {
+                "field_name": "last_dose",
+                "field_title": "Last Dose Before Blood Draw (Specify Units: g, mg, mcg, or unknown)",
+                "field_type": "string",
+                "field_parent": "aed_log_parent",
+                "field_order": 5
+            },
+            "1.9": {
+                "field_name": "last_dose_datetime",
+                "field_title": "Date and Time of Last Dose Before Blood Draw",
+                "field_type": "datetime",
+                "field_parent": "aed_log_parent",
+                "field_order": 7,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.10": {
+                "field_name": "plasma_concentration_result",
+                "field_title": "Plasma Concentration Result (Specify Units)",
+                "field_type": "string",
+                "field_parent": "aed_log_parent",
+                "field_order": 8,
+                "field_constraint_data": "is_disabled_fg=$(plasma_concentration_result_nd)=='true'"
+            },
+            "1.11": {
+                "field_name": "plasma_concentration_result_nd",
+                "field_title": "None detected",
+                "field_type": "bool",
+                "field_parent": "aed_log_parent",
+                "field_order": 9,
+                "field_constraint_description": "checkbox"
+            },
+            "1.12": {
+                "field_name": "non_compliance",
+                "field_title": "Non-compliance?",
+                "field_type": "bool",
+                "field_parent": "aed_log_parent",
+                "field_order": 10
+            },
+            "1.13": {
+                "field_name": "comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_parent": "aed_log_parent",
+                "field_order": 11
+            },
+            "1.14": {
+                "field_name": "missed_medication",
+                "field_title": "Has the patient missed any medication in the past week?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.15": {
+                "field_name": "missed_medication_comments",
+                "field_title": "If Yes, please indicate under comments",
+                "field_type": "text",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(missed_medication)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,196 @@
+
+"users" : [
+	
+	{
+		"_type" : "hc_user",
+		"_suid" : "sys::user::qpride",
+		"_id" : "$newid()",
+		
+		
+		"fst_name" : "QPride",
+		"lst_name" : "Service",
+		"is_admin" : true,
+		"email" : "qpride@hive"
+		
+	},
+	
+	{
+		"_type" : "hc_user",
+		"_suid" : "sys::user::creator",
+		"_id" : "$newid()",
+		
+		"fst_name" : "nomiS-HIVE-creator",
+		"lst_name" : "Vahan Simonyan",
+		"is_admin" : true,
+		"email" : "vahansim@gmail.com",
+		"passwd" :"-install-only-"
+		
+		
+	},
+	
+	{
+		"_type" : "hc_user",
+		"_suid" : "sys::user::queen::data",
+		"_id" : "$newid()",
+		
+		"fst_name" : "Data",
+		"lst_name" : "Queen"
+		
+		 
+	},
+	
+	{
+		"_type" : "hc_user",
+		"_suid" : "sys::user::queen::app",
+		"_id" : "$newid()",
+		
+		"fst_name" : "Application",
+		"lst_name" : "Queen"
+	},
+	
+	
+	{
+		"_type" : "hc_user",
+		"_suid" : "sys::user::guest",
+		"_id" : "$newid()",
+		
+		"fst_name" : "Guest", 
+		"lst_name" : "Unregistered",
+		"email" : "scream@world.all",
+		"passwd": "guess"
+	}
+	
+],
+
+	
+"groups" : [
+
+	{ 
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+		
+		"name" : "systems",
+		"title" : "System group",
+		
+		"members" : [
+			"$root.users[_suid=sys::user::qpride]._id",
+			"$root.users[_suid=sys::user::creator]._id"
+		]
+	},
+	
+	
+	{
+	 
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+	
+		"name" : "queens",
+		"title" : "Queen Group",
+		
+		"members" : [
+			"$root.users[_suid=sys::user::queen::data]._id",
+			"$root.users[_suid=sys::user::queen::app]._id"
+		]
+	},
+	
+
+	{ 
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+		
+		"name" : "delevelopers",
+		"title" : "Developer group",
+		
+		"members" : [
+			"$root.users[_suid=sys::user::creator]._id"
+		]
+	},
+
+	
+	{
+		"descr" : "actual user accounts",
+		
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+	
+		"name" : "humans",
+		"title" : "Human Group",
+		
+		"members" : [ 
+			"$root.users[_suid=sys::user::creator]._id"
+		]
+	},	
+	
+	
+	{ 
+		"descr" : "guest accounts",
+		
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+		
+		"name" : "guests",
+		"title" : "Guests",
+		
+		"members" : [ 
+			"$root.users[_suid=sys::user::guest]._id"
+		]
+	},
+	
+	{
+	 
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+	
+		"name" : "demo",
+		"title" : "Demo Group",
+		
+		"members" : [
+		]
+	},
+
+	{
+	 
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+	
+		"name" : "reviewers",
+		"title" : "Review Group",
+		
+		"members" : [
+		]
+	},
+
+	
+	{ 
+		"descr" : "project hierarchy root",
+	
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+		
+		"name" : "projects",
+		"title" : "Project Infrastructure",
+		
+		"members" : [
+		
+		]
+	},
+
+
+
+	{
+		"descr" : "organization hierarchy root",
+		
+		"_type" : "hc_group",
+		"_id" : "$newid()",
+		
+		"name": "organizations",
+		"title" : "Organization infrastructure",
+		
+		"members" : [
+		
+		]
+	}
+
+]
+
+

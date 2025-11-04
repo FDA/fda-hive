@@ -1,0 +1,365 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+/*************************
+**** Dashboard split  ****
+*************************/
+.dashboard{
+    display: grid;
+    grid-template-rows: 40px 50px 1fr;
+    grid-template-areas:
+        "header"
+        "project"
+        "container";
+     transition:grid-template-rows 0.3s ease-out;
+}
+
+.header {
+    grid-area: header;
+    display: flex;
+/*    position: fixed;*/
+    height: 40px;
+    width:100%;
+    z-index: 1000;
+}
+
+.project {
+  grid-area: project;
+  /* background-color: var(--dark-navy-blue,#0e1d44); */
+  background-color: #f5f7f9;
+  padding-left: 25px;
+  width:100%;
+}
+
+.hive.dashboard-container{
+  grid-area: container;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-areas: "sidenav main";
+/*height: 100vh;*/
+  background-color: #f5f7f9;
+  background-color: #fff;
+}
+
+.dashboard-sidenav{
+  grid-area: sidenav;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  /*width: inherit; /* when using react-split-pane*/
+  width: 300px;
+  position: fixed;
+  overflow-y: auto;
+}
+
+.dashboard-main {
+  grid-area: main;
+  padding: 25px 15px 50px 25px;
+  display: flex;
+  z-index: 0;
+  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  /*overflow-y: auto; /*for split screen to work properly*/
+  /*height: 100%; /*for split screen to work properly*/
+}
+.dashboard__main__footer{
+    flex-shrink: 0;
+/*
+   width: calc(100% + 40px);
+   margin-left: -25px;
+*/
+}
+.dashboard .ant-input {
+    margin:8px 0px;
+    height: 27px
+}
+
+/*************************
+**** Dashboard split  ****
+*************************/
+
+
+
+.dashboard #footer{
+    width: calc(100% + 25px);
+    margin-left: -25px;
+    margin-top: 100px;
+}
+
+
+.centered-text-later {
+  width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
+  text-align: justify; /* Optional: improves the readability of longer text */
+}
+
+.centered-text {
+  margin-left: 80px;  /* Fixed left margin */
+  margin-right: 80px; /* Fixed right margin */
+  padding: 20px;
+  text-align: justify; /* Optional, for text alignment */
+}
+
+/* Ensures that the container takes up the full available width minus the fixed margins */
+.main-container {
+  width: calc(100% - 200px); /* 100% of the parent width minus 200px for margins */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: white;
+  color: black;
+}
+nav ul {
+  list-style-type: none;
+}
+nav ul li {
+  display: inline;
+  margin-right: 10px;
+}
+nav a {
+  color: #505f69;
+  text-decoration: none;
+}
+.menu-item {
+  padding: 20px 12px;
+  margin: '0px 0px';
+  font-size: 13.0px;
+  font-weight: 600;
+}
+.menu-item:hover {
+  background-color: #efefef;
+  transition: background-color 0.3s ease-in-out;
+}
+.menu-item ul {
+  position: absolute;
+  left: 0;    /* Aligns the submenu to the left edge of the li */
+  top: 100%;  /* Positions the submenu just below the li */
+  white-space: nowrap; /* Ensures submenu items do not wrap */
+  min-width: 150px; /* Sets a minimum width for the submenu */
+  background-color: white;
+  padding: 10px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Optional: adds shadow for better visibility */
+}
+.menu-item ul li {
+  display: block;
+  padding: 5px;
+  font-size: 12.5px;
+  font-weight: 600500;
+}
+.menu-item ul {
+  transform: translate(0px, -0px);
+  position: 'absolute';
+  list-style-type: 'none';
+  background-color: 'white';
+  padding: '10px'
+}
+
+.hero, .about, .services {
+  text-align: center;
+  margin: 20px;
+  padding: 20px;
+}
+
+.contact form {
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  margin: auto;
+}
+
+.contact label {
+  margin-bottom: 10px;
+}
+
+.contact input, .contact textarea {
+  width: 100%;
+  padding: 8px;
+}
+
+.contact button {
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+footer {
+  background-color: #f0f0f0; /* Dark background for the footer */
+  color: #333333; /* Text color for the footer */
+  text-align: center; /* Centering the text */
+  padding: 0px 0px; /* Padding for top and bottom */
+  font-size: 12px;
+}
+
+
+.thumbborder {
+  max-width: 95%;
+  border: 2px solid #024BAF;
+}
+
+.centered {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+
+
+.columns {
+  column-count: 2;
+}
+.note-box {
+  background-color: #ffd180;
+  margin: 25px auto;
+  padding: 15px;
+  border: 5px solid #ffd180;
+  /*    width: 600px;*/
+}
+
+.note-box.collapsible {
+  background-color: #f9f9f9;
+  border: 5px solid #f9f9f9;
+  border-radius: 3px;
+  padding-left: 30px;
+}
+
+.note-box h3 {
+  font-weight: 300;
+  text-transform: uppercase;
+}
+
+.note-box h4, .note-box .note-box_title {
+  margin: 0px;
+  color: #0275d8;
+  cursor: pointer;
+}
+
+.note-box .note-box_title {
+  margin-left: -21px;
+}
+
+.note-box .note-box_title::before{
+  display: inline-block;
+  font-family:"Arial";
+  content: '>';
+  margin-left: -4px;
+  margin-right: 4px;
+  transition: transform 0.3s ease-out;
+}
+
+.note-box .note-box_title.active::before{
+  transform: rotate(90deg);
+}
+
+.note-box ul,
+.note-box li {
+  list-style: none;
+}
+
+.note-box ul {
+  padding-left: 0px;
+}
+
+.note-box li {
+  padding-left: 15px;
+  font-size: 14px;
+  margin: 10px 0px;
+  line-height: 1.1em;
+}
+
+
+.note-box li i,
+.note-box ul i {
+      font-family: TitilliumWeb, Verdana, Arial, sans-serif !important;
+  font-style: italic;
+  color: #555555;
+  display: block;
+}
+
+.note-box li i::before {
+  content: "- ";
+}
+
+.note-box li i.details,
+.note-box ul i.details {
+  display: inline;
+}
+
+.note-box li i.details::before {
+  content: "";
+}
+
+.note-box .note-box_title i {
+  margin-right: 6px;
+}
+
+.note-box ul {
+  margin-top: 0px;
+}
+
+.note-box ul p {
+  font-size: 14px;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.note-box .category-sections {
+  display: block;
+  orphans: 1;
+  widows: 1;
+}
+
+.note-box .category-section {
+  vertical-align: top;
+  position: relative;
+  display: inline-block;
+  padding-left: 0px;
+  width: 85%;
+}
+
+.note-box .note-box_content {
+  height: 100%;
+  max-height: 0px;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}

@@ -1,0 +1,530 @@
+{
+    "78483": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Contig-Extension",
+        "base_app_description": "Tool used to build contigs from short Reads",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=hs-contigextension",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "De Novo Sequence Assemblers"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "165": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Hive-Seq",
+        "base_app_description": "Page that allows users to have access to all hive seq utilities",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "163": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Sequence-Trimmer",
+        "base_app_description": "Allows users to trim sequences based on specific parameters",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=seqtrim",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "162": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Primers-Filter",
+        "base_app_description": "Tool to generate sequences while taking primers into consideration",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=primersfilter",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "161": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Adapters-Filter",
+        "base_app_description": "Tool to generate sequences while taking adapters into consideration",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=adaptersfilter",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "160": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Quality-and-Length-Filter",
+        "base_app_description": "Tool to filter results based on their quality and length",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=qualityandlengthfilter",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "159": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Complexity-Filter",
+        "base_app_description": "Tool to filter low complexity regions",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=complexityfilter",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "158": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Identification-Filter",
+        "base_app_description": "Tool to filter Identification lines from a file",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=idfilter",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "157": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Sequence-Filter",
+        "base_app_description": "Tool to filter sequences from a file",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=seqfilter",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "156": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Paired-End-Collapser",
+        "base_app_description": "Tool to collapse two paired end files into one",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=pairedEndCollapse",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "155": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Simulated-Random-Sequence-Generation",
+        "base_app_description": "Choose this to discover recombination sites in population of genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=randomizer",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "154": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Sequence-Combining-Tool",
+        "base_app_description": "Tool allowing creation of hive-seq virtual sequence files by combining the sequences and ranges from other sequence files.",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hiveseq&cmdMode=vioseq",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

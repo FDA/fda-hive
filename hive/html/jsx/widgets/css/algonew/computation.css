@@ -1,0 +1,661 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+body {
+    background-color: #eeeeee;
+}
+
+
+/* SIDE BAR */
+
+
+/* The side navigation menu */
+
+.sidenav {
+    height: 100%;
+    /* 100% Full-height */
+    width: 250px;
+    /* 0 width - change this with JavaScript */
+    position: absolute;
+    /* Stay in place */
+    z-index: 1;
+    /* Stay on top */
+    top: 0;
+    left: 0;
+    background-color: #0e1131;
+    /* Black */
+    overflow-x: hidden;
+    /* Disable horizontal scroll */
+    padding-top: 60px;
+    /* Place content 60px from the top */
+    transition: 0.3s;
+    /* 0.5 second transition effect to slide in the sidenav */
+    -ms-overflow-style: none;
+    transition-timing-function: ease-in-out;
+}
+
+.sidenav::-webkit-scrollbar {
+    width: 0 !important;
+}
+
+.sidenav_rotate h3 {
+    color: #cccccc;
+    font-weight: 300;
+    line-height: 1em;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    transform: rotate(180deg);
+}
+
+.sidenav_rotate {
+    position: fixed;
+    transform: rotate(90deg);
+    transform-origin: left top 0;
+    margin-left: 58px;
+    margin-top: 60px;
+}
+
+.sidenav h3 {
+    padding-right: 15px;
+    margin-left: 30px;
+    margin-bottom: 15px;
+    margin-top: 20px;
+    line-height: 1.2em;
+    color: #cccccc;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+}
+
+.sidenav_list {
+    margin-top: 15px;
+    padding-left: 17px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidenav_list i {
+    margin-right: 5px;
+}
+
+.sidenav_list ul li ul li a {
+    margin-left: 5px;
+    color: #cccccc;
+}
+
+.sidenav_list ul li ul li {
+    margin-left: 9px;
+}
+
+.sidenav .side_nav_btn {
+    width: 100%;
+    height: 40px;
+    position: absolute;
+    display: block;
+    margin: 0 auto;
+    left: 0px;
+    bottom: 0px;
+    background-color: #F6BE1A;
+    color: #051930;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    border-radius: 0px;
+    border: 2px solid transparent;
+    box-shadow: 0px 0px 10px #000;
+}
+
+.sidenav .side_nav_btn:hover {
+    background-color: white;
+}
+
+@media screen and (min-width: 1600px) {
+    .sidenav .side_nav_btn {
+        width: 100%;
+        height: 40px;
+        position: relative;
+        /*        position:fixed;*/
+        display: block;
+        margin: 0 auto;
+        left: 0px;
+        bottom: 0px;
+        background-color: #F6BE1A;
+        color: #051930;
+        text-decoration: none;
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        border-radius: 0px;
+        border: 2px solid transparent;
+        margin-top: 40px;
+    }
+    .sidenav_rotate~div>button {
+        position: absolute !important;
+    }
+}
+
+.sidenav .side_nav_btn snap {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+
+/*ACCORDION FILE INFO*/
+
+.file_info {
+    background-color: #bdc1d1;
+}
+
+.file_info h6 {
+    font-size: 12px !important;
+    padding-left: 32px;
+    line-height: 1.1em;
+    color: #0e1131;
+}
+
+.file_info h6:first-child {
+    padding-top: 0.5em;
+}
+
+.file_info h6:last-child {
+    padding-bottom: 0.5em;
+}
+
+
+/* Style the buttons that are used to open and close the accordion panel */
+
+button.accordion {
+    width: 100%;
+    text-align: right;
+    border: none;
+    outline: none;
+    color: #bdc1d1;
+    background-color: #080c21;
+    transition: 0.4s;
+    padding-left: 32px;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+    padding-right: 21px;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+}
+
+div.info {
+    margin-bottom: 0px;
+    background-color: transparent;
+    border-style: none;
+    /*     display: none; */
+    box-shadow: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+button.accordion:after {
+    content: '\02795';
+    font-weight: 300 !important;
+    /* Unicode character for "plus" sign (+) */
+    font-size: 13px;
+    color: #bdc1d1;
+    float: right;
+    margin-left: 5px;
+}
+
+button.accordion.active:after {
+    content: "\2796";
+}
+
+
+/* Unicode character for "minus" sign (-) */
+
+button.accordion:hover:after {
+    color: #FCCF12;
+}
+
+
+/*The navigation menu links*/
+
+.sidenav li {
+    font-weight: 300;
+    padding: 4px 8px 4px 0px;
+    text-decoration: none;
+    font-size: 14px;
+    color: #cccccc;
+    display: block;
+    transition: 0.3s;
+    line-height: 1.4em;
+}
+
+label {
+    font-weight: 300;
+}
+
+.sidenav li ul li {
+    padding: 4px 8px 2px 0px;
+}
+
+.sidenav li ul li:hover,
+.sidenav a:hover {
+    padding: 4px 8px 2px 0px;
+    color: #fccf12;
+    /* color: #fff; */
+}
+
+.sidenav a {
+    text-decoration: none;
+}
+
+.sidenav a:focus {
+    color: #fccf12;
+}
+
+.sidenav li label:hover {
+    color: #fff;
+}
+
+.sliderbtn i:hover {
+    color: #fccf12;
+}
+
+
+/* Position and style the close button (top right corner) */
+
+.sidenav .sliderbtn {
+    position: absolute;
+    top: 20px;
+    right: 15px;
+    font-size: 20px;
+    margin-left: 25px;
+    color: #ffffff;
+    cursor: pointer;
+    transition: transform 0.5s;
+}
+
+.rotate180 {
+    transform: rotate(180deg);
+    transition: transform 0.5s;
+}
+
+.sidenav li .link {
+    padding-left: 2px;
+}
+
+.sidenav li .link:hover {
+    padding-left: 2px;
+    text-decoration: underline;
+}
+
+
+/*MAIN CONTENT*/
+
+
+/* Style page content - use this if you want to push the page content to the right when you open the side navigation */
+
+#main {
+    transition: margin-left .5s;
+    padding: 5px;
+    margin-left: 250px;
+}
+
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+
+body {
+    margin: 0;
+}
+
+#main {
+    transition: margin-left .5s;
+    padding: 5px;
+}
+
+.container-fluid {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+img {
+    margin-bottom: 0px;
+    margin-top: 0px;
+    padding-bottom: 0px;
+    padding-top: 0px;
+}
+
+
+/*Tables editing Bootstrap*/
+
+.table>tbody>tr>td {
+    border-top: 1px dashed #efefef;
+}
+
+.table>thead>tr>th {
+    border-bottom: 1px dashed #959595;
+}
+
+
+/*PANELS*/
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    padding: 12px 16px;
+    z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.top-tab {
+    height: 3em;
+    margin-bottom: 1em;
+}
+
+.top-tab>h5 {
+    float: left;
+    font-weight: 700;
+    color: #ccc;
+    line-height: 1em;
+}
+
+.grid-stack-item:hover h5 {
+    /*     color: #0e1131;  */
+    color: #bbbbbb;
+    transition: color 0.2s;
+}
+
+.top-tab>h5:hover {
+    color: #0149AD;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+.top-tab>.icons {
+    padding-top: 0.7em;
+    float: right;
+}
+
+.top-tab>.icons>i {
+    color: #ccc;
+    padding-left: 7px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.top-tab>.icons>i:hover {
+    color: #0149AD;
+}
+
+
+/*FORMS*/
+
+.styled-checkbox-left {
+    position: absolute;
+    opacity: 0;
+}
+
+.styled-checkbox-left+label {
+    position: relative;
+    cursor: pointer;
+    padding: 0;
+}
+
+.styled-checkbox-left+label:before {
+    content: '';
+    margin-right: 10px;
+    display: inline-block;
+    vertical-align: text-top;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border: 1px solid #0e1131;
+}
+
+.styled-checkbox-left:focus+label:before {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+.styled-checkbox-left:hover+label:before,
+.styled-checkbox:hover+label:after {
+    box-shadow: 0 0 3px 1px #4294cc;
+}
+
+.styled-checkbox-left:checked+label:before {
+    background: white;
+}
+
+.styled-checkbox-left:disabled+label {
+    color: #b8b8b8;
+    cursor: auto;
+}
+
+.styled-checkbox-left:disabled+label:before {
+    box-shadow: none;
+    background: #ddd;
+}
+
+.styled-checkbox-left:checked+label:after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 12px;
+    background: #0149AD;
+    width: 2px;
+    height: 2px;
+    box-shadow: 2px 0 0 #0149AD, 4px 0 0 #0149AD, 4px -2px 0 #0149AD, 4px -4px 0 #0149AD, 4px -6px 0 #0149AD, 4px -8px 0 #0149AD;
+    transform: rotate(45deg);
+}
+
+
+/*  */
+
+.styled-checkbox-right {
+    position: absolute;
+    opacity: 0;
+}
+
+.styled-checkbox-right+label {
+    position: relative;
+    cursor: pointer;
+    padding: 0;
+}
+
+.styled-checkbox-right+label:after {
+    content: '';
+    margin-left: 10px;
+    display: inline-block;
+    vertical-align: text-top;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border: 1px solid #0e1131;
+}
+
+.styled-checkbox-right:focus+label:after {
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+}
+
+.styled-checkbox-right:hover+label:after {
+    box-shadow: 0 0 3px 1px #4294cc;
+}
+
+.styled-checkbox-right:checked+label:after {
+    background: white;
+}
+
+.styled-checkbox-right:disabled+label {
+    color: #b8b8b8;
+    cursor: auto;
+}
+
+.styled-checkbox-right:disabled+label:after {
+    box-shadow: none;
+    background: #ddd;
+}
+
+.styled-checkbox-right:checked+label:before {
+    content: '';
+    position: absolute;
+    right: 11px;
+    top: 12px;
+    background: #0149AD;
+    width: 2px;
+    height: 2px;
+    box-shadow: 2px 0 0 #0149AD, 4px 0 0 #0149AD, 4px -2px 0 #0149AD, 4px -4px 0 #0149AD, 4px -6px 0 #0149AD, 4px -8px 0 #0149AD;
+    transform: rotate(45deg);
+}
+
+.unstyled {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+.form li {
+    font-weight: 300;
+    padding: 4px 8px 4px 0px;
+    text-decoration: none;
+    color: #0e1131;
+    display: block;
+    transition: 0.3s;
+    line-height: 2em;
+}
+
+.form li ul li {
+    padding: 4px 8px 2px 0px;
+}
+
+.form li ul {
+    padding-left: 20px;
+}
+
+.form li label:hover {
+    color: #194EA1;
+}
+
+.form i {
+    margin-left: -3px;
+}
+
+.form li h6 {
+    margin-bottom: -3px;
+}
+
+.form h6,
+.form label {
+    /*    color: #0e1131;*/
+    color: #666666;
+    font-weight: 300;
+}
+
+@media (max-width:1679px) {
+    .form .styled-checkbox-right:checked+label:before {
+        top: 14px;
+    }
+    .form h6,
+    .form label {
+        font-size: 12px;
+    }
+}
+
+@media (min-width:1680px) {
+    .form .styled-checkbox-right:checked+label:before {
+        top: 13px;
+    }
+    .form h6,
+    .form label {
+        font-size: 13px;
+    }
+}
+
+@media (min-width:1920px) {
+    .form h6,
+    .form label {
+        font-size: 14px;
+    }
+}
+
+input[type="text"] {
+    color: #194EA1;
+    font-weight: 400;
+    background: transparent;
+    border: 0;
+    border-bottom: 0.5px solid #0b2668;
+    line-height: 0.5em;
+    padding-top: 10px;
+}
+
+::-webkit-input-placeholder {
+    color: #4294cc;
+    font-weight: 300;
+    font-size: 12px;
+}
+
+select {
+    border: 0;
+    border-bottom: 0.5px solid #0b2668;
+    margin-top: 3px;
+    color: #194EA1;
+    font-weight: 400;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+
+
+/* 90deg Rotating Icon*/
+
+
+/* .down{
+-moz-transform: rotate(-90deg);
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(180deg);
+    transition: transform 0.5s linear;
+}  */
+
+
+/* Resizing */
+
+.i-sm {
+    font-size: 1.1em;
+}
+
+.i-md {
+    font-size: 1.5em;
+}
+
+
+/* Grid Edit */

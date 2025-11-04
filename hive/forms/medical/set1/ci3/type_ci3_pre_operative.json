@@ -1,0 +1,168 @@
+{
+    "332": {
+        "_id": "$type.ci3_pre_operative",
+        "_type": "type",
+        "name": "ci3_pre_operative",
+        "title": "Pre-operative variables",
+        "fields": {
+            "1.1": {
+                "field_name": "asa_class",
+                "field_title": "ASA class",
+                "field_type": "string",
+                "field_order": 0.5,
+                "field_constraint_data": "ASA I A normal healthy patient|ASA II A patient with mild systemic disease|ASA III A patient with severe systemic disease|ASA IV A patient with severe systemic disease that is a constant threat to life|ASA V A moribund patient who is not expected to survive without the operation|ASA VI A declared brain-dead patient whose organs are being removed for donor purposes"
+            },
+            "1.2": {
+                "field_name": "subtitle_1",
+                "field_title": "Surgical details",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.3": {
+                "field_name": "presumed_reason_for_sbo",
+                "field_title": "Presumed reason for SBO (pick one or more)",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Prior surgery (Adhesions)|Malignancy|Crohn's|Radiation enteritis|Anastomotic stricture|Other : Trauma, volvulus, infection, internal hernia, foreign body, ulcerative colitis, inflammatory disease (e.g., vasculitis)|Other (specify, free text)|N/A|Unknown"
+            },
+            "1.4": {
+                "field_name": "presumed_reason_for_sbo_other",
+                "field_title": "Other (specify)",
+                "field_type": "text",
+                "field_order": 2.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(presumed_reason_for_sbo)=='Other (specify, free text)'"
+            },
+            "1.5": {
+                "field_name": "history_of_abdominal",
+                "field_title": "History of abdominal or pelvic radiation",
+                "field_type": "bool",
+                "field_order": 3
+            },
+            "1.6": {
+                "field_name": "prior_history_of_abdominal",
+                "field_title": "Prior history of abdominal surgery",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "none|1 prior abdominal surgery|2 prior abdominal surgeries|3 or more prior abdominal surgeries"
+            },
+            "1.7": {
+                "field_name": "number_of_prior_hospital_admissions",
+                "field_title": "Number of prior hospital admissions related to SBO",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_constraint_data": "1///1 admission|2///2 admissions|3///3 or more admissions"
+            },
+            "1.8": {
+                "field_name": "number_of_prior_surgical_procedures",
+                "field_title": "Number of prior surgical procedures for SBO",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "1///1 procedure|2///2 procedures|3///3 or more procedures"
+            },
+            "1.9": {
+                "field_name": "prior_balloon_dilation",
+                "field_title": "Prior balloon dilation for SBO",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "none|yes within last 6 months|yes, >6 months|NA|unknown"
+            },
+            "1.10": {
+                "field_name": "subtitle_2",
+                "field_title": "Pre-op Imaging details",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_description": "subtitle"
+            },
+            "1.11": {
+                "field_name": "preoperative_planning_imaging",
+                "field_title": "Preoperative planning imaging ",
+                "field_type": "bool",
+                "field_order": 9
+            },
+            "1.12": {
+                "field_name": "modality",
+                "field_title": "If YES, what modality",
+                "field_type": "string",
+                "field_order": 10,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "CT|MRI|Ultrasound|Fluoroscopy(inclusive of Cone Beam)\r\n>is_shown_fg=$(preoperative_planning_imaging)==true"
+            },
+            "1.13": {
+                "field_name": "imaging_applications",
+                "field_title": "What imaging advanced applications used",
+                "field_type": "string",
+                "field_order": 10.1,
+                "field_constraint_data": "Needle ASSIST (Trajectory planning)|Drop markers with the “insert” key on area of interests|“Auto-Select” tool to segment out the area of interest and make a VR model\r\n>is_shown_fg=$(preoperative_planning_imaging)==true"
+            },
+            "1.14": {
+                "field_name": "preoperative_imaging_file",
+                "field_title": "DICOM IMAGE",
+                "field_type": "file",
+                "field_order": 10.5,
+                "field_constraint_data": "is_shown_fg=$(preoperative_planning_imaging)==true"
+            },
+            "1.15": {
+                "field_name": "type_of_contrast_used",
+                "field_title": "IF any of the above selected: type of contrast used (select one or more)",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "none|IV|Oral|Contrast via stoma|Contrast via rectum|Contrast via urinary catheter\r\n>is_shown_fg=$(preoperative_planning_imaging)==true"
+            },
+            "1.16": {
+                "field_name": "cone_beam_ct_used_in_pre_op",
+                "field_title": "IF Cone Beam CT used in pre-op ",
+                "field_type": "string",
+                "field_order": 12,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Drop markers with the “insert” key on areas of interests|“Auto-Select” tool to Segment out the area of interest and make a VR model out of it|“Vision Export” to overlay segmented volume on fluoro images|Bi-view registration in Vision to register the pre-op segmented volume to the live image"
+            },
+            "1.17": {
+                "field_name": "three_d_imaging_used",
+                "field_title": "3D imaging used? ",
+                "field_type": "bool",
+                "field_order": 13
+            },
+            "1.18": {
+                "field_name": "augmented_reality_used",
+                "field_title": "Augmented reality used?",
+                "field_type": "bool",
+                "field_order": 14
+            }
+        },
+        "parent": {
+            "3": "$type.ci3"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

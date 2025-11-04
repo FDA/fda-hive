@@ -1,0 +1,47 @@
+{
+    "260": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2fastq",
+        "order": 12,
+        "path": "/Convert/To Reads/convert2fastq",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&objtype=nuc-read&ids=$(ids)&datatype=fastq",
+        "title": "Treat as FastQ file",
+        "description": "Convert file formatted as fastQ to Reads object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "2629": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Annotation-Mapper",
+        "base_app_description": "This tool allows you to crossmap two or more profiles or annotations to discover similarities and differences between them.",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=annotationMapper&cmdMode=iondb",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Annotations"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

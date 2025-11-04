@@ -1,0 +1,29 @@
+{
+    "479": {
+        "_id": "$type.hep_disc_whole_life_youth_v2",
+        "_type": "type",
+        "name": "hep_disc_whole_life_youth_v2",
+        "title": "DISC Child",
+        "parent": {
+            "3": "$type.hep_disc_whole_life_youth"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

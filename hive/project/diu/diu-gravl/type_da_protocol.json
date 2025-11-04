@@ -1,0 +1,68 @@
+{
+    "198138": {
+        "_id": "$type.da_protocol",
+        "_type": "type",
+        "name": "da_protocol",
+        "title": "Protocol",
+        "description": "Protocol used.",
+        "parent": {
+            "7": "$type.wastewater_collection"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "name",
+                "field_title": "Protocol Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_description": "Name of the protocol used."
+            },
+            "11.2": {
+                "field_name": "method_url",
+                "field_title": "Protocol Method URL",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_description": "Optional URL to the protocol method.",
+                "field_is_optional_fg": true
+            },
+            "11.3": {
+                "field_name": "method",
+                "field_title": "Protocol Method",
+                "field_type": "text",
+                "field_order": 3,
+                "field_constraint_description": "Optional narrative of protocol method if URL doesn't exist.",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

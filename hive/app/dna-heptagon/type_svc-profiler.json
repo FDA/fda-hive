@@ -1,0 +1,305 @@
+{
+    "type.27": {
+        "_id": "type.27",
+        "_type": "type",
+        "name": "svc-profiler",
+        "title": "Sequence Profiling Engine",
+        "description": "Engine to perform coverage analysis ,base-calling, SNP calling ",
+        "parent": {
+            "1": "type.29"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "countAAs",
+                "field_title": "Compute AA profile",
+                "field_type": "bool",
+                "field_default_value": "0",
+                "field_description": "Compute Aminoacid rep[lacements  based on AA calls on reads"
+            },
+            "1.2": {
+                "field_name": "cutEnds",
+                "field_title": "Truncate Terminals",
+                "field_type": "string",
+                "field_default_value": "do not cut",
+                "field_description": "Truncate so many bases from alignment heads and tails"
+            },
+            "1.3": {
+                "field_name": "directionalityInfo",
+                "field_title": "Print directionality details",
+                "field_type": "bool",
+                "field_default_value": "false",
+                "field_is_optional_fg": true,
+                "field_description": "Print forward and reverse ACGT In/Del counts and qualiy"
+            },
+            "1.4": {
+                "field_name": "disbalanceFR",
+                "field_title": "Forward/Reverse Disbalance",
+                "field_type": "string",
+                "field_default_value": "0",
+                "field_description": "Automatic adjustment limit for basce-calls with forward/reverse expression disbalance"
+            },
+            "1.5": {
+                "field_name": "entrCutoff",
+                "field_title": "Entropic Cutoff",
+                "field_type": "string",
+                "field_default_value": "0",
+                "field_constraint": "choice+",
+                "field_constraint_data": "0///Disabled|-1///Review Only|0.95///0.95|0.90///0.90|0.75///0.75|0.67///0.67 One Sigma",
+                "field_description": "Decision to filter SNPs based on posiotnal base occurence entropy is made based on this value"
+            },
+            "1.6": {
+                "field_name": "filterZeros",
+                "field_title": "Treat filtered positions",
+                "field_type": "integer",
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Ignore|0///Fill with zeros"
+            },
+            "1.7": {
+                "field_name": "generateIon",
+                "field_title": "Generate annotation file",
+                "field_type": "bool",
+                "field_default_value": "false",
+                "field_is_optional_fg": true,
+                "field_description": "Generate file that can be used as annotation. Impacts the speed and the efficiency of the process"
+            },
+            "1.8": {
+                "field_name": "histograms",
+                "field_title": "Tail Histograms",
+                "field_type": "integer",
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Do not generate histograms|1///Generate histograms"
+            },
+            "1.9": {
+                "field_name": "lenPercCutoff",
+                "field_title": "Minimal Alignment Length",
+                "field_type": "string",
+                "field_default_value": "no cutoff",
+                "field_description": "Minimal alignment length in percent of original query length accepted for profiling"
+            },
+            "1.10": {
+                "field_name": "maxLowQua",
+                "field_title": "Maximum Percentage of Low-Quality Regions",
+                "field_type": "string",
+                "field_default_value": "no cutoff",
+                "field_description": "Overall quality filter of mapped sequences in percent of original query length"
+            },
+            "1.11": {
+                "field_name": "maxMissmatchPercCutoff",
+                "field_title": "Maximum Mismatch Percent",
+                "field_type": "string",
+                "field_default_value": "0",
+                "field_description": "Maximum allowed missmatch percent for alignments to be considered for reference profiling"
+            },
+            "1.12": {
+                "field_name": "maxRptIns",
+                "field_title": "Count of Inserts Invalidating Repeats ",
+                "field_type": "string",
+                "field_default_value": "3",
+                "field_description": "Maximum stuck letter base repeat after which in-dels are ignored"
+            },
+            "1.13": {
+                "field_name": "minCover",
+                "field_title": "Minimal Coverage Allowed",
+                "field_type": "string",
+                "field_default_value": "10",
+                "field_description": "Regions which have coverage less than the specified amount are discarded from basecalling procedure"
+            },
+            "1.14": {
+                "field_name": "minFreqIgnoreSNP",
+                "field_title": "Action on SNP Threshold",
+                "field_type": "integer",
+                "field_parent": "thrSNP",
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Ignore Position|1///Ignore SNP"
+            },
+            "1.15": {
+                "field_name": "minFreqPercent",
+                "field_title": "Minimal Frequency of SNP Threshold",
+                "field_type": "real",
+                "field_parent": "thrSNP",
+                "field_default_value": "0",
+                "field_description": "Regions which have SNP frequency less than the specified amount are discarded from basecalling procedure"
+            },
+            "1.16": {
+                "field_name": "minImportantEntropy",
+                "field_title": "Safe Entropy Zone",
+                "field_type": "real",
+                "field_default_value": "0.0"
+            },
+            "1.17": {
+                "field_name": "noise",
+                "field_title": "Noise",
+                "field_type": "list",
+                "field_description": "Parameters defining the behavor of the algorithm during noise treatments"
+            },
+            "1.18": {
+                "field_name": "noiseFilterBase",
+                "field_title": "Noise Profiling Process ID",
+                "field_type": "obj",
+                "field_parent": "noise",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler+",
+                "field_description": "Process ID of the previous profiling computation"
+            },
+            "1.19": {
+                "field_name": "noiseFilterParams",
+                "field_title": "Noise Filtering Parameters",
+                "field_type": "string",
+                "field_parent": "noise",
+                "field_default_value": "none",
+                "field_constraint": "choice",
+                "field_constraint_data": "none///Do not filter noise|auto///Automatically filter 95 % noise|borrow///Use the noise level of plasmid profiling experiment",
+                "field_description": "Determine the way the sequencing noise is treated for following variations: A-C, A-G, A-T, C-A, C-G, C-T, G-A, G-C, G-T, T-A, T-C, T-G"
+            },
+            "1.20": {
+                "field_name": "noiseProfileMax",
+                "field_title": "Noise Profile Maximum Cutoff",
+                "field_type": "real",
+                "field_parent": "noise",
+                "field_default_value": "0.01",
+                "field_constraint": "eval",
+                "field_constraint_data": "0.001<=$_(val) && $_(val)<1"
+            },
+            "1.21": {
+                "field_name": "noiseProfileResolution",
+                "field_title": "Noise Profile Resolution",
+                "field_type": "real",
+                "field_parent": "noise",
+                "field_default_value": "0.0001",
+                "field_constraint": "eval",
+                "field_constraint_data": "0.0001<=$_(val) && $_(val)<0.1",
+                "field_description": "Reslution to output the noise profile"
+            },
+            "1.22": {
+                "field_name": "parent_proc_ids",
+                "field_title": "Alignment(s)",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_role": "input",
+                "field_constraint": "type",
+                "field_constraint_data": "svc-align+"
+            },
+            "1.23": {
+                "field_name": "profSelector",
+                "field_title": "Prof Tool Selector",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.24": {
+                "field_name": "referenceAnnot",
+                "field_title": "Annotation File with CDS Field",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.25": {
+                "field_name": "SEARCHFORREPEATS",
+                "field_title": "Profile only repeated regions",
+                "field_type": "bool",
+                "field_default_value": "0",
+                "field_description": "Profile only regions which have alternate alignment sites"
+            },
+            "1.26": {
+                "field_name": "snpCompare",
+                "field_title": "Profile type",
+                "field_type": "string",
+                "field_default_value": "1",
+                "field_is_key_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Relative to reference sequence|0///Relative to consensus sequence",
+                "field_description": "The base sequence relative to which the SNP calling is performed"
+            },
+            "1.27": {
+                "field_name": "splitField",
+                "field_title": "Split based on specified field(s)",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_default_value": "parent_proc_ids",
+                "field_is_hidden_fg": true
+            },
+            "1.28": {
+                "field_name": "splitSize",
+                "field_title": "Number of alignments per single thread",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "100000",
+                "field_is_batch_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.29": {
+                "field_name": "splitType",
+                "field_title": "Splitting function",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_order": 4,
+                "field_default_value": "alignments",
+                "field_is_hidden_fg": true
+            },
+            "1.30": {
+                "field_name": "supportedDeletions",
+                "field_title": "Include deletions in the coverage",
+                "field_type": "bool",
+                "field_default_value": "true",
+                "field_is_optional_fg": true
+            },
+            "1.31": {
+                "field_name": "thrSNP",
+                "field_title": "SNP Threshold",
+                "field_type": "list"
+            },
+            "1.32": {
+                "field_name": "useQuaFilter",
+                "field_title": "Base Quality Filter",
+                "field_type": "integer",
+                "field_default_value": "20",
+                "field_is_optional_fg": true
+            },
+            "1.34": {
+                "field_name": "collapseRpts",
+                "field_title": "Ignore identical reads",
+                "field_type": "bool",
+                "field_default_value": "false",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

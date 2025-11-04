@@ -1,0 +1,945 @@
+{
+	"workflows" : {
+		"name" : "diu-antidote-cflow",
+		"steps": [
+			{
+				"name": "p_alignment-viruses",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "Viruses Alignment",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 12
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 4,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 30,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 10,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitField": "query",
+							"splitSize": "${v_slice}",
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_DIU_viruses}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_sample_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_alignment-bacteria",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "Bacteria Alignment",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 14
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 4,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 38,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 5,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitField": "query",
+							"splitSize": "${v_slice}",
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_DIU_bacteria}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_sample_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_alignment-toxins",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "Toxins Alignment",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 14
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 4,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 30,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 5,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitField": "query",
+							"splitSize": "${v_slice}",
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_DIU_toxins}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_sample_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_alignment-protozoa",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "Protozoa Alignment",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 14
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 4,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 30,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 3,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitField": "query",
+							"splitSize": "${v_slice}",
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_DIU_protozoa}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_sample_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_alignment-fungi",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "Fungi Alignment",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 14
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 4,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 30,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 3,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitField": "query",
+							"splitSize": "${v_slice}",
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_DIU_fungi}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_sample_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_alignment-bioengineered",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "Bioengineered Alignment",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 11
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 4,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 30,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 3,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitField": "query",
+							"splitSize": "${v_slice}",
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_DIU_bioengineered}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_sample_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_alignment-tier2",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "${'tier2Name}",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 11
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 4,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 40,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 15,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitField": "query",
+							"splitSize": "${v_slice}",
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${_o_tier2_references}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${_o_tier2_reads}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_hex-alignment-all",
+				"svc": "dna-hexagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-align-hexagon",
+
+						"name": "Tier-2 All Matches",
+						"alignmentEngine": 1,
+						"alignParam": {
+							"allowShorterEnds": 0,
+							"costGapNext": -4,
+							"costGapOpen": -12,
+							"costMatch": 5,
+							"costMismatch": -4,
+							"costMismatchNext": -6,
+							"isglobal": 0,
+							"seed": 14
+						},
+						"basicAlgParam": {
+							"searchRepeatsAndTrans": 0
+						},
+						"complexity": {
+							"complexityQry": {
+								"complexityEntropy": 0,
+								"complexityWindow": 0,
+								"maximumPercentLowQualityAllowed": 0
+							},
+							"complexityRef": {
+								"complexityRefEntropy": 0,
+								"complexityRefWindow": 0,
+								"acceptNNNQuaTrheshold": 0
+							}
+						},
+						"computeDiagonalWidth": "auto",
+						"doubleHash": false,
+						"doubleStagePerfect": 1,
+						"fine_filters": {
+							"must_have_negative": false,
+							"must_cover_subsequences": false,
+							"must_cover_all": true,
+							"must_have_subsequences_revcomp": true
+						},
+						"hashCompileStp": "auto",
+						"hashStp": "auto",
+						"isbackward": 1,
+						"isextendtails": 0,
+						"isoptimize": 1,
+						"keepAllMatches": 2,
+						"looseExtenderMinimumLengthPercent": 66,
+						"looseExtenderMismatchesPercent": 25,
+						"maxExtensionGaps": 0,
+						"maxHashBin": 50,
+						"maxHitsPerRead": 200,
+						"maxNumberQuery": "all",
+						"maxSubjectBasesToCompile": 128,
+						"minMatch": {
+							"minMatchLen": 40,
+							"minMatchUnit": 0
+						},
+						"mismatches": {
+							"maxMissQueryPercent": 15,
+							"considerGoodSubalignments": 0
+						},
+						"random_seed": 0,
+						"readconflicts": {
+							"resolveConfictsUnique": false,
+							"resolveConflicts": 0,
+							"resolveConflictsScore": 0
+						},
+						"reverseEngine": 0,
+						"scissors": "hiveseq",
+						"scoreFilter": "None",
+						"selfQueryPosJumpInNonPerfectAlignment": 1,
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": 1000,
+							"splitField": "query",
+							"splitSize": 1000,
+							"splitType": "sequences"
+						},
+						"subject": [
+							"${o_tier2_DBs}",
+							"${o_DIU_bioengineered}",
+							"${o_DIU_toxins}"
+						],
+						"trimLowScoreEnds": {
+							"trimLowScoreEndsWindow": 0
+						},
+						"useRedundSim": 1,
+						"useScoreDensity": 0,
+						"alignSelector": "svc-align-hexagon",
+						"force_reindex": false,
+						"query": [
+							"${o_tier2_FQs}",
+							"${o_bioengineered_fastq}",
+							"${o_toxins_fastq}"
+						],
+						"submitter": "dna-hexagon"
+					}
+				]
+			},
+			{
+				"name": "p_di_profiler",
+				"svc": "dna-diprofiler",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-diprofiler",
+						"name": "${'name}",
+						"alignmentID": [
+							"${p_hex-alignment-all}"
+						],
+						"overlapScoreFilter": 0,
+							
+						"minSameRefDist": "0",
+						"random_seed": 0,
+						"scissors": "hiveal",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": "${v_slice}",
+							"splitSize": "${v_slice}",
+							"splitType": "file"
+						},
+						"overlap": {
+							"maxNonOverlap": 50,
+							"maxOverlap": 5,
+							"minNonOverlappingSubAlignmentLength": 20
+						},
+						"minPeakCov": 1,
+						"minReadCov": 30,
+						"minSubCov": 20,
+						"peakDetectionWidth": 5,
+						"multiScore": 1,
+						"submitter": "dna-diprofiler"
+					}
+				]
+			},
+			{
+				"name": "p_hepta-profiler",
+				"svc": "dna-heptagon",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-profiler-heptagon",
+						"name": "${'name}",
+
+						"collapseRpts": true,
+						"countAAs": false,
+						"cutEnds": "do not cut",
+						"directionalityInfo": false,
+						"disbalanceFR": "0",
+						"entrCutoff": "-1",
+						"filterZeros": 0,
+						"generateIon": false,
+						"histograms": 1,
+						"lenPercCutoff": "no cutoff",
+						"maxLowQua": "no cutoff",
+						"maxMissmatchPercCutoff": "0",
+						"maxRptIns": "0",
+						"minCover": "1",
+						"minImportantEntropy": 0,
+						"noise": {
+							"noiseFilterParams": "none",
+							"noiseProfileMax": 0.01,
+							"noiseProfileResolution": 0.0001
+						},
+						"parent_proc_ids": [
+							"${p_hex-alignment}"
+						],
+						"random_seed": 0,
+						"scissors": "hiveseq",
+						"SEARCHFORREPEATS": false,
+						"snpCompare": "1",
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": 200000,
+							"splitField": "parent_proc_ids",
+							"splitSize": 100000,
+							"splitType": "alignments"
+						},
+						"supportedDeletions": true,
+						"thrSNP": {
+							"minFreqIgnoreSNP": 0,
+							"minFreqPercent": 0
+						},
+						"useQuaFilter": 0,
+						"aaThreshold": 0.001,
+						"submitter": "dna-heptagon"
+					}
+				]
+			},
+			{
+				"name": "p_kraken",
+				"svc": "dna-kraken",
+				"execute": [
+					{
+						"_id": "$newid",
+						"_type": "svc-dna-kraken",
+
+						"name": "${'name}",
+						"extract_refs": {
+							"max_per_species": 20,
+							"rank_refs": " ",
+							"threshold_coverage": 0,
+							"threshold_hits": 0,
+							"top_species": 0
+						},
+						"inputs": {
+							"input1": "${o_sample_reads[0]}",
+							"input2": "${o_sample_reads[1]}"
+						},
+						"monitoring": {
+							"maxInactivitySec": 900,
+							"maxLoopsSec": 86400,
+							"sleepSec": 3
+						},
+						"random_seed": 0,
+						"scissors": "hiveseq",
+						"split": "query",
+						"splitList": {
+							"nrepeat": 1,
+							"slice": 200000,
+							"splitSize": 200000
+						},
+						"sysapp": "${??sysapp:name:dna-kraken}",
+						"sysdocker": "${??sysdocker:name:kraken-metaphlan-image}",
+						"DB": "${o_kraken_db}",
+						"submitter": "dna-kraken"
+
+					}
+				]
+
+			}
+		]
+	}
+}
+					

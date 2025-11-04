@@ -1,0 +1,55 @@
+{
+    "type.25": {
+        "_id": "type.25",
+        "_type": "type",
+        "name": "svc-align",
+        "title": "Sequence Alignment Engines",
+        "description": "Sequence Alignment Engines General Service",
+        "parent": {
+            "1": "type.29"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.38": {
+                "field_name": "subject",
+                "field_title": "Reference Genome",
+                "field_type": "obj",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "^genome$,folder",
+                "field_description": "Reference genome (subject)"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

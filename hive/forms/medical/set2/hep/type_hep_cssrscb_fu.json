@@ -1,0 +1,523 @@
+{
+    "472": {
+        "_id": "$type.hep_cssrscb_fu",
+        "_type": "type",
+        "name": "hep_cssrscb_fu",
+        "title": "Columbia-Suicide Severity Rating Scale – Follow Up",
+        "description": "<h3>Safety Interventions Instructions for HEP</h3>\nAs a safety precaution, all participants who endorse suicidal ideation on the C-SSRS must be referred for psychiatric evaluation. Please plan ahead for this possibility by creating a list of local mental health providers to be given to participants if needed.<br><br>\n\n-\tParticipants who score a 4 or 5 on page 2 of the C-SSRS (active suicidal ideation with or without a plan) must be referred for immediate evaluation in your site’s emergency department or by on-site psychiatric staff.<br><br>\n\n-\tParticipants who score a 2 or 3 on page 2 of the C-SSRS (passive suicidal ideation) must be referred to a mental health provider for psychiatric evaluation within 1 week, using the aforementioned list of providers.<br><br>\n\nIf you have any questions or concerns as to the severity of a participant’s suicidal ideation, please contact Dr. Andres Kanner at 847-476-1811 (or if Dr. Kanner is unavailable, Dr. Siddhartha Nadkarni at 917-763-1016) to determine the necessity for acute intervention.<br><br>\n\nWith all psychiatric referrals, the phenotyping clinician should explain to the participant that the interview suggests that they should seek evaluation by a mental health provider; please emphasize that this is not a clinical diagnosis. For adolescents (under age 18), the participant’s parent or guardian must also be notified immediately of any suicidal ideation, including if the parent/guardian is not present during the C-SSRS administration. Lastly, with all referrals, please also ask for written permission from the participant and/or parent or guardian (if under age 18) to contact their primary care provider and notify them of the participant’s C-SSRS score indicative of suicidal ideation.<br><br>\n\nAfter completion of the study visit:<br>\n-\tfill out the HEP Safety Intervention Form, and<br>\n-\tfollow up with the participant 1 week after referral to confirm they were able to schedule an appointment with a mental health provider.",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Columbia-Suicide Severity Rating Scale – Follow Up",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "subtitle_2",
+                "field_title": "SUICIDAL IDEATION",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_description": "subtitle",
+                "field_description": "Ask questions 1 and 2. If both are negative, proceed to “Suicidal Behavior” section. If the answer to question 2 is “yes,” ask questions 3, 4 and 5.  If the answer to question 1 and/or 2 is “yes”, complete “Intensity of Ideation” section on the next page."
+            },
+            "1.3": {
+                "field_name": "subtitle_3",
+                "field_title": "1. Wish to be Dead",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_description": "description",
+                "field_description": "Subject endorses thoughts about a wish to be dead or not alive anymore, or wish to fall asleep and not wake up."
+            },
+            "1.4": {
+                "field_name": "siq1",
+                "field_title": "At any time in your life, have you wished you were dead or wished you could go to sleep and not wake up?",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_description": "Subject endorses thoughts about a wish to be dead or not alive anymore, or wish to fall asleep and not wake up."
+            },
+            "1.5": {
+                "field_name": "siq1_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='true'"
+            },
+            "1.6": {
+                "field_name": "subtitle_4",
+                "field_title": "2. Non-Specific Active Suicidal Thoughts",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_optional_fg": false,
+                "field_constraint_description": "description",
+                "field_description": "General non-specific thoughts of wanting to end one’s life/commit suicide (e.g. “I’ve thought about killing myself”) without\nthoughts of ways to kill oneself/associated methods, intent, or plan during the assessment period."
+            },
+            "1.7": {
+                "field_name": "siq2",
+                "field_title": "Have you actually had any thoughts of killing yourself at any time?",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_description": "General non-specific thoughts of wanting to end one’s life/commit suicide (e.g. “I’ve thought about killing myself”) without\nthoughts of ways to kill oneself/associated methods, intent, or plan during the assessment period."
+            },
+            "1.8": {
+                "field_name": "siq2_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'"
+            },
+            "1.9": {
+                "field_name": "subtitle_5",
+                "field_title": "\"Now I'd like you to think about the time since your last visit when you were feeling the most suicidal. During that time...\"",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.10": {
+                "field_name": "subtitle_6",
+                "field_title": "3. Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "Subject endorses thoughts of suicide and has thought of at least one method during the assessment period. This is different than a specific plan with time, place or method details worked out (e.g. thought of method to kill self but not a specific plan). Includes\nperson who would say, “I thought about taking an overdose but I never made a specific plan as to when, where or how I would actually do it…..and I would never go through with it.”"
+            },
+            "1.11": {
+                "field_name": "siq3",
+                "field_title": "Have you been thinking about how you might do this?",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'"
+            },
+            "1.12": {
+                "field_name": "siq3_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq3)=='true'&&$(siq2)=='true'"
+            },
+            "1.13": {
+                "field_name": "subtitle_7",
+                "field_title": "4. Active Suicidal Ideation with Some Intent to Act, without Specific Plan",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "Active suicidal thoughts of killing oneself and subject reports having some intent to act on such thoughts, as opposed to “I have\nthe thoughts but I definitely will not do anything about them.”"
+            },
+            "1.14": {
+                "field_name": "siq4",
+                "field_title": "At any time, have you ever had any intention of acting on these thoughts of killing yourself? As opposed to you have the thoughts, but you definitely would not act on them?",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'"
+            },
+            "1.15": {
+                "field_name": "siq4_description",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq4)=='true'&&$(siq2)=='true'"
+            },
+            "1.16": {
+                "field_name": "subtitle_8",
+                "field_title": "5. Active Suicidal Ideation with Specific Plan and Intent",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "Thoughts of killing oneself with details of plan fully or partially worked out and subject has some intent to carry it out."
+            },
+            "1.17": {
+                "field_name": "siq5",
+                "field_title": "At any time, have you ever started to work out, or actually worked out, the details of how to kill yourself?",
+                "field_type": "bool",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'"
+            },
+            "1.18": {
+                "field_name": "siq5_intend",
+                "field_title": "Do you intend to carry out this plan?",
+                "field_type": "bool",
+                "field_order": 17.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq2)=='true'"
+            },
+            "1.19": {
+                "field_name": "siq5_description",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 18,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(siq5)=='true'||$(siq5_intend)=='true')&&$(siq2)=='true'"
+            },
+            "1.20": {
+                "field_name": "subtitle_9",
+                "field_title": "INTENSITY OF IDEATION",
+                "field_type": "string",
+                "field_order": 19,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='true'||$(siq2)=='true'",
+                "field_constraint_description": "subtitle",
+                "field_description": "Since We Last Spoke"
+            },
+            "1.21": {
+                "field_name": "subtitle_17",
+                "field_title": "The following features should be rated with respect to the most severe type of ideation (i.e.,1-5 from above, with 1 being the least severe and 5 being the most severe). For prior to study entry, ask about time he/she was feeling the most suicidal.",
+                "field_type": "string",
+                "field_order": 20,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='true'||$(siq2)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.22": {
+                "field_name": "lifetime_severe",
+                "field_title": "Lifetime - Most Severe Ideation:",
+                "field_type": "string",
+                "field_order": 21,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1|2|3|4|5\n>is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.23": {
+                "field_name": "lifetime_ideation_description",
+                "field_title": "Description of Ideation",
+                "field_type": "text",
+                "field_order": 22,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.24": {
+                "field_name": "six_months_severe",
+                "field_title": "Past six moths - Most Severe Ideation:",
+                "field_type": "string",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1|2|3|4|5\n>is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.25": {
+                "field_name": "six_months_ideation_description",
+                "field_title": "Description of Ideation",
+                "field_type": "text",
+                "field_order": 24,
+                "field_is_optional_fg": true,
+                "field_is_virtual_fg": false,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.26": {
+                "field_name": "frequency",
+                "field_title": "Frequency: How many times have you had these thoughts?",
+                "field_type": "string",
+                "field_order": 25,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Less than once a week|Once a week|2-5 times in week|Daily or almost daily|Many times each day\n>is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.27": {
+                "field_name": "duration",
+                "field_title": "Duration: When you have the thoughts how long do they last?",
+                "field_type": "string",
+                "field_order": 26,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Fleeting - few seconds or minutes|Less than 1 hour / some of the time|1-4 hours / a lot of time|4-8 hours / most of day|More than 8 hours / persistent or continuous\n>is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.28": {
+                "field_name": "controllability",
+                "field_title": "Controllability: Could / can you stop thinking about killing yourself or wanting to die if you want to?",
+                "field_type": "string",
+                "field_order": 27,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Easily able to control thoughts|Can control thoughts with little difficulty|Can control thoughts with some difficulty|Can control thoughts  with a lot of difficulty|Unable to control thoughts|Does not attempt to control thoughts\n>is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.29": {
+                "field_name": "Deterrents",
+                "field_title": "Deterrents:  Are there things - anyone or anything (e.g. family, religion, pain of death) - that stopped you from wanting to die or acting on thoughts of committing suicide?",
+                "field_type": "string",
+                "field_order": 28,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Deterrents definitely stopped you from attempting suicide|Deterrents probably stopped you|Uncertain that deterrents stopped you|Deterrents most likely did not stop you|Deterrents definitely did not stop you |Does not apply\n>is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.30": {
+                "field_name": "reasons_for_ideation",
+                "field_title": "Reasons for Ideation: What sort of reasons did you have for thinking about wanting to die or killing yourself? Was it to end the pain or stop the way you were feeling (in other words you couldn’t go on living with this pain or how you were feeling) or was it to get attention,   revenge or a reaction from others? Or both?",
+                "field_type": "string",
+                "field_order": 29,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Completely to get attention, revenge or a reaction from others.|Mostly to get attention, revenge or a reaction from others.|Equally to get attention, revenge or a reaction from others and to end/stop the pain.|Mostly to end or stop the pain (you couldn’t go on living with the pain or how you were feeling).|Completely to end or stop the pain (you couldn’t go on living with the pain or how you were feeling).|Does not apply\n>is_shown_fg=$(siq1)=='true'||$(siq2)=='true'"
+            },
+            "1.31": {
+                "field_name": "subtitle_10",
+                "field_title": "SUICIDAL BEHAVIOR",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.32": {
+                "field_name": "subtitle_11",
+                "field_title": "Actual Attempt",
+                "field_type": "string",
+                "field_order": 31,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'",
+                "field_constraint_description": "titledescription",
+                "field_description": "A potentially self-injurious act committed with at least some wish to die, as a result of act. Behavior was in part\nthought of as method to kill oneself. Intent does not have to be 100%. If there is any intent/desire to die associated\nwith the act, then it can be considered an actual suicide attempt. There does not have to be any injury or harm, just\nthe potential for injury or harm. If person pulls trigger while gun is in mouth but gun is broken so no injury results,\nthis is considered an attempt.<br>\nInferring Intent: Even if an individual denies intent/wish to die, it may be inferred clinically from the behavior or\ncircumstances. For example, a highly lethal act that is clearly not an accident so no other intent but suicide can be\ninferred (e.g., gunshot to head, jumping from window of a high floor/story). Also, if someone denies intent to die, but\nthey thought that what they did could be lethal, intent may be inferred."
+            },
+            "1.33": {
+                "field_name": "sbq1",
+                "field_title": "Have you made a suicide attempt?",
+                "field_type": "bool",
+                "field_order": 32,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.34": {
+                "field_name": "sbq1_attempts",
+                "field_title": "Total number of attempts",
+                "field_type": "integer",
+                "field_order": 33,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.35": {
+                "field_name": "sbq2",
+                "field_title": "Have you done anything to harm yourself?",
+                "field_type": "bool",
+                "field_order": 34,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.36": {
+                "field_name": "sbq3",
+                "field_title": "Have you done anything dangerous where you could have died?",
+                "field_type": "bool",
+                "field_order": 35,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.37": {
+                "field_name": "sbq4",
+                "field_title": "What did you do?",
+                "field_type": "text",
+                "field_order": 36,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.38": {
+                "field_name": "sbq5",
+                "field_title": "Did you [do this] as a way to end your life?",
+                "field_type": "bool",
+                "field_order": 37,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.39": {
+                "field_name": "sbq6",
+                "field_title": "Did you want to die (even a little) when you [did this]?",
+                "field_type": "bool",
+                "field_order": 38,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.40": {
+                "field_name": "sbq7",
+                "field_title": "Were you trying to end your life when you [did this]?",
+                "field_type": "bool",
+                "field_order": 39,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.41": {
+                "field_name": "sbq8",
+                "field_title": "Or did you think it was possible you could have died from [doing this]?",
+                "field_type": "bool",
+                "field_order": 40,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.42": {
+                "field_name": "sbq9",
+                "field_title": "Or did you do it purely for other reasons / without ANY intention of killing yourself (like to relieve stress, feel better, get sympathy, or get something else to happen)?",
+                "field_type": "bool",
+                "field_order": 41,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.43": {
+                "field_name": "aa_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 42,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sbq9)=='true'&&$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.44": {
+                "field_name": "sbq9_non_suicidal",
+                "field_title": "Has subject engaged in Non-Suicidal Self-Injurious Behavior?",
+                "field_type": "bool",
+                "field_order": 44,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.45": {
+                "field_name": "subtitle_13",
+                "field_title": "Interrupted Attempt",
+                "field_type": "string",
+                "field_order": 45,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'",
+                "field_constraint_description": "titledescription",
+                "field_description": "When the person is interrupted (by an outside circumstance) from starting the potentially self-injurious act (if not for that, actual attempt would have occurred).<br>\nOverdose: Person has pills in hand but is stopped from ingesting. Once they ingest any pills, this becomes an attempt rather than an interrupted attempt. Shooting: Person has gun pointed toward self, gun is taken away by someone else, or is somehow prevented from pulling trigger. Once\nthey pull the trigger, even if the gun fails to fire, it is an attempt. Jumping: Person is poised to jump, is grabbed and taken down from ledge.\nHanging: Person has noose around neck but has not yet started to hang - is stopped from doing so."
+            },
+            "1.46": {
+                "field_name": "sbq10",
+                "field_title": "Has there been a time when you started to do something to end your life but someone or something stopped you before you actually did anything?",
+                "field_type": "bool",
+                "field_order": 46,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.47": {
+                "field_name": "sbq10_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 47,
+                "field_constraint_data": "is_shown_fg=$(sbq10)=='true'&&$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.48": {
+                "field_name": "sbq10_interrupted",
+                "field_title": "Total number of interrupted attempts",
+                "field_type": "integer",
+                "field_order": 48,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.49": {
+                "field_name": "subtitle_14",
+                "field_title": "Aborted Attempt",
+                "field_type": "string",
+                "field_order": 49,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'",
+                "field_constraint_description": "titledescription",
+                "field_description": "When person begins to take steps toward making a suicide attempt, but stops themselves before they actually have engaged in any self- destructive behavior. Examples are similar to interrupted attempts, except that the individual stops him/herself, instead of being stopped by\nsomething else."
+            },
+            "1.50": {
+                "field_name": "sbq11",
+                "field_title": "Has there been a time when you started to do something to try to end your life but you stopped yourself before you actually did anything?",
+                "field_type": "bool",
+                "field_order": 50,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.51": {
+                "field_name": "sbq11_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 50.5,
+                "field_constraint_data": "is_shown_fg=$(sbq11)=='true'&&$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.52": {
+                "field_name": "sbq11_attempts",
+                "field_title": "Total number of aborted attempts",
+                "field_type": "integer",
+                "field_order": 51,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.53": {
+                "field_name": "subtitle_15",
+                "field_title": "Preparatory Acts or Behavior",
+                "field_type": "string",
+                "field_order": 52,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'",
+                "field_constraint_description": "titledescription",
+                "field_description": "Acts or preparation towards imminently making a suicide attempt. This can include anything beyond a verbalization\nor thought, such as assembling a specific method (e.g., buying pills, purchasing a gun) or preparing for one's death\nby suicide (e.g., giving things away, writing a suicide note)."
+            },
+            "1.54": {
+                "field_name": "pbq1",
+                "field_title": "Have you taken any steps towards making a suicide attempt or preparing to kill yourself (such as collecting pills, getting a gun, giving valuables away or writing a suicide note)?",
+                "field_type": "bool",
+                "field_order": 53,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false' && $(siq2)=='false'"
+            },
+            "1.55": {
+                "field_name": "pbq1_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": 54,
+                "field_constraint_data": "is_shown_fg=$(pbq1)=='true'&&$(siq1)=='false' && $(siq2)=='false'"
+            },
+            "1.56": {
+                "field_name": "sbq1_assessment",
+                "field_title": "Suicidal behavior was present during the assessment period?",
+                "field_type": "bool",
+                "field_order": 55,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.57": {
+                "field_name": "subtitle_16",
+                "field_title": "Answer for Actual Attempts Only",
+                "field_type": "string",
+                "field_order": 56,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.58": {
+                "field_name": "actual_lethality",
+                "field_title": "Actual Lethality/Medical Damage",
+                "field_type": "string",
+                "field_order": 57,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "No physical damage or very minor physical damage (e.g., surface scratches).|Minor physical damage (e.g., lethargic speech; first-degree burns; mild bleeding; sprains).|Moderate physical damage; medical attention needed (e.g., conscious but sleepy, somewhat responsive; second-degree burns; bleeding of major vessel).|Moderately severe physical damage; medical hospitalization and likely intensive care required (e.g., comatose with reflexes intact; third-degree burns less than 20% of body; extensive blood loss but can recover; major fractures).|Severe physical damage; medical hospitalization with intensive care required (e.g., comatose without reflexes; third-degree burns over 20% of body; extensive blood loss with unstable vitalsigns; major damage to a vital area).|Death\n>is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            },
+            "1.59": {
+                "field_name": "potential_lethality",
+                "field_title": "Potential Lethality: Only Answer if Actual Lethality is 'No physical damage or very minor physical damage'",
+                "field_type": "string",
+                "field_order": 58,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Behavior not likely to result in injury|Behavior likely to result in injury but not likely to cause death|Behavior likely to result in death despite available medical care\n>is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'",
+                "field_description": "Likely lethality of actual attempt if no medical damage (the following examples, while having no actual medical damage, had potential for very serious lethality: put gun in mouth and pulled the trigger but gun fails to fire so no medical damage; laying on train tracks with oncoming train but pulled away before run over)."
+            },
+            "1.60": {
+                "field_name": "date_of_recent_attempt",
+                "field_title": "Potential Lethality: Date of most recent attempt",
+                "field_type": "date",
+                "field_order": 59,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(siq1)=='false'&&$(siq2)=='false'"
+            }
+        },
+        "parent": {
+            "4": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

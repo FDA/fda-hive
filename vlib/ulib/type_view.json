@@ -1,0 +1,100 @@
+{
+    "type.7": {
+        "_id": "type.7",
+        "_type": "type",
+        "name": "view",
+        "title": "Object type view",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "fields",
+                "field_title": "Fields",
+                "field_type": "array",
+                "field_is_multi_fg": true,
+                "field_description": "list of fields accessible through view"
+            },
+            "1.2": {
+                "field_name": "field_default",
+                "field_title": "Default",
+                "field_type": "string",
+                "field_parent": "fields",
+                "field_is_optional_fg": true,
+                "field_description": "default value for the field in view"
+            },
+            "1.3": {
+                "field_name": "field_name",
+                "field_title": "Field",
+                "field_type": "string",
+                "field_parent": "fields",
+                "field_constraint": "url",
+                "field_constraint_data": "?cmd=lookup&type=$_(type_name)",
+                "field_description": "Choose field name"
+            },
+            "1.4": {
+                "field_name": "field_order",
+                "field_title": "Order",
+                "field_type": "integer",
+                "field_parent": "fields",
+                "field_constraint": "range",
+                "field_constraint_data": "1,",
+                "field_description": "Order if a field in this view"
+            },
+            "1.5": {
+                "field_name": "field_readonly",
+                "field_title": "is readonly",
+                "field_type": "bool",
+                "field_parent": "fields",
+                "field_description": "value of the field could be changed through the view"
+            },
+            "1.6": {
+                "field_name": "is_default",
+                "field_title": "is default",
+                "field_type": "bool",
+                "field_description": "Indicates if view is the default view for the type"
+            },
+            "1.7": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_description": "View name, unique with in type"
+            },
+            "1.8": {
+                "field_name": "type_name",
+                "field_title": "Type",
+                "field_type": "string",
+                "field_description": "name of the type on which view is based"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

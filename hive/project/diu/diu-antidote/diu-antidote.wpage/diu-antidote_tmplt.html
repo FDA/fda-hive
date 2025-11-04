@@ -1,0 +1,52 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+
+
+<script type="application/javascript">
+
+    setLocationTitle("DIU Antidote: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+            
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "diu-antidote", "svc-diu-antidote-cflow");
+    
+    algoProcess.visibleParameters=["name","sampleID","sampleObj"];
+     
+    algoProcess.submitButtonName="Submit";
+    
+    
+     algoProcess.inputLoaded = function (viewer, elem){
+    } 
+    algoProcess.inputChanged= function (viewer, elem){
+         if(thisProcessID && thisProcessID.indexOf("-") != 0)
+            return ;
+    }
+    
+    
+    gInitList += "antidoteInit();";
+    function antidoteInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-diu-cflow',
+            algoTitle: "Antidote CFlow"
+        });
+        
+    };
+</script>
+

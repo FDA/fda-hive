@@ -1,0 +1,51 @@
+{
+    "169": {
+        "_id": "$type.u-ionExpress",
+        "_type": "type",
+        "name": "u-ionExpress",
+        "title": "Gene Express in ion",
+        "description": "// Gene Express in ionDB format\nlocation: hive.app.dna",
+        "parent": {
+            "1": "$type.u-ionAnnot"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "hasdata",
+                "field_title": "Has Data",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

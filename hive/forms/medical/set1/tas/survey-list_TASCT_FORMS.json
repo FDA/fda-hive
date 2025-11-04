@@ -1,0 +1,188 @@
+{
+    "393": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "survey": {
+            "1.0": {
+                "name": "$type.tasct_breast_chest_body_map",
+                "order": 11,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "2.0": {
+                "name": "$type.tasct_patient_demographics",
+                "order": 1,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "3.0": {
+                "name": "$type.tasct_screening",
+                "order": 2,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "4.0": {
+                "name": "$type.tasct_medical_history",
+                "order": 3,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "5.0": {
+                "name": "$type.tasct_health_history",
+                "order": 4,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "6.0": {
+                "name": "$type.tasct_current_medications",
+                "order": 5,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "7.0": {
+                "name": "$type.tasct_other_treatments",
+                "order": 6,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "8.0": {
+                "name": "$type.tasct_additional_surgery",
+                "order": 7,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "9.0": {
+                "name": "$type.tasct_promis_29",
+                "order": 8,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "10.0": {
+                "name": "$type.tasct_whiteley_index",
+                "order": 9,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "11.0": {
+                "name": "$type.tasct_search_questionnaire",
+                "order": 10,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "12.0": {
+                "name": "$type.tasct_michigan_body_map",
+                "order": 12,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            },
+            "13.0": {
+                "name": "$type.tasct_satisfaction",
+                "order": 13,
+                "items-per-page": 0,
+                "activate_delay": 0,
+                "expiration_time": 0,
+                "enforce_check": false,
+                "multiple_records": false,
+                "optional_fields": 0,
+                "previous_values": false
+            }
+        },
+        "unique-name": "TASCT_FORMS",
+        "readable_name": "The Star Breast Study Forms",
+        "sl_order": 2,
+        "visit_types_ref": {
+            "6": 404
+        },
+        "creator_id": "7",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

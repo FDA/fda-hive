@@ -1,0 +1,314 @@
+{
+    "392": {
+        "_id": "$upsert()",
+        "_type": "hppo",
+        "unique-name": "TAS_HPPO",
+        "rule": {
+            "1.3": {
+                "types": "regex:^med_visit_type;",
+                "groups": "/HIVE/Projects/TAS/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/everyone/users/"
+            },
+            "1.6": {
+                "types": "regex:^med_study;",
+                "groups": "/everyone/public/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/everyone/users/"
+            },
+            "1.7": {
+                "types": "regex:^med_site;",
+                "groups": "/HIVE/Projects/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/everyone/users/"
+            },
+            "1.10": {
+                "types": "regex:^med_user;",
+                "groups": "../../Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.16": {
+                "types": "regex:^med_user;",
+                "groups": "../../Doctors/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.17": {
+                "types": "regex:^med_user;",
+                "groups": "../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.18": {
+                "types": "regex:^med_user;",
+                "groups": "../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.19": {
+                "types": "regex:^med_user;",
+                "groups": "../../../../Administrators/;",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.20": {
+                "types": "regex:^med_user_study;",
+                "groups": "../../Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.21": {
+                "types": "regex:^med_user_study;",
+                "groups": "../../Doctors/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.22": {
+                "types": "regex:^med_user_study;",
+                "groups": "../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.23": {
+                "types": "regex:^med_user_study;",
+                "groups": "../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.24": {
+                "types": "regex:^med_user_study;",
+                "groups": "../../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.25": {
+                "types": "regex:^med_user;",
+                "groups": "../../../Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Doctors/.*-team/.*;"
+            },
+            "1.26": {
+                "types": "regex:^med_user;",
+                "groups": "../../../Doctors/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Doctors/.*-team/.*;"
+            },
+            "1.27": {
+                "types": "regex:^med_user;",
+                "groups": "../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Doctors/.*-team/.*;"
+            },
+            "1.28": {
+                "types": "regex:^med_user;",
+                "groups": "../../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Doctors/.*-team/.*;"
+            },
+            "1.29": {
+                "types": "regex:^med_user;",
+                "groups": "../../../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Doctors/.*-team/.*;"
+            },
+            "1.32": {
+                "types": "regex:^med_visit;",
+                "groups": "../../Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.33": {
+                "types": "regex:^med_visit;",
+                "groups": "../../Doctors/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.34": {
+                "types": "regex:^med_visit;",
+                "groups": "../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.35": {
+                "types": "regex:^med_visit;",
+                "groups": "../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.36": {
+                "types": "regex:^med_visit;",
+                "groups": "../../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.39": {
+                "types": "regex:^tas_;",
+                "groups": "../../Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.40": {
+                "types": "regex:^tas_;",
+                "groups": "../../Doctors/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.41": {
+                "types": "regex:^tas_;",
+                "groups": "../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.42": {
+                "types": "regex:^tas_;",
+                "groups": "../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.43": {
+                "types": "regex:^tas_;",
+                "groups": "../../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.46": {
+                "types": "regex:^tasct_;",
+                "groups": "../../Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.47": {
+                "types": "regex:^tasct_;",
+                "groups": "../../Doctors/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.48": {
+                "types": "regex:^tasct_;",
+                "groups": "../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.49": {
+                "types": "regex:^tasct_;",
+                "groups": "../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.50": {
+                "types": "regex:^tasct_;",
+                "groups": "../../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.51": {
+                "types": "regex:u-file;dicom;EDFfile;csv-table",
+                "groups": "../../Coordinators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.52": {
+                "types": "regex:u-file;dicom;EDFfile;csv-table",
+                "groups": "../../Doctors/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.53": {
+                "types": "regex:u-file;dicom;EDFfile;csv-table",
+                "groups": "../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.54": {
+                "types": "regex:u-file;dicom;EDFfile;csv-table",
+                "groups": "../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.55": {
+                "types": "regex:u-file;dicom;EDFfile;csv-table",
+                "groups": "../../../../Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/HIVE/Projects/.*/Patients/.*;regex:/HIVE/Projects/.*/Coordinators/.*;;regex:/HIVE/Projects/.*/Doctors/.*;"
+            },
+            "1.58": {
+                "types": "regex:^survey-list;",
+                "groups": "/HIVE/Projects/TAS/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/everyone/users/"
+            },
+            "1.61": {
+                "types": "regex:^med_study;",
+                "groups": "/HIVE/Projects/TAS/Administrators/",
+                "flags": 2,
+                "bits": 4294967295,
+                "sharer": "regex:/everyone/users/"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/HIVE/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,46 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script src="js-obj-new/svc-dna-umi-collapse.js"></script>
+<script src="js/vjIFrameView.js"></script>
+
+<script type="application/javascript">
+
+    setLocationTitle("UMI Collapser: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "dna-umi-collapse", "svc-dna-umi-collapse");
+    algoProcess.visibleParameters=["name","reads","references"];
+    algoProcess.submitButtonName="Submit";
+
+    algoProcess.inputLoaded = function (viewer, elem){
+        algoProcess.inputChanged(viewer, elem);
+    }
+    algoProcess.inputChanged= function (viewer, elem){
+    }
+    
+    
+    gInitList += "umiCollapserInit();";
+    function umiCollapserInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-dna-umi-collaps',
+            algoTitle: "UMI Collapsing Utility"
+        });
+        
+    };
+</script>
+

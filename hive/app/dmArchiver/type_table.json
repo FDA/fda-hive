@@ -1,0 +1,39 @@
+{
+    "type.298": {
+        "_id": "type.298",
+        "_type": "type",
+        "name": "table",
+        "title": "Abstract table type",
+        "description": "Any comma, tab separated something reconized by Table Query",
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

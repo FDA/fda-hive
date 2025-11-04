@@ -1,0 +1,29 @@
+{
+    "222": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-clust",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-clust",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-clust",
+        "description": "DNA_CLUST performs phylogenetic analysis of multiple NGS file. It uses HIVE profiler outputs to construct a distance matrix of related species.",
+        "related": {
+            "8": "59118"
+        },
+        "synonyms": {
+            "11": "HIVE-octahedron"
+        },
+        "authors": {
+            "13": "A.Rostovtsev"
+        },
+        "contributors": {
+            "15": "V.Simonyan"
+        }
+    }
+}

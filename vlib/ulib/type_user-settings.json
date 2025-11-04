@@ -1,0 +1,172 @@
+{
+    "type.98": {
+        "_id": "type.98",
+        "_type": "type",
+        "name": "user-settings",
+        "title": "User Settings",
+        "description": "Collection of User Setting Parameters",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "curdir_open",
+                "field_title": "Curent Folder for Opening Objects",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "folder",
+                "field_description": "Current folder to search for objects (default is Inbox)"
+            },
+            "1.2": {
+                "field_name": "curdir_save",
+                "field_title": "… or Choose Specific Folder",
+                "field_type": "obj",
+                "field_parent": "curdir_save_list",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "folder",
+                "field_description": "Choose specific folder to save objects (default is Inbox)"
+            },
+            "1.3": {
+                "field_name": "curdir_save_curdir_explorer",
+                "field_title": "Use Last Selected Folder in Homepage",
+                "field_type": "bool",
+                "field_parent": "curdir_save_list",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Save objects in last selected folder in homepage"
+            },
+            "1.4": {
+                "field_name": "curdir_save_list",
+                "field_title": "Folder for Creating/Saving Objects",
+                "field_type": "list",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "notification_cutoff",
+                "field_title": "Notification Cutoff Date",
+                "field_type": "datetime",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.9": {
+                "field_name": "default_action",
+                "field_title": "Default actions",
+                "field_type": "array",
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.10": {
+                "field_role": "parameter",
+                "field_is_multi_fg": false,
+                "field_name": "default_action_for_type",
+                "field_title": "Type",
+                "field_type": "string",
+                "field_parent": "default_action",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\nfetch:'id',\ninline:'title',\noutline:'title',\nurl:'http://?cmdr=objQry&qry=alloftype(\"type\").filter({.is_abstract_fg<%3D0}).csv([\"name\",\"title\"])'} "
+            },
+            "1.11": {
+                "field_role": "parameter",
+                "field_is_multi_fg": false,
+                "field_name": "default_action_id",
+                "field_title": "Action",
+                "field_type": "string",
+                "field_parent": "default_action",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\nfetch:'id',\ninline:'title',\noutline:'title',\nurl:'http://?cmdr=objQry&qry=alloftype(\"action+\").csv([\"name\",\"title\"])'} "
+            },
+            "1.12": {
+                "field_name": "account_token",
+                "field_title": "Account Access Tokens",
+                "field_type": "array",
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.13": {
+                "field_name": "account_token_name",
+                "field_title": "Token name",
+                "field_type": "string",
+                "field_parent": "account_token",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Name of the token"
+            },
+            "1.14": {
+                "field_name": "account_token_expiration",
+                "field_title": "Expiration date",
+                "field_type": "datetime",
+                "field_parent": "account_token",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Date when token becomes invalid"
+            },
+            "1.16": {
+                "field_name": "account_token_hash",
+                "field_title": "hash",
+                "field_type": "string",
+                "field_parent": "account_token",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.17": {
+                "field_name": "account_token_created",
+                "field_title": "created",
+                "field_type": "datetime",
+                "field_parent": "account_token",
+                "field_order": 5,
+                "field_is_optional_fg": false,
+                "field_description": "Date when token was created"
+            },
+            "1.18": {
+                "field_name": "notify",
+                "field_title": "When to Notify via Email",
+                "field_type": "string",
+                "field_role": "input",
+                "field_default_value": "Failures Only",
+                "field_constraint": "choice",
+                "field_constraint_data": "Always|Failures Only|Never"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

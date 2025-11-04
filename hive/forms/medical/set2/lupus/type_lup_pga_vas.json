@@ -1,0 +1,40 @@
+{
+    "556": {
+        "_id": "$type.lup_pga_vas",
+        "_type": "type",
+        "name": "lup_pga_vas",
+        "title": "PGA (Physician Global Assessment) - VAS (Visual Analog Score)",
+        "description": "<h5>The PGA scale ranges from “no disease activity” (0) to the “most severe disease activity” (3) and incorporates the values 1 and 2 as inner markers to categorize disease activity as mild (≥0·5 to 1), moderate (>1 and ≤2) and severe (>2 to 3).\r\n<br /><br />\r\n<span style='color:red;'>This scale needs to be completed AFTER reviewing the lab results.</span>\r\n</h5>",
+        "fields": {
+            "1.1": {
+                "field_name": "global_disease_activity",
+                "field_title": "Please indicate on the line the patient’s global disease activity by sliding the blue cursor:",
+                "field_type": "real",
+                "field_order": 1,
+                "field_constraint_data": "{\r\n\t\"range\": \"0-3\",\r\n\t\"unit\": \"\"\r\n}",
+                "field_constraint_description": "slider"
+            }
+        },
+        "parent": {
+            "4": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

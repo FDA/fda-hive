@@ -1,0 +1,54 @@
+{
+    "type.350": {
+        "_id": "type.350",
+        "_type": "type",
+        "name": "svc-align-single-end",
+        "title": "single end only aligners abstract type",
+        "description": "Abstract type for single end only aligners",
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "query",
+                "field_title": "Sequence Read",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_role": "input",
+                "field_is_readonly_fg": -1,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read,folder,svc-dna-insilico",
+                "field_description": "Query sequences (reads)"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

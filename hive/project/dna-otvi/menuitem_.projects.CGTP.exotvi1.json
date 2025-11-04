@@ -1,0 +1,40 @@
+{
+    "347": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "order": 3,
+        "url": "?cmd=exotvi1&wflow-barcodes=CTACGA;ACGCGA&wflow-umi_size=5",
+        "title": "Ex OTVI Workflow",
+        "path": "/projects/CGTP/exotvi1",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

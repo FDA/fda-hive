@@ -1,0 +1,393 @@
+{
+    "573": {
+        "_id": "$type.lup_slicc_acr_damage_index",
+        "_type": "type",
+        "name": "lup_slicc_acr_damage_index",
+        "title": "SLICC/ACR Damage Index",
+        "description": "<h5>Assess for each item the damage (nonreversible change, not related to active inflammation) occurring since onset of lupus and present for at least 6 months unless otherwise stated. Repeat episodes must occur at least 6 months apart to score 2. The same lesion cannot be scored twice. </h5>",
+        "fields": {
+            "1.1": {
+                "field_name": "ocular_title",
+                "field_title": "Ocular",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_description": "titledescription"
+            },
+            "1.2": {
+                "field_name": "cataract",
+                "field_title": "Any cataract ever (1)",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.3": {
+                "field_name": "retinal_change_optic_atrophy",
+                "field_title": "Retinal change or optic atrophy (1)",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.4": {
+                "field_name": "neuropsychiatric_title",
+                "field_title": "Neuropsychiatric",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_description": "titledescription"
+            },
+            "1.5": {
+                "field_name": "cognitive_impairment_major_psychosis",
+                "field_title": "Cognitive Impairment(*) or Major Psychosis  (1)",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);",
+                "field_description": "(*)Memory deficit, difficulty with calculation, poor concentration, difficulty with spoken or written language, impaired performance level"
+            },
+            "1.6": {
+                "field_name": "seizures_requiring_therapy",
+                "field_title": "Seizures requiring therapy for ≥6 months (1)",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.7": {
+                "field_name": "cerebrovascular_accident",
+                "field_title": "Cerebrovascular accident ever (Single episode: 1, Two or more episodes: 2)",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "Single episode|2 or more episodes|No\r\n>total_score=total_score+($(this)=='No'?0:($(this)=='Single episode'?1:$(this)=='2 or more episodes'?2:0));"
+            },
+            "1.8": {
+                "field_name": "cranial_peripheral_neuropathy",
+                "field_title": "Cranial or peripheral neuropathy (excluding optic) (1)",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.9": {
+                "field_name": "transverse_myelitis",
+                "field_title": "Transverse myelitis (1)",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.10": {
+                "field_name": "renal_title",
+                "field_title": "Renal",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_description": "titledescription"
+            },
+            "1.11": {
+                "field_name": "gfr",
+                "field_title": "Estimated or measured GFR <50% (1)",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.12": {
+                "field_name": "proteinuria",
+                "field_title": "Proteinuria ≥3.5 g/24 hours (1)",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?($(renal_disease)!='true'?1:0):0);"
+            },
+            "1.13": {
+                "field_name": "or_divider",
+                "field_title": "or",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_description": "description"
+            },
+            "1.14": {
+                "field_name": "renal_disease",
+                "field_title": "End-stage renal disease  (3)",
+                "field_type": "bool",
+                "field_order": 16,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?3:0);",
+                "field_description": "regardless of dialysis or transplantation"
+            },
+            "1.15": {
+                "field_name": "pulmonary_title",
+                "field_title": "Pulmonary",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_description": "titledescription"
+            },
+            "1.16": {
+                "field_name": "pulmonary_hypertension",
+                "field_title": "Pulmonary hypertension (1)",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.17": {
+                "field_name": "pulmonary_fibrosis",
+                "field_title": "Pulmonary fibrosis (1)",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.18": {
+                "field_name": "shrinking_lung",
+                "field_title": "Shrinking lung (1)",
+                "field_type": "bool",
+                "field_order": 21,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.19": {
+                "field_name": "pleural_fibrosis",
+                "field_title": "Pleural fibrosis (1)",
+                "field_type": "bool",
+                "field_order": 22,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.20": {
+                "field_name": "pulmonary_infarction",
+                "field_title": "Pulmonary infarction (1)",
+                "field_type": "bool",
+                "field_order": 23,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.21": {
+                "field_name": "cardiovascular_title",
+                "field_title": "Cardiovascular",
+                "field_type": "string",
+                "field_order": 24,
+                "field_constraint_description": "titledescription"
+            },
+            "1.22": {
+                "field_name": "angina_coronary_artery_bypass",
+                "field_title": "Angina or coronary artery bypass (1)",
+                "field_type": "bool",
+                "field_order": 25,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.23": {
+                "field_name": "myocardial_infarction",
+                "field_title": "Myocardial infarction  (Single episode: 1, Two or more episodes: 2)",
+                "field_type": "string",
+                "field_order": 26,
+                "field_constraint_data": "Single episode|2 or more episodes|No\r\n>total_score=total_score+($(this)=='No'?0:($(this)=='Single episode'?1:$(this)=='2 or more episodes'?2:0));"
+            },
+            "1.24": {
+                "field_name": "cardiomyopathy",
+                "field_title": "Cardiomyopathy (1)",
+                "field_type": "bool",
+                "field_order": 27,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.25": {
+                "field_name": "valvular_disease",
+                "field_title": "Valvular disease (1)",
+                "field_type": "bool",
+                "field_order": 28,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.26": {
+                "field_name": "pericarditis_pericardiectomy",
+                "field_title": "Pericarditis for 6 months or pericardiectomy (1)",
+                "field_type": "bool",
+                "field_order": 29,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.27": {
+                "field_name": "peripheral_vascular_title",
+                "field_title": "Peripheral Vascular",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_description": "titledescription"
+            },
+            "1.28": {
+                "field_name": "claudication",
+                "field_title": "Claudication (1)",
+                "field_type": "bool",
+                "field_order": 31,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.29": {
+                "field_name": "minor_tissue_loss",
+                "field_title": "Minor tissue loss (pulp space) (1)",
+                "field_type": "bool",
+                "field_order": 32,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.30": {
+                "field_name": "significant_tissue_loss",
+                "field_title": "Significant tissue loss ever  (Single site: 1, Two or more sites: 2)",
+                "field_type": "string",
+                "field_order": 33,
+                "field_constraint_data": "Single site|2 or more sites|No\r\n>total_score=total_score+($(this)=='No'?0:($(this)=='Single site'?1:$(this)=='2 or more sites'?2:0));"
+            },
+            "1.31": {
+                "field_name": "venous_thrombosis",
+                "field_title": "Venous thrombosis with swelling, ulceration or venous stasis (1)",
+                "field_type": "bool",
+                "field_order": 34,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.32": {
+                "field_name": "gastrointestinal_title",
+                "field_title": "Gastrointestinal",
+                "field_type": "string",
+                "field_order": 35,
+                "field_constraint_description": "titledescription"
+            },
+            "1.33": {
+                "field_name": "infarction_resection",
+                "field_title": "Infarction or resection of bowel (below duodenum), spleen, liver or gallbladder (Single site: 1, Two or more sites: 2)",
+                "field_type": "string",
+                "field_order": 36,
+                "field_constraint_data": "Single site|2 or more sites|No\r\n>total_score=total_score+($(this)=='No'?0:($(this)=='Single site'?1:$(this)=='2 or more sites'?2:0));"
+            },
+            "1.34": {
+                "field_name": "mesenteric_insufficiency",
+                "field_title": "Mesenteric insufficiency (1)",
+                "field_type": "bool",
+                "field_order": 37,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.35": {
+                "field_name": "chronic_peritonitis",
+                "field_title": "Chronic peritonitis (1)",
+                "field_type": "bool",
+                "field_order": 38,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.36": {
+                "field_name": "stricture_upper_gastrointestinal_surgery ",
+                "field_title": "Stricture or upper gastrointestinal tract surgery ever (1)",
+                "field_type": "bool",
+                "field_order": 39,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.37": {
+                "field_name": "musculoskeletal_title",
+                "field_title": "Musculoskeletal",
+                "field_type": "string",
+                "field_order": 41,
+                "field_constraint_description": "titledescription"
+            },
+            "1.38": {
+                "field_name": "pancreatic_insufficiency",
+                "field_title": "Pancreatic insufficiency requiring enzyme replacement or with pseudocyst (1)",
+                "field_type": "bool",
+                "field_order": 40,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.39": {
+                "field_name": "muscle_atrophy_weakness",
+                "field_title": "Muscle atrophy or weakness (1)",
+                "field_type": "bool",
+                "field_order": 42,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.40": {
+                "field_name": "deforming_erosive_arthritis",
+                "field_title": "Deforming or erosive arthritis (1)",
+                "field_type": "bool",
+                "field_order": 43,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.41": {
+                "field_name": "osteoporosis",
+                "field_title": "Osteoporosis with fracture or vertebral collapse (1)",
+                "field_type": "bool",
+                "field_order": 44,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.42": {
+                "field_name": "avascular_necrosis",
+                "field_title": "Avascular necrosis   (Single episode: 1, Two or more episodes: 2)",
+                "field_type": "string",
+                "field_order": 45,
+                "field_constraint_data": "Single episode|2 or more episodes|No\r\n>total_score=total_score+($(this)=='No'?0:($(this)=='Single episode'?1:$(this)=='2 or more episodes'?2:0));"
+            },
+            "1.43": {
+                "field_name": "osteomyelitis",
+                "field_title": "Osteomyelitis (1)",
+                "field_type": "bool",
+                "field_order": 46,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.44": {
+                "field_name": "skin_title",
+                "field_title": "Skin",
+                "field_type": "string",
+                "field_order": 47,
+                "field_constraint_description": "titledescription"
+            },
+            "1.45": {
+                "field_name": "scarring_chronic_alopecia",
+                "field_title": "Scarring chronic alopecia (1)",
+                "field_type": "bool",
+                "field_order": 48,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.46": {
+                "field_name": "extensive_scarring_panniculum",
+                "field_title": "Extensive scarring of panniculum other than scalp and pulp space (1)",
+                "field_type": "bool",
+                "field_order": 49,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.47": {
+                "field_name": "skin_ulceration",
+                "field_title": "Skin ulceration (excluding thrombosis) for > 6 months (1)",
+                "field_type": "bool",
+                "field_order": 50,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.48": {
+                "field_name": "premature_gonadal_failure",
+                "field_title": "Premature gonadal failure (1)",
+                "field_type": "bool",
+                "field_order": 51,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.49": {
+                "field_name": "diabetes",
+                "field_title": "Diabetes (regardless of treatment) (1)",
+                "field_type": "bool",
+                "field_order": 52,
+                "field_constraint_data": "total_score=total_score+($(this)=='true'?1:0);"
+            },
+            "1.50": {
+                "field_name": "malignancy",
+                "field_title": "Malignancy (exclude dysplasia) (Single site: 1, Two or more sites: 2)",
+                "field_type": "string",
+                "field_order": 53,
+                "field_constraint_data": "Single site|2 or more sites|No\r\n>total_score=total_score+($(this)=='No'?0:($(this)=='Single site'?1:$(this)=='2 or more sites'?2:0));"
+            },
+            "1.51": {
+                "field_name": "slicc_acr_damage_Index",
+                "field_title": "SLICC/ACR<br /> Damage Index",
+                "field_type": "real",
+                "field_order": 54,
+                "field_constraint_data": "value_fg=total_score;is_disabled_fg=true;",
+                "field_constraint_description": "floating-score"
+            }
+        },
+        "parent": {
+            "4": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

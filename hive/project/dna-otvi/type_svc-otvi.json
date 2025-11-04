@@ -1,0 +1,69 @@
+{
+    "343": {
+        "_id": "$type.svc-otvi",
+        "_type": "type",
+        "name": "svc-otvi",
+        "title": "On-Off-Target Analyzer",
+        "description": "// Runs the last step of the off-target workflows to collect and present final datasets.\nlocation:hive.project.dna-otvi",
+        "fields": {
+            "1.1": {
+                "field_name": "hept-nominated",
+                "field_title": "Nominated Variant Callers",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler-heptagon"
+            },
+            "1.2": {
+                "field_name": "hept-gblock",
+                "field_title": "Gblock Variant Callers",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler-heptagon"
+            },
+            "1.3": {
+                "field_name": "ref-prefix",
+                "field_title": "Prefixes for references (semicolon separated)",
+                "field_type": "string",
+                "field_default_value": "chr;spike;",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "4": "$type.svc-profile"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

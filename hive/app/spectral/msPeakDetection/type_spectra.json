@@ -1,0 +1,42 @@
+{
+    "324": {
+        "_id": "$type.spectra",
+        "_type": "type",
+        "name": "spectra",
+        "title": "Spectra",
+        "description": "//\nlocation: hive.app.spectral.msPeakDetection",
+        "parent": {
+            "1": "$type.u-file"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

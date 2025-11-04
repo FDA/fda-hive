@@ -1,0 +1,151 @@
+{
+    "494": {
+        "_id": "$type.hep_informed_consent_checklist",
+        "_type": "type",
+        "name": "hep_informed_consent_checklist",
+        "title": "Informed Consent Checklist",
+        "fields": {
+            "1.1": {
+                "field_name": "consent",
+                "field_title": "Was written informed consent obtained from the participant?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "consent_date",
+                "field_title": "Informed Consent date",
+                "field_type": "date",
+                "field_order": 2,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(consent)=='true'"
+            },
+            "1.3": {
+                "field_name": "no_proceed ",
+                "field_type": "string",
+                "field_order": 2.5,
+                "field_constraint_data": "is_shown_fg=$(consent)=='false'",
+                "field_constraint_description": "description",
+                "field_description": "<span style=\"color: red\">Do not proceed before obtaining the written consent from the participant</span>"
+            },
+            "1.4": {
+                "field_name": "consent_procedures_reviewed",
+                "field_title": "Were the Informed Consent and study procedures reviewed with the participant?",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.5": {
+                "field_name": "questions_answered",
+                "field_title": "Were all of the participant's questions answered prior to signing the Consent?",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.6": {
+                "field_name": "signed_before_procedures",
+                "field_title": "Was the Consent signed before any study-related procedures were performed?",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.7": {
+                "field_name": "staff_signed_consent",
+                "field_title": "Did the appropriate site staff signed the Consent?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.8": {
+                "field_name": "signed_copy_to_subject",
+                "field_title": "Was a signed copy of the Consent given to the participant?",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.9": {
+                "field_name": "original_placed_in_file",
+                "field_title": "Was the original signed and dated consent form placed in the participant's file?",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.10": {
+                "field_name": "agree_contact_investigator",
+                "field_title": "Did the participant agree to be contacted by the Principal Investigator or Co-Investigators at your site for future research studies on epilepsy?",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.11": {
+                "field_name": "agree_contact_hep_team",
+                "field_title": "Did the participant agree to be contacted by the Central HEP Study Team based at NYUSM and ESCI for future research studies on epilepsy?",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.12": {
+                "field_name": "agree_genetic_sequencing",
+                "field_title": "Did the participant agree to allow genetic sequencing?",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.13": {
+                "field_name": "wish_molecular_genetic_findings",
+                "field_title": "Did the participant wish to be contacted about relevant molecular or genetic findings?",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.14": {
+                "field_name": "latest_irb_version_used",
+                "field_title": "Was the latest IRB approved version of the consent form used?\"",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.15": {
+                "field_name": "initials",
+                "field_title": "Consent obtained by (initials):",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.16": {
+                "field_name": "comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            },
+            "1.17": {
+                "field_name": "date_completed",
+                "field_title": "Date Completed",
+                "field_type": "date",
+                "field_order": 16,
+                "field_constraint_data": "is_shown_fg=$(consent)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

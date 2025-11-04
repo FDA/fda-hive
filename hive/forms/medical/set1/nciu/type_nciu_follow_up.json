@@ -1,0 +1,500 @@
+{
+    "33567": {
+        "_id": "$type.nciu_follow_up",
+        "_type": "type",
+        "name": "nciu_follow_up",
+        "title": "Follow Up",
+        "fields": {
+            "1.0": {
+                "field_name": "date_of_follow_up",
+                "field_title": "Date of follow-up",
+                "field_type": "date",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_description": "Date of follow-up"
+            },
+            "1.2": {
+                "field_name": "disease_response",
+                "field_title": "Disease response",
+                "field_type": "string",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "AJ-Adjuvant Therapy|BED-Biochemical Evidence of Disease|CPD-Clinical Progression|CR-Complete Response|CRU-Complete Response Unconfirmed|DU-Disease Unchanged|IMR-Immunoresponse|IPD-Immunoprogression|MR-Minimal/Marginal response|MX-Mixed Response|Non-CR/Non-PD-Non-CR/Non-PD|NPB-No Palliative Benefit|NR-No Response|PA-Palliative Therapy|PB-Palliative Benefit|PD-Progressive Disease|PDM-Persistent Distant Metastasis|PLD-Persistent Locoregional Disease|PPD-Pseudoprogression|PR-Partial Response|PSR-Pseudoresponse|RD-Responsive Disease|RP-Response|RPD-Radiographic Progressive Disease|sCR-Stringent Complete Response|SD-Stable Disease|SPD-Surgical Progression|TE-Too Early|TF-Tumor Free|VGPR-Very Good Partial Response|WT-With Tumor|Unknown",
+                "field_description": "Code assigned to describe the patient's response or outcome to the disease."
+            },
+            "1.4": {
+                "field_name": "date_of_imaging",
+                "field_title": "Date of imaging",
+                "field_type": "date",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_description": "Date of imaging"
+            },
+            "1.6": {
+                "field_name": "date_of_progression",
+                "field_title": "Date of progression",
+                "field_type": "date",
+                "field_order": "4",
+                "field_is_optional_fg": true,
+                "field_description": "Date of progression"
+            },
+            "1.8": {
+                "field_name": "date_of_progression_free",
+                "field_title": "date_of_progression_free",
+                "field_type": "date",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_description": "Date when the patient's disease was formally confirmed as progression-free."
+            },
+            "1.10": {
+                "field_name": "date_of_recurrence",
+                "field_title": "Date of recurrence",
+                "field_type": "date",
+                "field_order": "6",
+                "field_is_optional_fg": true,
+                "field_description": "Date of recurrence"
+            },
+            "1.12": {
+                "field_name": "evidence_of_recurrence_type",
+                "field_title": "evidence_of_recurrence_type",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Biopsy with Histologic Confirmation|Convincing Image Source|Physical Examination|Positive Biomarker(s)",
+                "field_description": "The text term used to describe the type of evidence used to determine whether the patient's disease recurred."
+            },
+            "1.14": {
+                "field_name": "karnofsky_performance_status",
+                "field_title": "Performance Status (Karnofsky)",
+                "field_type": "string",
+                "field_order": "8",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0|10|20|30|40|50|60|70|80|90|100|Unknown|Not Reported",
+                "field_description": "Text term used to describe the classification used of the functional capabilities of a person."
+            },
+            "1.16": {
+                "field_name": "procedures_performed",
+                "field_title": "procedures_performed",
+                "field_type": "text",
+                "field_order": "9",
+                "field_is_optional_fg": true
+            },
+            "1.18": {
+                "field_name": "progression_or_recurrence",
+                "field_title": "New Tumor Event After Initial Treatment",
+                "field_type": "string",
+                "field_order": "10",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "Yes/No/Unknown indicator to identify whether a patient has had a new tumor event after initial treatment."
+            },
+            "1.20": {
+                "field_name": "progression_or_recurrence_anatomic_site",
+                "field_title": "Progression or recurrence anatomic site",
+                "field_type": "string",
+                "field_order": "11",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Ascending colon|Colon NOS|Descending colon|Hepatic flexure of colon|Overlapping lesion of colon|Sigmoid colon|Splenic flexure of colon|Transverse colon|Cecum|Appendix|Rectosigmoid junction|Rectum NOS|Overlapping lesion of rectum anus and anal canal",
+                "field_description": "The text term used to describe the anatomic site of the progressive or recurrent disease."
+            },
+            "1.22": {
+                "field_name": "progression_or_recurrence_type",
+                "field_title": "Progression or recurrence type",
+                "field_type": "string",
+                "field_order": "12",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "C25434///Biochemical|C3261///Distant|C36162///Local|C41844///Regional|C17998///Unknown|C43234///Not Reported",
+                "field_description": "The text term used to describe the type of progressive or recurrent disease or relapsed disease."
+            },
+            "1.24": {
+                "field_name": "risk_factor",
+                "field_title": "Risk factor",
+                "field_type": "string",
+                "field_order": "13",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Abnormal Glucose Level|Adenosis (Atypical Adenomatous Hyperplasia)|Alcohol Consumption|Alcoholic Liver Disease|Allergy, Animal, NOS|Allergy, Ant|Allergy, Bee|Allergy, Cat|Allergy, Dairy or Lactose|Allergy, Dog|Allergy, Eggs|Allergy, Food, NOS|Allergy, Fruit|Allergy, Meat|Allergy, Mold or Dust|Allergy, Nuts|Allergy, Processed Foods|Allergy, Seafood|Allergy, Wasp|Alpha-1 Antitrypsin Deficiency|Ataxia-telangiectasia|Autoimmune Atrophic Chronic Gastritis|Autoimmune Lymphoproliferative Syndrome (ALPS)|Bacteroides fragilis|BAP1 Tumor Predisposition Syndrome|Barrett's Esophagus|Beckwith-Wiedemann|Behcet's Disease|Benign Prostatic Hyperplasia|Birt-Hogg-Dube Syndrome|BRCA Family History|Cancer|Chlamydia|Cholelithiasis|Chronic Hepatitis|Chronic Kidney Disease|Chronic Systemic Steroid Use|Cirrhosis|Colon Polyps|Colonization, Bacterial|Colonization, Fungal|Common variable immune deficiency (CVID)|Cowden Syndrome|Cryptococcal Meningitis|Cyst(s)|Cytomegalovirus (CMV)|Denys-Drash Syndrome|Diabetes, NOS|Diabetes, Type I|Diabetes, Type II|Diet|Diverticulitis|Eczema|Endometriosis|Endosalpingiosis|Epithelial Dysplasia|Epithelial Hyperplasia|Epstein-Barr Virus|Escherichia coli|Familial Adenomatous Polyposis|Fanconi Anemia|Fibrosis|Gastric Polyp(s)|Gastritis|Gilbert's Syndrome|Glomerular Disease|Gorlin Syndrome|Hashimoto's Thyroiditis|Hay Fever|Headache|Helicobacter Pylori-Associated Gastritis|Hematologic Disorder, NOS|Hemihypertrophy|Hemochromatosis|Hepatic Encephalopathy|Hepatitis B Infection|Hepatitis C Infection|Hepatitis, NOS|Hereditary Breast Cancer|Hereditary Kidney Oncocytoma|Hereditary Leiomyomatosis and Renal Cell Carcinoma|Hereditary Ovarian Cancer|Hereditary Papillary Renal Cell Carcinoma|Hereditary Prostate Cancer|Hereditary Renal Cell Carcinoma|High Grade Dysplasia|High-grade Prostatic Intraepithelial Neoplasia (PIN)|HIV|Human Papillomavirus Infection|Hypospadias|Inflammation|Inflammation, Hyperkeratosis|Intestinal Metaplasia|Iron Overload|Li-Fraumeni Syndrome|Low Grade Dysplasia|Lymphocytic Meningitis|Lymphocytic Thyroiditis|Lynch Syndrome|Malaria|Metabolic Syndrome|Myasthenia Gravis|Mycobacterium avium Complex|Nodular Prostatic Hyperplasia|Nonalcoholic Fatty Liver Disease|Nonalcoholic Steatohepatitis|Obesity|Oral Contraceptives|Pancreatitis|Parasitic Disease of Biliary Tract|Pneumocystis Pneumonia|Polycystic Ovarian Syndrome (PCOS)|Primary Sclerosing Cholangitis|Recurrent Pyogenic Cholangitis|Reflux Disease|Rheumatoid Arthritis|Rubinstein-Taybi Syndrome|Sarcoidosis|Seizure|Sensory Changes|Serous tubal intraepithelial carcinoma (STIC)|Shingles|Sialadenitis|Sjogren's Syndrome|Skin Rash|Squamous Metaplasia|Staphylococcus aureus|Steatosis|Succinate Dehydrogenase-Deficient Renal Cell Carcinoma|Syphilis|Tattoo|Thyroid Nodular Hyperplasia|Tobacco, NOS|Tobacco, Smokeless|Tobacco, Smoking|Treponema pallidum|Tuberculosis|Tuberous Sclerosis|Tubulointerstitial Disease|Tumor-associated Lymphoid Proliferation|Turcot Syndrome|Undescended Testis|Vascular Disease|Vision Changes|Von Hippel-Lindau Syndrome|Wagr Syndrome|Unknown|Not Reported",
+                "field_description": "The text term used to describe a risk factor the patient had at the time of or prior to their diagnosis."
+            },
+            "1.26": {
+                "field_name": "risk_factor_treatment",
+                "field_title": "Risk Factor Treatment",
+                "field_type": "string",
+                "field_order": "14",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "C49488///Yes|C49487///No|C17998///Unknown|C43234///Not Reported",
+                "field_description": "The yes/no/unknown indicator used to describe whether the patient received treatment for a risk factor the patient had at the time of or prior to their diagnosis."
+            },
+            "1.28": {
+                "field_name": "ecog_performance_status",
+                "field_title": "Performance Status (ECOG)",
+                "field_type": "string",
+                "field_order": "15",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0|1|2|3|4|5|Unknown|Not Reported",
+                "field_description": "The ECOG functional performance status of the patient/participant."
+            },
+            "1.30": {
+                "field_name": "bmi",
+                "field_title": "Body Mass Index (BMI)",
+                "field_type": "real",
+                "field_order": "18",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "value_fg=($(weight)*10000)/($(height)*$(height))",
+                "field_description": "A calculated numerical quantity that represents an individual's weight to height ratio."
+            },
+            "1.31": {
+                "field_name": "body_surface_area",
+                "field_title": "BSA",
+                "field_type": "real",
+                "field_order": "19",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "value_fg=Math.sqrt($(weight)*$(height)/3600)",
+                "field_description": "Numeric value used to represent the 2-dimensional extent of the body surface relating height to weight."
+            },
+            "1.33": {
+                "field_name": "height",
+                "field_title": "Height",
+                "field_type": "real",
+                "field_order": "16",
+                "field_is_optional_fg": true,
+                "field_description": "The height of the patient in centimeters."
+            },
+            "1.35": {
+                "field_name": "weight",
+                "field_title": "Weight",
+                "field_type": "real",
+                "field_order": "17",
+                "field_is_optional_fg": true,
+                "field_description": "The weight of the patient measured in kilograms."
+            },
+            "1.37": {
+                "field_name": "comorbidity",
+                "field_title": "Comorbidity",
+                "field_type": "string",
+                "field_order": "20",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Abnormal Glucose Level|Acute Renal Failure|Adenocarcinoma|Adenomatous Polyposis Coli|Adrenocortical Insufficiency|Allergies|Alpha-1 Antitrypsin|Anemia|Anxiety|Arrhythmia|Arthritis|Asthma|Ataxia-telangiectasia|Atrial Fibrillation|Autoimmune Lymphoproliferative Syndrome (ALPS)|Avascular Necrosis|Bacteroides fragilis|Barrett's Esophagus|Basal Cell Carcinoma|Beckwith-Wiedemann|Behcet's Disease|Biliary Disorder|Blood Clots|Bone Fracture(s)|Bronchitis|Calcium Channel Blockers|Cancer|Cataracts|Celiac Disease|Cerebrovascular Disease|Chlamydia|Cholelithiasis|Chronic Fatigue Syndrome|Chronic Renal Failure|Chronic Systemic Steroid Use|Cirrhosis, Unknown Etiology|Clonal Hematopoiesis|Colon Polyps|Common Variable Immunodeficiency|Congestive Heart Failure (CHF)|Connective Tissue Disorder|COPD|Coronary Artery Disease|Crohn's Disease|Cryptogenic Organizing Pneumonia|Cryptococcal Meningitis|Cytomegalovirus (CMV)|Deep Vein Thrombosis / Thromboembolism|Denys-Drash Syndrome|Depression|Diabetes|Diabetes, Type II|Diabetic Neuropathy|Diet Controlled Diabetes|Diverticulitis|DVT/PE|Dyslipidemia|Eczema|Epilepsy|Epstein-Barr Virus|Familial Adenomatous Polyposis|Fanconi Anemia|Fibromyalgia|Fibrosis|Gastritis|Gastroesophageal Reflux Disease|GERD|Glaucoma|Glycogen Storage Disease|Gonadal Dysfunction|Gorlin Syndrome|Gout|H. pylori Infection|Hashimoto's Thyroiditis|Headache|Heart Disease|Hemihypertrophy|Hemorrhagic Cystitis|Hepatitis|Hepatitis A Infection|Hepatitis B Infection|Hepatitis C Infection|Hepatitis, Chronic|Hereditary Non-polyposis Colon Cancer|Herpes|High Grade Liver Dysplastic Nodule|HIV / AIDS|Human Papillomavirus Infection|HUS/TTP|Hypercalcemia|Hypercholesterolemia|Hyperglycemia|Hyperlipidemia|Hypertension|Hypospadias|Hypothyroidism|Inflammatory Bowel Disease|Insulin Controlled Diabetes|Interstitial Pneumontis or ARDS|Intraductal Papillary Mucinous Neoplasm|Iron Overload|Ischemic Heart Disease|ITP|Joint Replacement|Kidney Disease|Li-Fraumeni Syndrome|Liver Cirrhosis (Liver Disease)|Liver Toxicity (Non-Infectious)|Low Grade Liver Dysplastic Nodule|Lupus|Lymphocytic Meningitis|Lynch Syndrome|MAI|Malaria|Metabolic Syndrome|Myasthenia Gravis|Mycobacterium avium Complex|Myocardial Infarction|Neuroendocrine Tumor|Nonalcoholic Steatohepatitis|Obesity|Organ transplant (site)|Osteoarthritis|Osteoporosis or Osteopenia|Other|Other Cancer Within 5 Years|Other Nonmalignant Systemic Disease|Other Pulmonary Complications|Pain (Various)|Pancreatitis|Peptic Ulcer (Ulcer)|Peripheral Neuropathy|Peripheral Vascular Disease|Peutz-Jeghers Disease|Pneumocystis Pneumonia|Polycystic Ovarian Syndrome (PCOS)|Pregnancy in Patient or Partner|Primary Sclerosing Cholangitis|Psoriasis|Pulmonary Fibrosis|Pulmonary Hemorrhage|Renal Dialysis|Renal Failure (Requiring Dialysis)|Renal Insufficiency|Rheumatoid Arthritis|Rheumatologic Disease|Rubinstein-Taybi Syndrome|Sarcoidosis|Seizure|Shingles|Sjogren's Syndrome|Sleep apnea|Smoking|Staphylococcus aureus|Steatosis|Stroke|Syphilis|Transient Ischemic Attack|Treponema pallidum|Tuberculosis|Turcot Syndrome|Tyrosinemia|Ulcerative Colitis|Wagr Syndrome|Unknown|Not Reported",
+                "field_description": "The text term used to describe a comorbidity disease, which coexists with the patient's malignant disease."
+            },
+            "1.39": {
+                "field_name": "date_of_comorbidity",
+                "field_title": "Date of comorbidity",
+                "field_type": "date",
+                "field_order": "21"
+            },
+            "1.41": {
+                "field_name": "cause_of_response",
+                "field_title": "Cause of response",
+                "field_type": "string",
+                "field_order": "22",
+                "field_description": "The text term used to describe the suspected cause or reason for the patient disease response."
+            },
+            "1.43": {
+                "field_name": "hormonal_contraceptive_type",
+                "field_title": "hormonal_contraceptive_type",
+                "field_type": "string",
+                "field_order": "25",
+                "field_constraint_data": "Progestin|Progestin and Estrogen|Unknown|Not Reported\n>is_shown_fg=$(hormonal_contraceptive_use)=='Current User'||$(hormonal_contraceptive_use)=='Former User'"
+            },
+            "1.45": {
+                "field_name": "hormonal_contraceptive_use",
+                "field_title": "hormonal_contraceptive_use",
+                "field_type": "string",
+                "field_order": "24",
+                "field_constraint_data": "Current User|Former User|Never Used|Unknown|Not Reported|N/A",
+                "field_description": "The text term used to indicate whether the patient used hormonal contraceptives."
+            },
+            "1.47": {
+                "field_name": "hormone_replacement_therapy_type",
+                "field_title": "hormone_replacement_therapy_type",
+                "field_type": "string",
+                "field_order": "26",
+                "field_constraint_data": "Estrogen only|Progesterone and Estrogen|Progesterone only|Unknown|Not Reported"
+            },
+            "1.49": {
+                "field_name": "immunosuppressive_treatment_type",
+                "field_title": "immunosuppressive_treatment_type",
+                "field_type": "string",
+                "field_order": "27",
+                "field_constraint_data": "Anti-TNF Therapy|Azathioprine|Cyclophosphamide|Methotrexate|None|Other|Unknown|Not Reported",
+                "field_description": "The text term used to describe the type of immunosuppresive treatment the patient received."
+            },
+            "1.50": {
+                "field_name": "imaging_type",
+                "field_title": "imaging_type",
+                "field_type": "string",
+                "field_order": "29",
+                "field_constraint_data": "99mTc Bone Scintigraphy|CT Scan|MRI|PET\n>is_shown_fg=$(imaging_result)=='Positive'||$(imaging_result)=='Indeterminate'||$(imaging_result)=='Negative'",
+                "field_description": "The text term used to describe the type of imaging or scan performed on the patient."
+            },
+            "1.52": {
+                "field_name": "imaging_result",
+                "field_title": "imaging_result",
+                "field_type": "string",
+                "field_order": "28",
+                "field_constraint_data": "Positive|Indeterminate|Negative|Not Performed|Unknown|Not Reported",
+                "field_description": "The text term used to describe the result of the imaging or scan performed on the patient."
+            },
+            "1.54": {
+                "field_name": "scan _tracer_used",
+                "field_title": "scan_tracer_used",
+                "field_type": "string",
+                "field_order": "30",
+                "field_constraint_data": "Acetate|Axumin|Choline|PSMA|Sodium Fluoride\n>is_shown_fg=$(imaging_result)=='Positive'||$(imaging_result)=='Indeterminate'||$(imaging_result)=='Negative'",
+                "field_description": "The text term used to describe the type of tracer used during the imaging or scan of the patient."
+            },
+            "1.56": {
+                "field_name": "recist_targeted_regions_number",
+                "field_title": "recist_targeted_regions_number",
+                "field_type": "integer",
+                "field_order": "31",
+                "field_description": "Numeric value that represents the number of baseline target lesions, as described by the Response Evaluation Criteria in Solid Tumours (RECIST) criteria."
+            },
+            "1.58": {
+                "field_name": "recist_targeted_regions_sum",
+                "field_title": "recist_targeted_regions_sum",
+                "field_type": "real",
+                "field_order": "32",
+                "field_description": "Numeric value that represents the sum of baseline target lesions, as described by the Response Evaluation Criteria in Solid Tumours (RECIST) criteria."
+            },
+            "1.60": {
+                "field_name": "pregnancy_outcome",
+                "field_title": "Pregnancy outcome",
+                "field_type": "string",
+                "field_order": "54",
+                "field_constraint_data": "Ectopic Pregnancy|Induced Abortion|Live Birth|Miscarriage|Stillbirth|Unknown|Not Reported|N/A",
+                "field_description": "The text term used to describe the type of pregnancy the patient had."
+            },
+            "1.62": {
+                "field_name": "pancreatitis_onset_year",
+                "field_title": "Year of Clinical Chronic Pancreatitis Onset",
+                "field_type": "string",
+                "field_order": "55",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": false,
+                "field_description": "Numeric value to represent the year that the patient was diagnosed with clinical chronic pancreatitis."
+            },
+            "1.64": {
+                "field_name": "menopause_status",
+                "field_title": "Menopausal status",
+                "field_type": "string",
+                "field_order": "53",
+                "field_constraint_data": "Premenopausal|Perimenopausal|Postmenopausal|Unknown|Not Reported",
+                "field_description": "Text term used to describe the patient's menopause status."
+            },
+            "1.66": {
+                "field_name": "diabetes_treatment_type",
+                "field_title": "Diabetes Treatment Type",
+                "field_type": "string",
+                "field_order": "48",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Alpha-Glucosidase Inhibitor|Biguanide|Diet|Injected Insulin|Insulin|Oral Hypoglycemic|Other|Sulfonylurea|Thiazolidinedione|Unknown|Not Reported\n>is_shown_fg=$(diabetes)==true",
+                "field_description": "Text term used to describe the types of treatment used to manage diabetes."
+            },
+            "1.68": {
+                "field_name": "adverse_event",
+                "field_title": "Adverse Event Term (v4.0)",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": "1",
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Abdominal Distension|Abdominal Infection|Abdominal Pain|Abdominal Soft Tissue Necrosis|Abducens Nerve Disorder|Accessory Nerve Disorder|Acidosis|Acoustic Nerve Disorder NOS|Activated Partial Thromboplastin Time Prolonged|Acute Coronary Syndrome|Acute Kidney Injury|Adrenal Insufficiency|Adult Respiratory Distress Syndrome|Agitation|Akathisia|Alanine Aminotransferase Increased|Alcohol Intolerance|Alkaline Phosphatase Increased|Alkalosis|Allergic Reaction|Allergic Rhinitis|Alopecia|Amnesia|Anal Fistula|Anal Hemorrhage|Anal Mucositis|Anal Necrosis|Anal Pain|Anal Stenosis|Anal Ulcer|Anaphylaxis|Anemia|Ankle Fracture|Anorectal Infection|Anorexia|Anorgasmia|Anxiety|Aortic Injury|Aortic Valve Disease|Aphonia|Apnea|Appendicitis|Appendicitis Perforated|Arachnoiditis|Arterial Injury|Arteritis Infective|Arthralgia|Arthritis|Ascites|Aspartate Aminotransferase Increased|Aspiration|Asystole|Ataxia|Atelectasis|Atrial Fibrillation|Atrial Flutter|Atrioventricular Block Complete|Atrioventricular Block First Degree|Autoimmune Disorder|Avascular Necrosis|Azoospermia|Back Pain|Bile Duct Stenosis|Biliary Anastomotic Leak|Biliary Fistula|Biliary Tract Infection|Bladder Anastomotic Leak|Bladder Infection|Bladder Perforation|Bladder Spasm|Bloating|Blood and Lymphatic System Disorders - Other|Blood Antidiuretic Hormone Abnormal|Blood Bilirubin Increased|Blood Corticotrophin Decreased|Blood Gonadotrophin Abnormal|Blood Prolactin Abnormal|Blurred Vision|Body Odor|Bone Infection|Bone Marrow Hypocellular|Bone Pain|Brachial Plexopathy|Breast Atrophy|Breast Infection|Breast Pain|Bronchial Fistula|Bronchial Infection|Bronchial Obstruction|Bronchial Stricture|Bronchopleural Fistula|Bronchopulmonary Hemorrhage|Bronchospasm|Bruising|Bullous Dermatitis|Burn|Buttock Pain|Capillary Leak Syndrome|Carbon Monoxide Diffusing Capacity Decreased|Cardiac Arrest|Cardiac Disorders - Other|Cardiac Troponin I Increased|Cardiac Troponin T Increased|Cataract|Catheter Related Infection|CD4 Lymphocytes Decreased|Cecal Hemorrhage|Cecal Infection|Central Nervous System Necrosis|Cerebrospinal Fluid Leakage|Cervicitis Infection|Cheilitis|Chest Pain - Cardiac|Chest Wall Pain|Chills|Cholecystitis|Cholesterol High|Chronic Kidney Disease|Chylothorax|Cognitive Disturbance|Colitis|Colonic Fistula|Colonic Hemorrhage|Colonic Obstruction|Colonic Perforation|Colonic Stenosis|Colonic Ulcer|Concentration Impairment|Conduction Disorder|Confusion|Congenital, Familial and Genetic Disorders - Other|Conjunctivitis|Conjunctivitis Infective|Constipation|Constrictive Pericarditis|Corneal Infection|Corneal Ulcer|Cough|CPK Increased|Cranial Nerve Infection|Creatinine Increased|Cushingoid|Cystitis Noninfective|Cytokine Release Syndrome|Death Neonatal|Death NOS|Dehydration|Delayed Orgasm|Delayed Puberty|Delirium|Delusions|Dental Caries|Depressed Level of Consciousness|Depression|Dermatitis Radiation|Device Related Infection|Diarrhea|Disseminated Intravascular Coagulation|Dizziness|Dry Eye|Dry Mouth|Dry Skin|Duodenal Fistula|Duodenal Hemorrhage|Duodenal Infection|Duodenal Obstruction|Duodenal Perforation|Duodenal Stenosis|Duodenal Ulcer|Dysarthria|Dysesthesia|Dysgeusia|Dysmenorrhea|Dyspareunia|Dyspepsia|Dysphagia|Dysphasia|Dyspnea|Ear and Labyrinth Disorders - Other|Ear Pain|Edema Cerebral|Edema Face|Edema Limbs|Edema Trunk|Ejaculation Disorder|Ejection Fraction Decreased|Electrocardiogram QT Corrected Interval Prolonged|Encephalitis Infection|Encephalomyelitis Infection|Encephalopathy|Endocarditis Infective|Endocrine Disorders - Other|Endophthalmitis|Enterocolitis|Enterocolitis Infectious|Enterovesical Fistula|Epistaxis|Erectile Dysfunction|Erythema Multiforme|Erythroderma|Esophageal Anastomotic Leak|Esophageal Fistula|Esophageal Hemorrhage|Esophageal Infection|Esophageal Necrosis|Esophageal Obstruction|Esophageal Pain|Esophageal Perforation|Esophageal Stenosis|Esophageal Ulcer|Esophageal Varices Hemorrhage|Esophagitis|Euphoria|Exostosis|External Ear Inflammation|External Ear Pain|Extraocular Muscle Paresis|Extrapyramidal Disorder|Eye Disorders - Other|Eye Infection|Eye Pain|Eyelid Function Disorder|Facial Muscle Weakness|Facial Nerve Disorder|Facial Pain|Fall|Fallopian Tube Anastomotic Leak|Fallopian Tube Obstruction|Fallopian Tube Perforation|Fallopian Tube Stenosis|Fat Atrophy|Fatigue|Febrile Neutropenia|Fecal Incontinence|Female Genital Tract Fistula|Feminization Acquired|Fetal Death|Fetal Growth Retardation|Fever|Fibrinogen Decreased|Fibrosis Deep Connective Tissue|Flank Pain|Flashing Lights|Flatulence|Floaters|Flu Like Symptoms|Flushing|Forced Expiratory Volume Decreased|Fracture|Gait Disturbance|Gallbladder Fistula|Gallbladder Infection|Gallbladder Necrosis|Gallbladder Obstruction|Gallbladder Pain|Gallbladder Perforation|Gastric Anastomotic Leak|Gastric Fistula|Gastric Hemorrhage|Gastric Necrosis|Gastric Perforation|Gastric Stenosis|Gastric Ulcer|Gastritis|Gastroesophageal Reflux Disease|Gastrointestinal Anastomotic Leak|Gastrointestinal Disorders - Other|Gastrointestinal Fistula|Gastrointestinal Pain|Gastrointestinal Stoma Necrosis|Gastroparesis|General Disorders and Administration Site Conditions - Other|Generalized Muscle Weakness|Genital Edema|GGT Increased|Gingival Pain|Glaucoma|Glossopharyngeal Nerve Disorder|Glucose Intolerance|Growth Accelerated|Growth Hormone Abnormal|Growth Suppression|Gum Infection|Gynecomastia|Hallucinations|Haptoglobin Decreased|Head Soft Tissue Necrosis|Headache|Hearing Impaired|Heart Failure|Hematoma|Hematosalpinx|Hematuria|Hemoglobin Increased|Hemoglobinuria|Hemolysis|Hemolytic Uremic Syndrome|Hemorrhoidal Hemorrhage|Hemorrhoids|Hepatic Failure|Hepatic Hemorrhage|Hepatic Infection|Hepatic Necrosis|Hepatic Pain|Hepatitis Viral|Hepatobiliary Disorders - Other|Hiccups|Hip Fracture|Hirsutism|Hoarseness|Hot Flashes|Hydrocephalus|Hypercalcemia|Hyperglycemia|Hyperhidrosis|Hyperkalemia|Hypermagnesemia|Hypernatremia|Hyperparathyroidism|Hypersomnia|Hypertension|Hyperthyroidism|Hypertrichosis|Hypertriglyceridemia|Hyperuricemia|Hypoalbuminemia|Hypocalcemia|Hypoglossal Nerve Disorder|Hypoglycemia|Hypohidrosis|Hypokalemia|Hypomagnesemia|Hyponatremia|Hypoparathyroidism|Hypophosphatemia|Hypotension|Hypothermia|Hypothyroidism|Hypoxia|Ileal Fistula|Ileal Hemorrhage|Ileal Obstruction|Ileal Perforation|Ileal Stenosis|Ileal Ulcer|Ileus|Immune System Disorders - Other|Infections and Infestations - Other|Infective Myositis|Infusion Related Reaction|Infusion Site Extravasation|Injection Site Reaction|Injury to Carotid Artery|Injury to Inferior Vena Cava|Injury to Jugular Vein|Injury to Superior Vena Cava|Injury, Poisoning and Procedural Complications - Other|INR Increased|Insomnia|Intestinal Stoma Leak|Intestinal Stoma Obstruction|Intestinal Stoma Site Bleeding|Intra-Abdominal Hemorrhage|Intracranial Hemorrhage|Intraoperative Arterial Injury|Intraoperative Breast Injury|Intraoperative Cardiac Injury|Intraoperative Ear Injury|Intraoperative Endocrine Injury|Intraoperative Gastrointestinal Injury|Intraoperative Head and Neck Injury|Intraoperative Hemorrhage|Intraoperative Hepatobiliary Injury|Intraoperative Musculoskeletal Injury|Intraoperative Neurological Injury|Intraoperative Ocular Injury|Intraoperative Renal Injury|Intraoperative Reproductive Tract Injury|Intraoperative Respiratory Injury|Intraoperative Skin Injury|Intraoperative Splenic Injury|Intraoperative Urinary Injury|Intraoperative Venous Injury|Investigations - Other|Iron Overload|Irregular Menstruation|Irritability|Ischemia Cerebrovascular|IVth Nerve Disorder|Jejunal Fistula|Jejunal Hemorrhage|Jejunal Obstruction|Jejunal Perforation|Jejunal Stenosis|Jejunal Ulcer|Joint Effusion|Joint Infection|Joint Range of Motion Decreased|Joint Range of Motion Decreased Cervical Spine|Joint Range of Motion Decreased Lumbar Spine|Keratitis|Kidney Anastomotic Leak|Kidney Infection|Kyphosis|Lactation Disorder|Large Intestinal Anastomotic Leak|Laryngeal Edema|Laryngeal Fistula|Laryngeal Hemorrhage|Laryngeal Inflammation|Laryngeal Mucositis|Laryngeal Obstruction|Laryngeal Stenosis|Laryngitis|Laryngopharyngeal Dysesthesia|Laryngospasm|Left Ventricular Systolic Dysfunction|Lethargy|Leukemia Secondary to Oncology Chemotherapy|Leukocytosis|Leukoencephalopathy|Libido Decreased|Libido Increased|Lip Infection|Lip Pain|Lipase Increased|Lipohypertrophy|Localized Edema|Lordosis|Lower Gastrointestinal Hemorrhage|Lung Infection|Lymph Gland Infection|Lymph Leakage|Lymph Node Pain|Lymphedema|Lymphocele|Lymphocyte Count Decreased|Lymphocyte Count Increased|Malabsorption|Malaise|Mania|Mediastinal Hemorrhage|Mediastinal Infection|Memory Impairment|Meningismus|Meningitis|Menopause|Menorrhagia|Metabolism and Nutrition Disorders - Other|Middle Ear Inflammation|Mitral Valve Disease|Mobitz (Type) II Atrioventricular Block|Mobitz Type I|Movements Involuntary|Mucosal Infection|Mucositis Oral|Multi-Organ Failure|Muscle Weakness Left-Sided|Muscle Weakness Lower Limb|Muscle Weakness Right-Sided|Muscle Weakness Trunk|Muscle Weakness Upper Limb|Musculoskeletal and Connective Tissue Disorders - Other|Musculoskeletal Deformity|Myalgia|Myelitis|Myelodysplastic Syndrome|Myocardial Infarction|Myocarditis|Myositis|Nail Discoloration|Nail Infection|Nail Loss|Nail Ridging|Nasal Congestion|Nausea|Neck Edema|Neck Pain|Neck Soft Tissue Necrosis|Neoplasms Benign, Malignant and Unspecified (Incl Cysts and Polyps) - Other|Nervous System Disorders - Other|Neuralgia|Neutrophil Count Decreased|Night Blindness|Nipple Deformity|Non-Cardiac Chest Pain|Nystagmus|Obesity|Obstruction Gastric|Oculomotor Nerve Disorder|Olfactory Nerve Disorder|Oligospermia|Optic Nerve Disorder|Oral Cavity Fistula|Oral Dysesthesia|Oral Hemorrhage|Oral Pain|Osteonecrosis of Jaw|Osteoporosis|Otitis Externa|Otitis Media|Ovarian Hemorrhage|Ovarian Infection|Ovarian Rupture|Ovulation Pain|Pain|Pain in Extremity|Pain of Skin|Palmar-Plantar Erythrodysesthesia Syndrome|Palpitations|Pancreas Infection|Pancreatic Anastomotic Leak|Pancreatic Duct Stenosis|Pancreatic Enzymes Decreased|Pancreatic Fistula|Pancreatic Hemorrhage|Pancreatic Necrosis|Pancreatitis|Papilledema|Papulopustular Rash|Paresthesia|Paronychia|Paroxysmal Atrial Tachycardia|Pelvic Floor Muscle Weakness|Pelvic Infection|Pelvic Pain|Pelvic Soft Tissue Necrosis|Penile Infection|Penile Pain|Perforation Bile Duct|Pericardial Effusion|Pericardial Tamponade|Pericarditis|Perineal Pain|Periodontal Disease|Periorbital Edema|Periorbital Infection|Peripheral Ischemia|Peripheral Motor Neuropathy|Peripheral Nerve Infection|Peripheral Sensory Neuropathy|Peritoneal Infection|Peritoneal Necrosis|Personality Change|Phantom Pain|Pharyngeal Anastomotic Leak|Pharyngeal Fistula|Pharyngeal Hemorrhage|Pharyngeal Mucositis|Pharyngeal Necrosis|Pharyngeal Stenosis|Pharyngitis|Pharyngolaryngeal Pain|Phlebitis|Phlebitis Infective|Photophobia|Photosensitivity|Platelet Count Decreased|Pleural Effusion|Pleural Hemorrhage|Pleural Infection|Pleuritic Pain|Pneumonitis|Pneumothorax|Portal Hypertension|Portal Vein Thrombosis|Postnasal Drip|Postoperative Hemorrhage|Postoperative Thoracic Procedure Complication|Precocious Puberty|Pregnancy, Puerperium and Perinatal Conditions - Other|Premature Delivery|Premature Menopause|Presyncope|Proctitis|Productive Cough|Prolapse of Intestinal Stoma|Prolapse of Urostomy|Prostate Infection|Prostatic Hemorrhage|Prostatic Obstruction|Prostatic Pain|Proteinuria|Pruritus|Psychiatric Disorders - Other|Psychosis|Pulmonary Edema|Pulmonary Fibrosis|Pulmonary Fistula|Pulmonary Hypertension|Pulmonary Valve Disease|Purpura|Pyramidal Tract Syndrome|Radiation Recall Reaction (Dermatologic)|Radiculitis|Rash Acneiform|Rash Maculo-Papular|Rash Pustular|Rectal Anastomotic Leak|Rectal Fistula|Rectal Hemorrhage|Rectal Mucositis|Rectal Necrosis|Rectal Obstruction|Rectal Pain|Rectal Perforation|Rectal Stenosis|Rectal Ulcer|Recurrent Laryngeal Nerve Palsy|Renal and Urinary Disorders - Other|Renal Calculi|Renal Colic|Renal Hemorrhage|Reproductive System and Breast Disorders - Other|Respiratory Failure|Respiratory, Thoracic and Mediastinal Disorders - Other|Restlessness|Restrictive Cardiomyopathy|Retinal Detachment|Retinal Tear|Retinal Vascular Disorder|Retinoic Acid Syndrome|Retinopathy|Retroperitoneal Hemorrhage|Reversible Posterior Leukoencephalopathy Syndrome|Rhinitis Infective|Right Ventricular Dysfunction|Salivary Duct Inflammation|Salivary Gland Fistula|Salivary Gland Infection|Scalp Pain|Scleral Disorder|Scoliosis|Scrotal Infection|Scrotal Pain|Seizure|Sepsis|Seroma|Serum Amylase Increased|Serum Sickness|Sick Sinus Syndrome|Sinus Bradycardia|Sinus Disorder|Sinus Pain|Sinus Tachycardia|Sinusitis|Skin and Subcutaneous Tissue Disorders - Other|Skin Atrophy|Skin Hyperpigmentation|Skin Hypopigmentation|Skin Induration|Skin Infection|Skin Ulceration|Sleep Apnea|Small Intestinal Anastomotic Leak|Small Intestinal Mucositis|Small Intestinal Obstruction|Small Intestinal Perforation|Small Intestinal Stenosis|Small Intestine Infection|Small Intestine Ulcer|Sneezing|Social Circumstances - Other|Soft Tissue Infection|Soft Tissue Necrosis Lower Limb|Soft Tissue Necrosis Upper Limb|Somnolence|Sore Throat|Spasticity|Spermatic Cord Anastomotic Leak|Spermatic Cord Hemorrhage|Spermatic Cord Obstruction|Spinal Fracture|Spleen Disorder|Splenic Infection|Stenosis of Gastrointestinal Stoma|Stevens-Johnson Syndrome|Stoma Site Infection|Stomach Pain|Stomal Ulcer|Stridor|Stroke|Sudden Death NOS|Suicidal Ideation|Suicide Attempt|Superficial Soft Tissue Fibrosis|Superficial Thrombophlebitis|Superior Vena Cava Syndrome|Supraventricular Tachycardia|Surgical and Medical Procedures - Other|Syncope|Telangiectasia|Testicular Disorder|Testicular Hemorrhage|Testicular Pain|Thromboembolic Event|Thrombotic Thrombocytopenic Purpura|Tinnitus|Tooth Development Disorder|Tooth Discoloration|Tooth Infection|Toothache|Toxic Epidermal Necrolysis|Tracheal Fistula|Tracheal Hemorrhage|Tracheal Mucositis|Tracheal Obstruction|Tracheal Stenosis|Tracheitis|Tracheostomy Site Bleeding|Transient Ischemic Attacks|Treatment Related Secondary Malignancy|Tremor|Tricuspid Valve Disease|Trigeminal Nerve Disorder|Trismus|Tumor Lysis Syndrome|Tumor Pain|Typhlitis|Unequal Limb Length|Unintended Pregnancy|Upper Gastrointestinal Hemorrhage|Upper Respiratory Infection|Ureteric Anastomotic Leak|Urethral Anastomotic Leak|Urethral Infection|Urinary Fistula|Urinary Frequency|Urinary Incontinence|Urinary Retention|Urinary Tract Infection|Urinary Tract Obstruction|Urinary Tract Pain|Urinary Urgency|Urine Discoloration|Urine Output Decreased|Urostomy Leak|Urostomy Obstruction|Urostomy Site Bleeding|Urostomy Stenosis|Urticaria|Uterine Anastomotic Leak|Uterine Fistula|Uterine Hemorrhage|Uterine Infection|Uterine Obstruction|Uterine Pain|Uterine Perforation|Uveitis|Vaginal Anastomotic Leak|Vaginal Discharge|Vaginal Dryness|Vaginal Fistula|Vaginal Hemorrhage|Vaginal Infection|Vaginal Inflammation|Vaginal Obstruction|Vaginal Pain|Vaginal Perforation|Vaginal Stricture|Vaginismus|Vagus Nerve Disorder|Vas Deferens Anastomotic Leak|Vascular Access Complication|Vascular Disorders - Other|Vasculitis|Vasovagal Reaction|Venous Injury|Ventricular Arrhythmia|Ventricular Fibrillation|Ventricular Tachycardia|Vertigo|Vestibular Disorder|Virilization|Visceral Arterial Ischemia|Vital Capacity Abnormal|Vitreous Hemorrhage|Voice Alteration|Vomiting|Vulval Infection|Watering Eyes|Weight Gain|Weight Loss|Wheezing|White Blood Cell Decreased|Wolff-Parkinson-White Syndrome|Wound Complication|Wound Dehiscence|Wound Infection|Wrist Fracture",
+                "field_description": "Text that represents the Common Terminology Criteria for Adverse Events low level term name for an adverse event."
+            },
+            "1.70": {
+                "field_name": "adverse_event_grade",
+                "field_title": "Adverse Event Grade",
+                "field_type": "string",
+                "field_parent": "adverse_event_parent",
+                "field_order": "2",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Grade 1|Grade 2|Grade 3|Grade 4|Grade 5",
+                "field_description": "The text term used to describe a specific histone variants, which are proteins that substitute for the core canonical histones."
+            },
+            "1.72": {
+                "field_name": "days_to_adverse_event",
+                "field_title": "Days to adverse event",
+                "field_type": "integer",
+                "field_order": "35",
+                "field_is_hidden_fg": true,
+                "field_description": "Number of days between the date used for index and the date of the patient's adverse event."
+            },
+            "1.74": {
+                "field_name": "aids_risk_factors",
+                "field_title": "aids_risk_factors",
+                "field_type": "string",
+                "field_order": "45",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Candidiasis|Coccidioidomycosis|Cryptococcosis|Cryptosporidiosis, Chronic Intestinal|Cytomegalovirus|Encephalopathy|Herpes Simplex Virus|Histoplasmosis|Isosporiasis|Mycobacterium avium Complex|Mycobacterium tuberculosis|Mycobacterium, NOS|Nocardiosis|Pneumocystis Pneumonia|Pneumonia, NOS|Progressive Multifocal Leukoencephalopathy|Salmonella Septicemia|Toxoplasmosis|Wasting Syndrome\n>is_shown_fg=$(hiv)==true",
+                "field_description": "The text term used to describe a risk factor of the acquired immunodeficiency syndrome (AIDS) that the patient either had at time time of the study or experienced in the past."
+            },
+            "1.76": {
+                "field_name": "cd4_count",
+                "field_title": "CD4 count",
+                "field_type": "real",
+                "field_order": "42",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "is_shown_fg=$(hiv)==true",
+                "field_description": "The text term used to describe the outcome of the procedure to determine the amount of the CD4 expressing cells in a sample."
+            },
+            "1.78": {
+                "field_name": "cdc_hiv_risk_factors",
+                "field_title": "cdc_hiv_risk_factors",
+                "field_type": "string",
+                "field_order": "46",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Hemophiliac|Heterosexual Contact|Homosexual Contact|Intravenous Drug User|None|Transfusion Recipient|Unknown|Not Reported\n>is_shown_fg=$(hiv)==true",
+                "field_description": "The text term used to describe a risk factor for human immunodeficiency virus, as described by the Center for Disease Control."
+            },
+            "1.80": {
+                "field_name": "hiv_viral_load",
+                "field_title": "HIV viral load value",
+                "field_type": "real",
+                "field_order": "47",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "is_shown_fg=$(hiv)==true",
+                "field_description": "Numeric value that represents the concentration of an analyte or aliquot extracted from the sample or sample portion, measured in milligrams per milliliter."
+            },
+            "1.82": {
+                "field_name": "hepatitis_sustained_virological_response",
+                "field_title": "If the patient had viral hepatitis and was treated, was there a sustained virological response?",
+                "field_type": "string",
+                "field_order": "50",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported\n>is_shown_fg=$(hepatitis)==true",
+                "field_description": "The yes/no/unknown indicator used to describe whether the patient received treatment for a risk factor the patient had at the time of or prior to their diagnosis."
+            },
+            "1.84": {
+                "field_name": "adverse_event_parent",
+                "field_title": "Adverse event",
+                "field_type": "array",
+                "field_order": "33",
+                "field_is_hidden_fg": true
+            },
+            "1.86": {
+                "field_name": "diabetes",
+                "field_title": "Diabetes",
+                "field_type": "bool",
+                "field_order": "35"
+            },
+            "1.88": {
+                "field_name": "hepatitis",
+                "field_title": "Hepatitis",
+                "field_type": "bool",
+                "field_order": "43"
+            },
+            "1.90": {
+                "field_name": "hiv",
+                "field_title": "HIV",
+                "field_type": "string",
+                "field_order": "39",
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.92": {
+                "field_name": "comorbidity_method_of_diagnosis",
+                "field_title": "Comorbidity method of diagnosis",
+                "field_type": "string",
+                "field_order": "21",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Histology|Pathology|Radiology|Unknown|Not Reported",
+                "field_description": "The text term used to describe the method used to diagnose the patient's comorbidity disease."
+            },
+            "1.93": {
+                "field_name": "hysterectomy_type",
+                "field_title": "Hysterectomy type",
+                "field_type": "string",
+                "field_order": "36",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Hysterectomy, NOS|Not performed|Radical Hysterectomy|Simple Hysterectomy|Unknown|Not Reported|N/A",
+                "field_description": "The text term used to describe the type of hysterectomy the patient had."
+            },
+            "1.94": {
+                "field_name": "hysterectomy_margins_involved",
+                "field_title": "Hysterectomy margins involved",
+                "field_type": "string",
+                "field_order": "37",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Bladder|Macroscopic Parametrium|Microscopic Parametrium|None|Vagina|Unknown|Not Reported|N/A",
+                "field_description": "The text term used to indicate whether the patient's disease was determined to be involved based on the surgical margins of the hysterectomy."
+            },
+            "1.96": {
+                "field_name": "dlco_ref_predictive_percent",
+                "field_title": "Carbon Monoxide Diffusion (DLCO)",
+                "field_type": "string",
+                "field_order": "42",
+                "field_description": "The value, as a percentage of predicted lung volume, measuring the amount of carbon monoxide detected in a patient's lungs."
+            },
+            "1.97": {
+                "field_name": "nadir_cd4_count",
+                "field_title": "Nadir cd4 count",
+                "field_type": "string",
+                "field_order": "43",
+                "field_description": "Numeric value that represents the lowest point to which the CD4 count has dropped (nadir)."
+            },
+            "1.98": {
+                "field_name": "barretts_esophagus_goblet_cells_present",
+                "field_title": "If the Patient had a Clinical Diagnosis of Barrett's Esophagus, were Goblet Cells Present?",
+                "field_type": "string",
+                "field_order": "44",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported|N/A"
+            },
+            "1.100": {
+                "field_name": "haart_treatment_indicator",
+                "field_title": "haart_treatment_indicator",
+                "field_type": "string",
+                "field_order": "49",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported|N/A",
+                "field_description": "The text term used to indicate whether the patient received Highly Active Antiretroviral Therapy (HARRT)."
+            },
+            "1.101": {
+                "field_name": "viral_hepatitis_serologies",
+                "field_title": "Viral Hepatitis Serologies (check all that apply)",
+                "field_type": "string",
+                "field_order": "51",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "HBV Core Antibody|HBV DNA|HBV Genotype|HBV Surface Antibody|HCV Genotype|Hepatitis B Surface Antigen|Hepatitis C Antibody|Hepatitis C Virus RNA|Unknown|Not Reported",
+                "field_description": "Text term that describes the kind of serological laboratory test used to determine the patient's hepatitus status."
+            },
+            "1.103": {
+                "field_name": "hpv_positive_type",
+                "field_title": "HPV Type",
+                "field_type": "string",
+                "field_order": "52",
+                "field_constraint_data": "16|18|26|31|33|35|39|45|51|52|53|56|58|59|63|66|68|70|73|82|Other|Unknown|Not Reported",
+                "field_description": "Text classification to represent the strain or type of human papillomavirus identified in an individual."
+            },
+            "1.105": {
+                "field_name": "reflux_treatment_type",
+                "field_title": "If the patient was clinically diagnosed with reflux disease, how was the patient treated?",
+                "field_type": "string",
+                "field_order": "56",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Antacids|H2 Blockers|Medically Treated|No Treatment|Not Applicable|Proton Pump Inhibitors|Surgically Treated|Unknown|Not Reported",
+                "field_description": "Text term used to describe the types of treatment used to manage gastroesophageal reflux disease (GERD)."
+            }
+        },
+        "parent": {
+            "8": "$type.nciu"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

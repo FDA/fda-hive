@@ -1,0 +1,187 @@
+{
+    "type.234": {
+        "_id": "type.234",
+        "_type": "type",
+        "name": "svc-align-tblastx",
+        "title": "TBlastX Alignment",
+        "description": "TBlastX alignment engine optimized for HIVE performance",
+        "parent": {
+            "1": "type.26"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.2": {
+                "field_name": "max_intron_length",
+                "field_title": "Maximum Intron Length",
+                "field_type": "integer",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": false,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "The Maximum Intron Length must be a valid number.",
+                "field_description": "Length of the largest intron allowed in a translated nucleotide sequence when linking mutliple distinct alignments (a negative value diables linking)."
+            },
+            "1.3": {
+                "field_name": "minMatchLen",
+                "field_title": "AA Minimum Match Length",
+                "field_type": "string",
+                "field_default_value": "15",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number",
+                "field_description": "Alignments with lengths less than this long are not reported"
+            },
+            "1.4": {
+                "field_name": "mismatches",
+                "field_title": "Mismatches",
+                "field_type": "array",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.5": {
+                "field_name": "output_fmt",
+                "field_title": "Output Format",
+                "field_type": "string",
+                "field_default_value": "tsv",
+                "field_constraint": "choice",
+                "field_constraint_data": "blast_out///Blast_out|tsv///TSV (Tab Separated)",
+                "field_description": "The output format for the computation."
+            },
+            "1.6": {
+                "field_name": "score_threshold",
+                "field_title": "Score Threshold",
+                "field_type": "integer",
+                "field_default_value": "12",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\") && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Score Threshold must be a valid positive number.",
+                "field_description": "Minimum score to add a word to the BLAST lookup table."
+            },
+            "1.7": {
+                "field_name": "wordSize",
+                "field_title": "Word Size",
+                "field_type": "integer",
+                "field_default_value": "3",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "2///2|3///3|4///4|5///5|6///6|7///7",
+                "field_description": "Word size for initial match.  Valid word sizes are 2-7."
+            },
+            "1.9": {
+                "field_name": "keepAllMatches",
+                "field_type": "integer",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.11": {
+                "field_name": "minMatch",
+                "field_type": "array",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.13": {
+                "field_name": "scoreFilter",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.15": {
+                "field_name": "num_alignments",
+                "field_type": "integer",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.17": {
+                "field_name": "seedSize",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.18": {
+                "field_name": "slice",
+                "field_title": "slice",
+                "field_type": "integer",
+                "field_default_value": "4000",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=1000  && parseInt(\"$_(val)\")<=10000",
+                "field_constraint_description": "Give a positive number between 1000 and 10000",
+                "field_description": "Number of sequences for each job (for splitting of alignment among nodes)"
+            },
+            "1.19": {
+                "field_name": "splitSize",
+                "field_title": "slice",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "4000",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=1000  && parseInt(\"$_(val)\")<=10000",
+                "field_constraint_description": "Give a positive number between 1000 and 10000",
+                "field_description": "Number of sequences for each job (for splitting of alignment among nodes)"
+            },
+            "1.21": {
+                "field_name": "blastn_task",
+                "field_title": "base class filed override",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.22": {
+                "field_name": "version",
+                "field_title": "Version",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_default_value": "2.2.30",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2
+            },
+            "1.23": {
+                "field_name": "svc",
+                "field_title": "Service ID",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_default_value": "dna-alignx-tblastx",
+                "field_role": "state",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,107 @@
+{
+    "360": {
+        "_id": "$type.tmj_patient_past_dental_history",
+        "_type": "type",
+        "name": "tmj_patient_past_dental_history",
+        "title": "Patient Previous Dental History",
+        "fields": {
+            "1.1": {
+                "field_name": "had_dental_implant",
+                "field_title": "Have you had a dental implant?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "implant_list",
+                "field_title": "Please list the implants",
+                "field_type": "array",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "{\"addButtonText\":\"Add an implant\",\"removeButtonText\":\"Remove implant\"}\r\n>is_shown_fg=$(had_dental_implant)=='true'",
+                "field_constraint_description": "col-md-4"
+            },
+            "1.3": {
+                "field_name": "implant_type",
+                "field_title": "Indicate the type of dental implant",
+                "field_type": "string",
+                "field_parent": "implant_list",
+                "field_order": 2.1
+            },
+            "1.4": {
+                "field_name": "dental_implant_removed\t\twas_this_dental_implant_explanted/removed?",
+                "field_title": "Was this dental implant explanted/removed?",
+                "field_type": "bool",
+                "field_parent": "implant_list",
+                "field_order": 2.2
+            },
+            "1.5": {
+                "field_name": "implant_complication",
+                "field_title": "Did you have a complication with this dental implant?",
+                "field_type": "bool",
+                "field_parent": "implant_list",
+                "field_order": 2.3
+            },
+            "1.6": {
+                "field_name": "failed_non_surgical_procedure",
+                "field_title": "Have you had a failed (non-surgical) dental procedure?",
+                "field_type": "bool",
+                "field_order": 3
+            },
+            "1.7": {
+                "field_name": "complication_wisdom_tooth_extraction",
+                "field_title": "Have you had a complication with a wisdom tooth extraction?",
+                "field_type": "bool",
+                "field_order": 4
+            },
+            "1.8": {
+                "field_name": "restorations_complication",
+                "field_title": "Have you had a complication with a restoration procedure?",
+                "field_type": "bool",
+                "field_order": 5
+            }
+        },
+        "parent": {
+            "4": "$type.tmj_questionnaires"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/TMJ-Registry/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/Administrators/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

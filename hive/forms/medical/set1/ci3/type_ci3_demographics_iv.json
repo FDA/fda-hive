@@ -1,0 +1,38 @@
+{
+    "335": {
+        "_id": "$type.ci3_demographics_iv",
+        "_type": "type",
+        "name": "ci3_demographics_iv",
+        "title": "Demographics",
+        "fields": {
+            "1.1": {
+                "field_name": "date_of_visit",
+                "field_title": "Date of procedure",
+                "field_type": "date",
+                "field_order": 0.1,
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_demographics"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

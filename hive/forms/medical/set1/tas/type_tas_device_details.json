@@ -1,0 +1,217 @@
+{
+    "373": {
+        "_id": "$type.tas_device_details",
+        "_type": "type",
+        "name": "tas_device_details",
+        "title": "Device Details",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_ls",
+                "field_title": "Left Side",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "deviceid_ls",
+                "field_title": "Device Identifier",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_description": "gudid"
+            },
+            "1.3": {
+                "field_name": "brandname_ls",
+                "field_title": "Name of the Brand",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "companyname_ls",
+                "field_title": "Name of the Manufacturer Company",
+                "field_type": "string",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "deviceidissuingagency_ls",
+                "field_title": "Issuing Agency Name",
+                "field_type": "string",
+                "field_order": 5
+            },
+            "1.6": {
+                "field_name": "dunsnumber_ls",
+                "field_title": "DUNS Number",
+                "field_type": "string",
+                "field_order": 6
+            },
+            "1.7": {
+                "field_name": "subtitle_1_ls",
+                "field_title": "GMDN Terms",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.8": {
+                "field_name": "gmdnptname_ls",
+                "field_title": "GMDN Term Name",
+                "field_type": "string",
+                "field_order": 8
+            },
+            "1.9": {
+                "field_name": "gmdnptdefinition_ls",
+                "field_title": "GMDN Term Definition",
+                "field_type": "text",
+                "field_order": 9
+            },
+            "1.10": {
+                "field_name": "publicdevicerecordkey_ls",
+                "field_title": "Device Record Key",
+                "field_type": "string",
+                "field_order": 10
+            },
+            "1.11": {
+                "field_name": "publicversiondate_ls",
+                "field_title": "Version Date",
+                "field_type": "date",
+                "field_order": 11
+            },
+            "1.12": {
+                "field_name": "publicversionnumber_ls",
+                "field_title": "Version Number",
+                "field_type": "string",
+                "field_order": 12
+            },
+            "1.13": {
+                "field_name": "publicversionstatus_ls",
+                "field_title": "Version Status",
+                "field_type": "string",
+                "field_order": 13
+            },
+            "1.14": {
+                "field_name": "versionmodelnumber_ls",
+                "field_title": "Model Number",
+                "field_type": "string",
+                "field_order": 14
+            },
+            "1.15": {
+                "field_name": "subtitle_rs",
+                "field_title": "Right side",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_description": "subtitle"
+            },
+            "1.16": {
+                "field_name": "deviceid_rs",
+                "field_title": "Device Identifier",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_description": "gudid"
+            },
+            "1.17": {
+                "field_name": "brandname_rs",
+                "field_title": "Name of the Brand",
+                "field_type": "string",
+                "field_order": 17
+            },
+            "1.18": {
+                "field_name": "companyname_rs",
+                "field_title": "Name of the Manufacturer Company",
+                "field_type": "string",
+                "field_order": 18
+            },
+            "1.19": {
+                "field_name": "deviceidissuingagency_rs",
+                "field_title": "Issuing Agency Name",
+                "field_type": "string",
+                "field_order": 19
+            },
+            "1.20": {
+                "field_name": "dunsnumber_rs",
+                "field_title": "DUNS Number",
+                "field_type": "string",
+                "field_order": 20
+            },
+            "1.21": {
+                "field_name": "subtitle_1_rs",
+                "field_title": "GMDN Terms",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint_description": "subtitle"
+            },
+            "1.22": {
+                "field_name": "gmdnptname_rs",
+                "field_title": "GMDN Term Name",
+                "field_type": "string",
+                "field_order": 22
+            },
+            "1.23": {
+                "field_name": "gmdnptdefinition_rs",
+                "field_title": "GMDN Term Definition",
+                "field_type": "text",
+                "field_order": 23
+            },
+            "1.24": {
+                "field_name": "publicdevicerecordkey_rs",
+                "field_title": "Device Record Key",
+                "field_type": "string",
+                "field_order": 24
+            },
+            "1.25": {
+                "field_name": "publicversiondate_rs",
+                "field_title": "Version Date",
+                "field_type": "date",
+                "field_order": 25
+            },
+            "1.26": {
+                "field_name": "publicversionnumber_rs",
+                "field_title": "Version Number",
+                "field_type": "string",
+                "field_order": 26
+            },
+            "1.27": {
+                "field_name": "publicversionstatus_rs",
+                "field_title": "Version Status",
+                "field_type": "string",
+                "field_order": 27
+            },
+            "1.28": {
+                "field_name": "versionmodelnumber_rs",
+                "field_title": "Model Number",
+                "field_type": "string",
+                "field_order": 28
+            }
+        },
+        "parent": {
+            "3": "$type.tas_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

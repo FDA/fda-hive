@@ -1,0 +1,405 @@
+{
+    "type.1": {
+        "_id": "type.1",
+        "_type": "type",
+        "name": "type",
+        "title": "object type",
+        "description": "Object type",
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "created",
+                "field_title": "Created",
+                "field_type": "datetime",
+                "field_role": "state",
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            },
+            "1.2": {
+                "field_name": "description",
+                "field_title": "Description",
+                "field_type": "text",
+                "field_order": 3,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "fields",
+                "field_title": "Fields",
+                "field_type": "array",
+                "field_order": 8,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "field_basics",
+                "field_title": "Basics",
+                "field_type": "list",
+                "field_parent": "fields",
+                "field_order": 1,
+                "field_role": "parameter",
+                "field_is_multi_fg": true
+            },
+            "1.5": {
+                "field_name": "field_brief",
+                "field_title": "Brief format",
+                "field_type": "string",
+                "field_parent": "field_presentation",
+                "field_order": 31,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "Empty or 0 not a brief member; [text]$_(v)[text], where $_(v) is substituted by prop value"
+            },
+            "1.6": {
+                "field_name": "field_constraint",
+                "field_title": "Constraint type",
+                "field_type": "string",
+                "field_parent": "field_constraint_list",
+                "field_order": 21,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "choice|choice+|regexp|range|url|search|search+|one-of|type|eval"
+            },
+            "1.7": {
+                "field_name": "field_constraint_data",
+                "field_title": "Constraint data",
+                "field_type": "text",
+                "field_parent": "field_constraint_list",
+                "field_order": 22,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "field_constraint_description",
+                "field_title": "Constraint description",
+                "field_type": "text",
+                "field_parent": "field_constraint_list",
+                "field_order": 23,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "field_constraint_list",
+                "field_title": "Value constraints",
+                "field_type": "list",
+                "field_parent": "fields",
+                "field_order": 3,
+                "field_role": "parameter",
+                "field_is_multi_fg": true
+            },
+            "1.10": {
+                "field_name": "field_default_encoding",
+                "field_title": "Default encoding",
+                "field_type": "integer",
+                "field_parent": "field_basics",
+                "field_order": 7,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "field_default_value",
+                "field_title": "Default value",
+                "field_type": "string",
+                "field_parent": "field_basics",
+                "field_order": 6,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "field_description",
+                "field_title": "Description",
+                "field_type": "text",
+                "field_parent": "field_presentation",
+                "field_order": 33,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "field_flags",
+                "field_title": "Flags",
+                "field_type": "list",
+                "field_parent": "fields",
+                "field_order": 2,
+                "field_role": "parameter",
+                "field_is_multi_fg": true
+            },
+            "1.14": {
+                "field_name": "field_include_type",
+                "field_title": "Inclusion from type",
+                "field_type": "obj",
+                "field_parent": "field_basics",
+                "field_order": 8,
+                "field_role": "input",
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\"explorer\":true,\"fetch\":\"id\",\"inline\":\"name\",\"inline_url\":\"http://?cmd=propget&type=^type$&mode=csv&raw=1\",\"url\":\"http://?cmd=objList&type=^type$&mode=csv&raw=1\"}",
+                "field_description": "type whose fields will be included into this one as sub-fields of array or list"
+            },
+            "1.15": {
+                "field_name": "field_is_batch_fg",
+                "field_title": "Batchable",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 18,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "field_is_hidden_fg",
+                "field_title": "Hidden",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 16,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "field is not visible on pages"
+            },
+            "1.17": {
+                "field_name": "field_is_key_fg",
+                "field_title": "Key",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 12,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "field is part of unique identifier of the record or parent list or array"
+            },
+            "1.18": {
+                "field_name": "field_is_multi_fg",
+                "field_title": "Multi-value",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 15,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "field can have multiple values"
+            },
+            "1.19": {
+                "field_name": "field_is_optional_fg",
+                "field_title": "Optional",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 14,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "field could be missing completely"
+            },
+            "1.20": {
+                "field_name": "field_is_readonly_fg",
+                "field_title": "Read-only",
+                "field_type": "integer",
+                "field_parent": "field_flags",
+                "field_order": 13,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///normal field|1///calculated outside and NOT editable on web pages|-1///write-once|-2///submit-once|2///autofill with default value"
+            },
+            "1.21": {
+                "field_name": "field_is_summary_fg",
+                "field_title": "Summary",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 17,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.22": {
+                "field_name": "field_is_virtual_fg",
+                "field_title": "Virtual",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 15,
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "field_link_url",
+                "field_title": "Link URL",
+                "field_type": "string",
+                "field_parent": "field_presentation",
+                "field_order": 32,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "next to the field, adds a link using current field value as $(v) substitution in url"
+            },
+            "1.24": {
+                "field_name": "field_name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_parent": "field_basics",
+                "field_order": 1,
+                "field_role": "parameter",
+                "field_is_key_fg": true,
+                "field_description": "WARNING: changing the name in an existing type will break existing objects of this type or descendent types!!! Case-insensitive unique name within this type, [a-zA-Z0-9_] character set, must not be used by any other field within this type, must not start with _ or digit."
+            },
+            "1.25": {
+                "field_name": "field_order",
+                "field_title": "Order",
+                "field_type": "real",
+                "field_parent": "field_basics",
+                "field_order": 5,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "numeric (integer or real) order for sorting within parent field"
+            },
+            "1.26": {
+                "field_name": "field_parent",
+                "field_title": "Parent field",
+                "field_type": "string",
+                "field_parent": "field_basics",
+                "field_order": 4,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "name of parent field"
+            },
+            "1.27": {
+                "field_name": "field_presentation",
+                "field_title": "Presentation",
+                "field_type": "list",
+                "field_parent": "fields",
+                "field_order": 4,
+                "field_role": "parameter",
+                "field_is_multi_fg": true
+            },
+            "1.28": {
+                "field_name": "field_role",
+                "field_title": "Role",
+                "field_type": "string",
+                "field_parent": "field_flags",
+                "field_order": 11,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "input|output|parameter|state"
+            },
+            "1.29": {
+                "field_name": "field_title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_parent": "field_basics",
+                "field_order": 2,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "human-readable field title to show on pages"
+            },
+            "1.30": {
+                "field_name": "field_type",
+                "field_title": "Value type",
+                "field_type": "string",
+                "field_parent": "field_basics",
+                "field_order": 3,
+                "field_role": "parameter",
+                "field_constraint": "choice",
+                "field_constraint_data": "string|text|integer|real|bool|array|list|arraytab///Display data as array on separate tab|listtab///Display data as struct on separate tab|date|time|datetime|url|obj|password|file|type2array///Include an object type as array|type2list///Include an object type as list"
+            },
+            "1.31": {
+                "field_name": "is_abstract_fg",
+                "field_title": "Abstract",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "if a type is abstract, objects of that type cannot exist in the system - but such a type can be used for multiple inheritance"
+            },
+            "1.32": {
+                "field_name": "modified",
+                "field_title": "Modified",
+                "field_type": "datetime",
+                "field_role": "state",
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            },
+            "1.33": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_role": "parameter",
+                "field_is_key_fg": true,
+                "field_is_summary_fg": true,
+                "field_brief": "$_(v) <b>Type</b>",
+                "field_description": "case-insensitive unique name, [a-zA-Z0-9_-] character set, must not be used by any other type, must not start with _"
+            },
+            "1.34": {
+                "field_name": "parent",
+                "field_title": "Parent type(s)",
+                "field_type": "obj",
+                "field_order": 4,
+                "field_role": "input",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\"explorer\":true,\"fetch\":\"id\",\"inline\":\"name\",\"inline_url\":\"http://?cmd=propget&type=^type$&mode=csv&raw=1\",\"url\":\"http://?cmd=objList&type=^type$&mode=csv&raw=1\"}",
+                "field_description": "one or more types whose fields will be inherited by this one; only one of them may be non-abstract"
+            },
+            "1.35": {
+                "field_name": "prefetch",
+                "field_title": "Pre-loaded",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "should this type and its fields always be loaded by all backend services?"
+            },
+            "1.36": {
+                "field_name": "singleton",
+                "field_title": "Singleton",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///No|1///One per owner|2///One system wide",
+                "field_description": "is only one object of this type allowed to exist?"
+            },
+            "1.37": {
+                "field_name": "title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_order": 2,
+                "field_role": "parameter",
+                "field_description": "human-readable title to show on pages"
+            },
+            "1.38": {
+                "field_name": "field_weakref",
+                "field_title": "Weak reference",
+                "field_type": "bool",
+                "field_parent": "field_flags",
+                "field_order": 19,
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_description": "field is a weak reference"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

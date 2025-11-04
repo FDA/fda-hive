@@ -1,0 +1,71 @@
+{
+    "178": {
+        "_id": "$type.medtronic_numeric_pain_rating",
+        "_type": "type",
+        "name": "medtronic_numeric_pain_rating",
+        "title": "Numeric Pain Rating",
+        "fields": {
+            "1.0": {
+                "field_name": "back_pain",
+                "field_title": "Back Pain",
+                "field_type": "string",
+                "field_order": "1",
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "overall_back_pain",
+                "field_title": "Please indicate the number that best describes your average overall back pain in the last 7 days",
+                "field_type": "integer",
+                "field_order": "2",
+                "field_constraint": "range",
+                "field_constraint_data": "0-10"
+            },
+            "1.3": {
+                "field_name": "leg_pain",
+                "field_title": "Leg Pain",
+                "field_type": "string",
+                "field_order": "3",
+                "field_constraint_description": "subtitle"
+            },
+            "1.4": {
+                "field_name": "overall_leg_pain",
+                "field_title": "Please indicate the number that best describes your average overall leg pain in the last 7 days",
+                "field_type": "integer",
+                "field_order": "4",
+                "field_constraint": "range",
+                "field_constraint_data": "0-10"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "68041": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Bow Tie Algorithm developed for Nex-gen Analysis",
+        "icon": "img-algo/svc-align-bowtie.gif",
+        "name": "bowtie",
+        "version": "1.2.2",
+        "type_name": "svc-align-bowtie-1.2.2",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

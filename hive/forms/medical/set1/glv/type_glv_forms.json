@@ -1,0 +1,37 @@
+{
+    "8888": {
+        "_id": "$type.glv_forms",
+        "_type": "type",
+        "name": "glv_forms",
+        "title": "Galvanize",
+        "parent": {
+            "3": "$type.Questionaries"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "mrn",
+                "field_title": "MRN",
+                "field_type": "string",
+                "field_order": "0.1"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

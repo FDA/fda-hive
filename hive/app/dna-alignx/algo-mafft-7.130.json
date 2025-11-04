@@ -1,0 +1,40 @@
+{
+    "1379": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-multiple",
+        "description": "MAFFT multiple alignment algorithm",
+        "icon": "img-algo/svc-align-mafft.gif",
+        "name": "mafft",
+        "version": "7.130",
+        "type_name": "svc-align-mafft",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

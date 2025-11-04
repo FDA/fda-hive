@@ -1,0 +1,188 @@
+{
+    "351": {
+        "_id": "$type.ci3_symptoms",
+        "_type": "type",
+        "name": "ci3_symptoms",
+        "title": "Symptoms",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Please state if you have any of the following",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "fever_greater_101",
+                "field_title": "Fever >101",
+                "field_type": "bool",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.3": {
+                "field_name": "fever_greater_101_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 3,
+                "field_is_hidden_fg": true
+            },
+            "1.4": {
+                "field_name": "nausea",
+                "field_title": "Nausea",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.5": {
+                "field_name": "nausea_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 5,
+                "field_is_hidden_fg": true
+            },
+            "1.6": {
+                "field_name": "vomiting",
+                "field_title": "Vomiting",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.7": {
+                "field_name": "vomiting_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 7,
+                "field_is_hidden_fg": true
+            },
+            "1.8": {
+                "field_name": "abdominal_pain",
+                "field_title": "Abdominal pain",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.9": {
+                "field_name": "abdominal_pain_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 9,
+                "field_is_hidden_fg": true
+            },
+            "1.10": {
+                "field_name": "abdominal_distension",
+                "field_title": "Abdominal distension (bloated)",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.11": {
+                "field_name": "abdominal_distension_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 11,
+                "field_is_hidden_fg": true
+            },
+            "1.12": {
+                "field_name": "weight_loss_greater_5lbs",
+                "field_title": "Weight Loss > 5lbs",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.13": {
+                "field_name": "weight_loss_greater_5lbs_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(weight_loss_greater_5lbs)=='true'"
+            },
+            "1.14": {
+                "field_name": "weight_gain_lesser_5lbs",
+                "field_title": "Weight Gain < 5lbs",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.15": {
+                "field_name": "weight_gain_lesser_5lbs_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(weight_gain_lesser_5lbs)=='true'"
+            },
+            "1.16": {
+                "field_name": "change_in_bowel_habits",
+                "field_title": "Change in bowel habits",
+                "field_type": "string",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "new onset|constipation|diarrhea|other"
+            },
+            "1.17": {
+                "field_name": "change_in_bowel_habits_description",
+                "field_title": "Specify other",
+                "field_type": "text",
+                "field_order": 17,
+                "field_constraint_data": "is_shown_fg=$(change_in_bowel_habits)=='other'"
+            },
+            "1.18": {
+                "field_name": "ostomy",
+                "field_title": "Ostomy",
+                "field_type": "bool",
+                "field_order": 17.5,
+                "field_constraint_description": "checkbox"
+            },
+            "1.19": {
+                "field_name": "bowel_movements_per_day",
+                "field_title": "No. of bowel movements per day",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_data": "0|1-2|3-4|5+|N/A\r\n>if($(ostomy)=='true') { value_fg='N/A'; }"
+            },
+            "1.20": {
+                "field_name": "bleeding_with_bowel_movements",
+                "field_title": "Bleeding with bowel movements",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.21": {
+                "field_name": "bleeding_with_bowel_movements_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 20,
+                "field_constraint_data": "is_shown_fg=$(bleeding_with_bowel_movements)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_shared"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

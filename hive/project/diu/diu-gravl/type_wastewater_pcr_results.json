@@ -1,0 +1,92 @@
+{
+    "198365": {
+        "_id": "$type.wastewater_pcr_results",
+        "_type": "type",
+        "name": "wastewater_pcr_results",
+        "title": "PCR Results",
+        "description": "PCR results for wastewater analysis.",
+        "parent": {
+            "7": "$type.wastewater_collection"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "target_pathogen",
+                "field_title": "Pathogen",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint": "choice+",
+                "field_constraint_data": "All (complete report)|SARS-CoV-2|Influenza A (2024-2025 flu vaccine strains)|Influenza A (A/Victoria/4897/2022 (H1N1)pdm09-like virus)|Influenza A (A/Thailand/8/2022 (H3N2)-like virus)|Enterovirus (polio)|Monkeypox|Dengue",
+                "field_constraint_description": "Target pathogen",
+                "field_description": "Which pathogen the results pertain to.  Note: All should be used when submitting a complete report."
+            },
+            "11.2": {
+                "field_name": "quantitative_data_type",
+                "field_title": "Quantitative Data Type",
+                "field_type": "string",
+                "field_order": 2,
+                "field_description": "Type of quantitative data or test.",
+                "field_is_optional_fg": true
+            },
+            "11.3": {
+                "field_name": "test_results",
+                "field_title": "Test Results",
+                "field_type": "text",
+                "field_order": 4,
+                "field_constraint": "choice+",
+                "field_constraint_data": "PASS|FAIL",
+                "field_description": "Results of the test or reporting of the quantitative data identified above.",
+                "field_is_optional_fg": true
+            },
+            "11.5": {
+                "field_name": "quantitative_data",
+                "field_title": "Quantitative Data",
+                "field_type": "text",
+                "field_order": 3,
+                "field_description": "Data result from the test.",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "11.7": {
+                "field_name": "quality_control_result",
+                "field_title": "Quality Control Results",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint": "choice",
+                "field_constraint_data": "IN_PROGRESS|PASSED|FAILED",
+                "field_description": "Whether or not quality control has passed.",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

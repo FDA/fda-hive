@@ -1,0 +1,41 @@
+{
+    "354": {
+        "_id": "$type.da_site",
+        "_type": "type",
+        "name": "da_site",
+        "title": "Antidote Site",
+        "fields": {
+            "1.0": {
+                "field_name": "geolocation",
+                "field_title": "Geolocation",
+                "field_type": "string"
+            },
+            "1.2": {
+                "field_name": "siteName",
+                "field_title": "Site Name",
+                "field_type": "string"
+            }
+        },
+        "parent": {
+            "7": "$type.diu_antidote_form"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

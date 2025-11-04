@@ -1,0 +1,295 @@
+body {
+    margin: 0px;
+    font-family: TitilliumWeb, 'Open Sans', sans-serif;
+}
+
+
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+
+.center-wrap {
+    margin: 0 auto;
+    width: 980px;
+    /* for distribution between 4 columns */
+    min-height: 100px;
+}
+
+/*Search Container*/
+
+input {
+    box-sizing: border-box;
+    margin: 0;
+    height: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+}
+
+input::placeholder {
+    color: #94abbd;
+    font-style: normal;
+    font-weight: 300;
+}
+
+.search-container {
+    height: 40px;
+    margin-top: 25px;
+}
+
+.search-container form {
+    float: right;
+}
+
+.search-container input[type=search] {
+/*    margin-top: 25px;*/
+    width: 280px;
+    font-size: 16px;
+}
+
+
+.search-container button{
+    box-sizing: border-box;
+/*  background: #f0f5f9 url(../../../css/icons/separate-icons/icon-search.svg) no-repeat 2px center;*/
+    padding-top: 2px;
+    padding-left: 4px;
+    padding-right: 4px;
+    background: #f0f5f9;
+    font-size: 16px;
+    float: right;
+    border: none;
+    height: 25px;
+    width: 29px;
+    color: #94abbd;
+    cursor: pointer;
+    transition: background ease-in-out 0.2s;
+    transition: color ease-in-out 0.2s;
+}
+
+.search-container button:hover {
+/*  background: #94abbd url(../../../css/icons/separate-icons/icon-search-light.svg) no-repeat 2px center;*/
+    background: #94abbd;
+    color:#f0f5f9;
+    transition: background ease-in-out 0.2s;
+    transition: color ease-in-out 0.2s;
+}
+
+
+input[type=search] {
+    margin-left: 10px;
+    background: #f0f5f9;
+    padding: 9px 0px 9px 9px;
+    color: #94abbd;
+}
+
+
+
+
+/* Style the list & Style the breadcrumbs with relation to other elements */
+
+ul.breadcrumb {
+    margin-top: 10px;
+    margin-bottom: 50px;
+    margin-left: -5px;
+    padding: 0px 0px 0px 5px;
+    list-style: none;
+    font-size: 14px;
+    line-height: 2em;
+}
+
+
+/* Display list items side by side */
+
+ul.breadcrumb li {
+    display: inline;
+}
+
+
+/* Add a slash symbol (/) before/behind each list item */
+
+ul.breadcrumb li + li:before {
+    padding: 8px;
+    
+    content: "\003e";
+    
+    color: black;
+}
+
+
+/* Add a color to all links inside the list */
+
+ul.breadcrumb li a {
+/*    color: #0275d8;*/
+    color: #94abbd;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+
+/* Add a color on mouse-over */
+
+ul.breadcrumb li a:hover {
+    color: #01447e;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/*************     FIRST Sectioning********************/
+
+/*Style section with item lists*/
+
+.category-sections {
+    display: block;
+    column-count: 4;
+    margin-bottom: 100px;
+    /* for distribution between 4 columns */
+    orphans: 1;
+    widows: 1;
+}
+
+/*Style section with item lists so it is shown as */
+
+.category-section {
+    vertical-align: top;
+    position: relative;
+    display: inline-block;
+    margin: 14px 30px 14px 0px;
+    padding-left: 0px;
+    width: 215px;
+    color: #2c6cb0;
+    font-size: 14px;
+    list-style: none;
+}
+
+
+.category-section > a {
+    color: #2c6cb0;
+    font-weight: 400;
+    list-style: none;
+    text-decoration: none;
+}
+
+.category-section > a.list__title {
+    color: #333333;
+    font-weight: 700;
+}
+
+ul.category-section > a:hover {
+    text-decoration: underline;
+}
+
+
+
+ul.category-section li {
+    padding: 5px 0px;
+}
+
+ul.category-section li a {
+    color: #2c6cb0;
+    text-decoration: none;
+}
+
+ul.category-section li a:hover {
+    text-decoration: underline;
+}
+
+ul.category-section li a.more {
+    color: #333;
+    font-weight: 700;
+    font-style: italic;
+}
+
+.category-section.alphabetizing {
+    /*    border-bottom: 1px solid #ccc;*/
+}
+
+ul.category-section.alphabetizing li:last-child {
+    padding-bottom: 10px;
+}
+
+ul.category-section.alphabetizing li a {
+    font-weight: 700;
+}
+
+/*************     FIRST Sectioning END********************/
+
+
+/*************     Tooltip Container    ********************/
+
+/* Tooltip text */
+
+p.searched {
+    margin-bottom: 40px;
+}
+
+ul.searched li {
+    position: relative;
+}
+
+.searched li a ~ .tooltiptext {
+    visibility: hidden;
+    width: 980px;
+    background-color: #333;
+    color: #f5f5f5;
+    text-align: center;
+    padding: 5px 0;
+    margin-bottom: 5px;
+    border-radius: 6px;
+
+    bottom: 100%;
+    left: 0%;
+    margin-left: 0px;
+    /* Use half of the width (120/2 = 60), to center the tooltip */
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+
+.searched li a:hover ~ .tooltiptext {
+    visibility: visible;
+}
+
+.searched .breadcrumb {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding-left: 10px;
+    font-size: 12px;
+    line-height: 1em;
+    text-align: left;
+}
+
+.searched .breadcrumb li a {
+    color: #f5f5f5;
+}
+
+/*************     Tooltip Container END    ********************/
+/*************     Search input    ********************/
+

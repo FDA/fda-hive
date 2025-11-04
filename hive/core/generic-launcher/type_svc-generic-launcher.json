@@ -1,0 +1,55 @@
+{
+    "type.68": {
+        "_id": "type.68",
+        "_type": "type",
+        "name": "svc-generic-launcher",
+        "title": "Launcher Service",
+        "description": "Service to launch an external application",
+        "parent": {
+            "1": "type.331"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.2": {
+                "field_name": "maxIterMinutes",
+                "field_title": "Maximum Number of Minutes to wait on tool",
+                "field_type": "integer",
+                "field_order": 0,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number.",
+                "field_description": "Maximum number of minutes to wait for a third party tool to finish running.  Default wait time is 4 hours.  If you anticipate your program is going to take longer then you should change this field."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

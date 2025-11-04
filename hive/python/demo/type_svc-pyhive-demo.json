@@ -1,0 +1,106 @@
+{
+    "type.261": {
+        "_id": "type.261",
+        "_type": "type",
+        "name": "svc-pyhive-demo",
+        "title": "PyHIVE demo service",
+        "parent": {
+            "1": "type.331"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "list",
+                "field_title": "File list",
+                "field_type": "obj",
+                "field_is_readonly_fg": -1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file+"
+            },
+            "1.2": {
+                "field_name": "slice",
+                "field_title": "slice",
+                "field_type": "integer",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            },
+            "1.3": {
+                "field_name": "splitType",
+                "field_title": "Splitting function",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_default_value": "list",
+                "field_is_readonly_fg": -1,
+                "field_is_hidden_fg": false,
+                "field_constraint": "choice",
+                "field_constraint_data": "file///Number of lines in a file|multiplier///Multiplier|archive///Number of files in archive|list///Number of elements in a range|sequences///Number of sequences|alignments///Number of alignments "
+            },
+            "1.4": {
+                "field_name": "splitField",
+                "field_title": "What field contains the object splitting the jobs",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_default_value": "list",
+                "field_is_readonly_fg": -1,
+                "field_is_hidden_fg": false
+            },
+            "1.5": {
+                "field_name": "splitSize",
+                "field_title": "slice",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "1",
+                "field_is_readonly_fg": -1
+            },
+            "1.7": {
+                "field_name": "splitOnFrontEnd",
+                "field_title": "splitOnFrontEnd",
+                "field_type": "bool",
+                "field_parent": "splitList",
+                "field_default_value": "1",
+                "field_is_readonly_fg": -1,
+                "field_is_hidden_fg": false
+            },
+            "1.9": {
+                "field_name": "split",
+                "field_title": "What field contains the object splitting the jobs",
+                "field_type": "string",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            },
+            "1.11": {
+                "field_name": "splitList",
+                "field_title": "Split process into smaller chunks",
+                "field_type": "list"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

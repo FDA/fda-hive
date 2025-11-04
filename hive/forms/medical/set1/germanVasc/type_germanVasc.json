@@ -1,0 +1,310 @@
+{
+    "147": {
+        "_id": "$type.germanVasc",
+        "_type": "type",
+        "name": "germanVasc",
+        "title": "Rupture AAA survey",
+        "fields": {
+            "1.0": {
+                "field_name": "regID",
+                "field_title": "Individual Registry-ID",
+                "field_type": "string",
+                "field_order": "0",
+                "field_default_value": "hive-gvr.1",
+                "field_is_hidden_fg": true
+            },
+            "1.2": {
+                "field_name": "account",
+                "field_title": "Account (country/registry)",
+                "field_type": "string",
+                "field_order": "1",
+                "field_default_value": "hive-gvr-germany.1",
+                "field_is_hidden_fg": true
+            },
+            "1.3": {
+                "field_name": "age",
+                "field_title": "Patient Age",
+                "field_type": "integer",
+                "field_order": "3",
+                "field_constraint": "choice",
+                "field_constraint_data": "0-115"
+            },
+            "1.4": {
+                "field_name": "gender",
+                "field_title": "Gender",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint": "choice",
+                "field_constraint_data": "Male|Female"
+            },
+            "1.5": {
+                "field_name": "history_cardiac",
+                "field_title": "History of cardiac disease",
+                "field_type": "bool",
+                "field_order": "4",
+                "field_default_value": "false",
+                "field_description": "Cardiac History - any Ischaemic Heart Disease or Congestive Heart Failure"
+            },
+            "1.6": {
+                "field_name": "history_pulmonary",
+                "field_title": "History of pulmonary disease",
+                "field_type": "bool",
+                "field_order": "5",
+                "field_default_value": "false",
+                "field_description": "Chronic Obstructive Pulmonary Disease (COPD) with Medical Treatment"
+            },
+            "1.7": {
+                "field_name": "history_cerebrovascular",
+                "field_title": "History of cerebrovascular disease",
+                "field_type": "bool",
+                "field_order": "6",
+                "field_default_value": "false",
+                "field_description": "Previous Stroke or Transient Ischaemic Attack (TIA)"
+            },
+            "1.8": {
+                "field_name": "preoperative_creatinine",
+                "field_title": "Preoperative Creatinine",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_description": "unit"
+            },
+            "1.9": {
+                "field_name": "indication_for_treatment",
+                "field_title": "Indication for treatment",
+                "field_type": "string",
+                "field_order": "9",
+                "field_default_value": "Iliac aneurism",
+                "field_constraint": "choice",
+                "field_constraint_data": "Aortic aneurism|Iliac aneurism|Both",
+                "field_description": "Indication for repair was abdominal aneurysm, iliac aneurysm, or both"
+            },
+            "1.11": {
+                "field_name": "diameter_cm",
+                "field_title": "Diameter (cm)",
+                "field_type": "real",
+                "field_order": "11",
+                "field_constraint_data": "2-20"
+            },
+            "1.12": {
+                "field_name": "transferred",
+                "field_title": "Transferred from another facility",
+                "field_type": "bool",
+                "field_order": "12",
+                "field_default_value": "false",
+                "field_description": "Was the patient transferred from another facility to your center (e.g., hospital)?"
+            },
+            "1.13": {
+                "field_name": "stengraft",
+                "field_title": "Stengraft-image-placeholder",
+                "field_type": "string",
+                "field_parent": "device_parent",
+                "field_order": "2",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Section 0///87,184,68,151,70,116,88,100,94,93,91,79,81,73,69,57,48,55,49,43,64,43,77,49,89,35,87,13,100,13,101,32,90,53,104,73,115,119,104,130,106,149,113,161|Section 1///117,117,106,77,114,56,117,33,123,22,123,5,134,7,136,21,130,34,133,48,127,67,123,117|Section 2///130,116,124,115,129,77,134,68,133,53,160,34,165,43,147,60,147,73|Section 3///129,118,133,121,159,94,145,81|Section 4///133,123,160,95,169,109,171,169,157,201,126,201,136,168,138,137|Section 5///114,237,97,239,75,247,28,264,74,278,99,314,139,314,160,280,212,261,175,243,147,237,151,216,157,203,125,203|Section 6///101,316,101,322,93,327,93,333,105,330,101,335,127,337,127,330,133,335,133,329,130,315|Section 7///102,338,101,354,129,355,127,339|Section 8///92,355,91,373,147,375,147,356|Section 9///100,375,99,387,89,417,90,432,93,449,96,461,126,461,135,446,139,425,137,407,129,392,125,383,124,374|Section 10R///112,463,113,479,117,493,121,500,127,523,138,521,129,492,131,476,125,464|Section 10L///97,463,111,462,112,489,110,498,101,512,89,517,82,509,93,501,97,485|Section 11L///81,510,64,528,55,549,46,581,54,583,62,549,77,528,75,550,81,556,87,552,83,530,87,521,84,515|Section 11R///124,526,117,535,117,545,121,551,127,549,126,535,132,538,136,547,149,594,157,592,152,565,139,523",
+                "field_constraint_description": "imagemap"
+            },
+            "1.14": {
+                "field_name": "ajdunct_procedures",
+                "field_title": "Adjunct procedures",
+                "field_type": "string",
+                "field_order": "14",
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "Access related|Renal artery stenting|Other",
+                "field_description": "Adjunct procedures performed at time of EVAR"
+            },
+            "1.15": {
+                "field_name": "access_vessel_adjunctive_procedures",
+                "field_title": "Access Vessel Adjunctive Procedures",
+                "field_type": "bool",
+                "field_order": "15",
+                "field_default_value": "false",
+                "field_description": "Adjunct procedures involving the access vessels (e.g., common femoral artery)"
+            },
+            "1.18": {
+                "field_name": "in_hospital_ceath",
+                "field_title": "In hospital death",
+                "field_type": "bool",
+                "field_order": "18",
+                "field_default_value": "false",
+                "field_description": "Death at same hospitalization (to include patients who do not complete intended repair)"
+            },
+            "1.19": {
+                "field_name": "death_within_30_days",
+                "field_title": "30-day death",
+                "field_type": "bool",
+                "field_order": "19",
+                "field_default_value": "false",
+                "field_constraint_data": "is_shown_fg=$(in_hospital_ceath)==false",
+                "field_description": "Death within 30-days from attempted repair"
+            },
+            "1.20": {
+                "field_name": "days_to_death",
+                "field_title": "Days to death",
+                "field_type": "integer",
+                "field_order": "20",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val)>0\n>is_shown_fg=$(death_within_30_days)==true&&$(in_hospital_ceath)==false",
+                "field_description": "Days between operation and death"
+            },
+            "1.21": {
+                "field_name": "in_hospital_cardiac_complication",
+                "field_title": "In hospital cardiac complication",
+                "field_type": "bool",
+                "field_order": "21",
+                "field_default_value": "false",
+                "field_description": "Acute coronary syndrome, myocardial infarction, serious arrhythmia, cardiac failure"
+            },
+            "1.22": {
+                "field_name": "in_hospital_respiratory_complication",
+                "field_title": "In hospital respiratory complication",
+                "field_type": "bool",
+                "field_order": "22",
+                "field_default_value": "false",
+                "field_description": "Respiratory failure requiring ventilation"
+            },
+            "1.23": {
+                "field_name": "in_hospital_renal complication",
+                "field_title": "In hospital renal complication",
+                "field_type": "bool",
+                "field_order": "23",
+                "field_default_value": "false",
+                "field_description": "Haemofiltration or dialysis"
+            },
+            "1.24": {
+                "field_name": "in_hospital_amputation",
+                "field_title": "In hospital amputation",
+                "field_type": "bool",
+                "field_order": "24",
+                "field_default_value": "false",
+                "field_description": "Amputation above ankle"
+            },
+            "1.25": {
+                "field_name": "in_hospital_abdominal_compartment_synrome",
+                "field_title": "In hospital abdominal compartment syndrome",
+                "field_type": "bool",
+                "field_order": "25",
+                "field_default_value": "false",
+                "field_description": "Required in same hospitalization"
+            },
+            "1.26": {
+                "field_name": "in_hospital_bowel_ischemia",
+                "field_title": "In hospital bowel ischemia",
+                "field_type": "bool",
+                "field_order": "26",
+                "field_default_value": "false",
+                "field_description": "Ischaemic bowel requiring laparotomy"
+            },
+            "1.27": {
+                "field_name": "in_hospital_haemorrhage",
+                "field_title": "In hospital hemorrhage",
+                "field_type": "bool",
+                "field_order": "27",
+                "field_default_value": "false",
+                "field_description": "Haemorrhage requiring return to operating room"
+            },
+            "1.29": {
+                "field_name": "device_parent",
+                "field_title": "Device",
+                "field_type": "array",
+                "field_order": "13",
+                "field_is_multi_fg": true
+            },
+            "1.31": {
+                "field_name": "device_type",
+                "field_title": "Device type",
+                "field_type": "string",
+                "field_parent": "device_parent",
+                "field_order": "1",
+                "field_constraint": "search",
+                "field_constraint_data": "{\n\"fetch\":[\"deviceID\",\"location\"],\n\"url\":\"?cmd=file&mode=csv&filename=voc/EVAR_Device_Dictionary_AWB.csv&raw=1&start=0\",\n\"preferedListType\":\"rAAA_doctor_config\",\n\"inline\":[\n\t{\"name\":\"deviceID\",\"title\":\"deviceID\",\"display\":\"subtitle\"},\n\t{\"name\":\"manufacturer\",\"title\":\"manufacturer\",\"display\":\"title\",\"search\":\"true\"},\n\t{\"name\":\"device\",\"title\":\"device\",\"display\":\"title\",\"search\":\"true\"},\n\t{\"name\":\"size\",\"title\":\"size\",\"display\":\"subtitle\",\"search\":\"true\"},\n\t{\"name\":\"var\",\"title\":\"var\"},\n\t{\"name\":\"location\",\"title\":\"location\",\"display\":\"subtitle\",\"search\":\"true\"}\n],\n\"outline\":[\n\t{\"name\":\"deviceID\",\"title\":\"deviceID\"},\n\t{\"name\":\"manufacturer\",\"title\":\"manufacturer\"},\n\t{\"name\":\"device\",\"title\":\"device\"},\n\t{\"name\":\"size\",\"title\":\"size\"},\n\t{\"name\":\"var\",\"title\":\"var\"},\n\t{\"name\":\"location\",\"title\":\"location\"}\n]\n}"
+            },
+            "1.33": {
+                "field_name": "device_date",
+                "field_title": "Date",
+                "field_type": "date",
+                "field_parent": "device_parent",
+                "field_order": "3"
+            },
+            "1.35": {
+                "field_name": "preoperative_creatinine_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "preoperative_creatinine",
+                "field_order": "1",
+                "field_constraint_data": "0.5-10"
+            },
+            "1.36": {
+                "field_name": "preoperative_creatinine_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "preoperative_creatinine",
+                "field_order": "2",
+                "field_constraint_data": "1///mg/dl|88.42///micromol/litre"
+            },
+            "1.38": {
+                "field_name": "history_diabetes",
+                "field_title": "History of diabetes",
+                "field_type": "bool",
+                "field_order": "7",
+                "field_description": "Any History of Uncomplicated or Complicated Diabetes with Oral Antidiabetics or Insulin"
+            },
+            "1.40": {
+                "field_name": "separator_1",
+                "field_title": "Separator 1",
+                "field_type": "string",
+                "field_order": "3.1",
+                "field_constraint_description": "separator"
+            },
+            "1.41": {
+                "field_name": "separator_2",
+                "field_title": "Separator 2",
+                "field_type": "string",
+                "field_order": "8.1",
+                "field_constraint_description": "separator"
+            },
+            "1.43": {
+                "field_name": "separator_3",
+                "field_title": "Separator 3",
+                "field_type": "string",
+                "field_order": "15.1",
+                "field_constraint_description": "separator"
+            },
+            "1.44": {
+                "field_name": "separator_4",
+                "field_title": "Separator 4",
+                "field_type": "string",
+                "field_order": "17.1",
+                "field_constraint_description": "separator"
+            },
+            "1.45": {
+                "field_name": "separator_5",
+                "field_title": "Separator 5",
+                "field_type": "string",
+                "field_order": "20.1",
+                "field_constraint_description": "separator"
+            }
+        },
+        "parent": {
+            "7": "$type.med_set1"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

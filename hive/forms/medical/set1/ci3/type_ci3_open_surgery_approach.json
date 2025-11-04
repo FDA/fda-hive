@@ -1,0 +1,271 @@
+{
+    "330": {
+        "_id": "$type.ci3_open_surgery_approach",
+        "_type": "type",
+        "name": "ci3_open_surgery_approach",
+        "title": "Open Surgery Approach",
+        "fields": {
+            "1.1": {
+                "field_name": "entry_type",
+                "field_title": "Entry type",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "prospective|retrospective (no time log)"
+            },
+            "1.2": {
+                "field_name": "subtitle_1",
+                "field_title": "Consent (required variable)",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_description": "subtitle"
+            },
+            "1.3": {
+                "field_name": "research_consent",
+                "field_title": "Research consent",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "obtained consent|refused consent"
+            },
+            "1.4": {
+                "field_name": "consent_to_novel_sbo_management",
+                "field_title": "Consent to novel SBO management",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "obtained consent|refused consent|consent retracted|excluded due to need for operative management/bowel compromise|excluded due to surgeon discretion|excluded due to location of stricture/obstruction not amenable to novel approach|excluded for other reason"
+            },
+            "1.5": {
+                "field_name": "demographics_subtitle",
+                "field_title": "Demographics",
+                "field_type": "string",
+                "field_order": 4.9,
+                "field_constraint_description": "subtitle"
+            },
+            "1.6": {
+                "field_name": "demographics",
+                "field_type": "obj",
+                "field_order": 5,
+                "field_constraint": "type",
+                "field_constraint_data": "ci3_demographics"
+            },
+            "1.7": {
+                "field_name": "pre_operative_variables_subtitle",
+                "field_title": "Pre-operative variables ",
+                "field_type": "string",
+                "field_order": 5.9,
+                "field_constraint_description": "subtitle"
+            },
+            "1.8": {
+                "field_name": "pre_operative_variables",
+                "field_type": "obj",
+                "field_order": 6,
+                "field_constraint": "type",
+                "field_constraint_data": "ci3_pre_operative"
+            },
+            "1.9": {
+                "field_name": "subtitle_2",
+                "field_title": "Intra-operative variables",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_description": "subtitle"
+            },
+            "1.10": {
+                "field_name": "obstruction_location",
+                "field_title": "Is the obstruction in the",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Esophagus|Stomach|Duodenum|Jejunum|Ileum|Ileocecal valve or Ileocolic anastomosis|Ascending or transverse colon|Descending or sigmoid colon|Rectum"
+            },
+            "1.11": {
+                "field_name": "obstruction_location_prior_site",
+                "field_title": "Is the obstruction at the site of a prior anastomosis or strictureplasty?",
+                "field_type": "string",
+                "field_order": 8.5,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.12": {
+                "field_name": "subtitle_3",
+                "field_title": "Open surgery",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_description": "subtitle"
+            },
+            "1.13": {
+                "field_name": "why_was_open_surgery_necessary",
+                "field_title": "Why was open surgery necessary?",
+                "field_type": "text",
+                "field_order": 10
+            },
+            "1.14": {
+                "field_name": "incision_size",
+                "field_title": "Incision size (cm)",
+                "field_type": "integer",
+                "field_order": 11
+            },
+            "1.15": {
+                "field_name": "location",
+                "field_title": "Location",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "left upper quadrant (LUQ)|right upper quadrant (RUQ)|left lower quadrant (LLQ)|right lower quadrant (RLQ)|Mid-abdomen"
+            },
+            "1.16": {
+                "field_name": "adhesiolysis_performed",
+                "field_title": "Adhesiolysis performed",
+                "field_type": "bool",
+                "field_order": 13
+            },
+            "1.17": {
+                "field_name": "other_procedures_performed",
+                "field_title": "Other procedures performed",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "none|strictureplasty|bowel resection|Stoma creation|other"
+            },
+            "1.18": {
+                "field_name": "specify_1",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 15,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other_procedures_performed)=='other'"
+            },
+            "1.19": {
+                "field_name": "simultaneous_endoscopy_performed",
+                "field_title": "Simultaneous endoscopy performed?",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_data": "none performed|endoscopy via colostomy|colonoscopy|enteroscopy via ileostomy|other (specify)|NA|unknown"
+            },
+            "1.20": {
+                "field_name": "simultaneous_endoscopy_performed_specify",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 16.1,
+                "field_constraint_data": "is_shown_fg=$(simultaneous_endoscopy_performed)=='other (specify)'"
+            },
+            "1.21": {
+                "field_name": "if_endoscope_used",
+                "field_title": "If Endoscope used",
+                "field_type": "string",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Gastroscope|Bronchoscope|Adult colonoscope|Pediatric colonoscope|Ureteroscope|Rigid proctoscope|Anoscope|Spy glass (specify which type)|Ambu scope (specify which type)|Other (specify)"
+            },
+            "1.22": {
+                "field_name": "specify_2",
+                "field_title": "specify",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_data": "is_shown_fg=$(if_endoscope_used)=='Other (specify)'"
+            },
+            "1.23": {
+                "field_name": "spy_glass_specify_type",
+                "field_title": "Spy glass (specify which type)",
+                "field_type": "string",
+                "field_order": 18.1,
+                "field_constraint_data": "is_shown_fg=$(if_endoscope_used)=='Spy glass (specify which type)'"
+            },
+            "1.24": {
+                "field_name": "ambu_scope_specify_type",
+                "field_title": "Ambu scope (specify which type)",
+                "field_type": "string",
+                "field_order": 18.2,
+                "field_constraint_data": "is_shown_fg=$(if_endoscope_used)=='Ambu scope (specify which type)'"
+            },
+            "1.25": {
+                "field_name": "if_endoscope_used_dilumen_over_scope",
+                "field_title": "If Endoscope used, Dilumen over the scope double balloon used?",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.26": {
+                "field_name": "subtitle_4",
+                "field_title": "Select intra-op outcomes",
+                "field_type": "string",
+                "field_order": 20,
+                "field_constraint_description": "subtitle"
+            },
+            "1.27": {
+                "field_name": "intraoperative_complications",
+                "field_title": "Intraoperative Complications ",
+                "field_type": "string",
+                "field_order": 21,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "none|bleeding|free perforation|leakage of contrast suggestive of small perforation|Nearby structure or organ damage|Other (specify)"
+            },
+            "1.28": {
+                "field_name": "specify_4",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 22,
+                "field_constraint_data": "is_shown_fg=$(intraoperative_complications)=='Other (specify)'"
+            },
+            "1.29": {
+                "field_name": "device_malfunction",
+                "field_title": "Device malfunction ",
+                "field_type": "bool",
+                "field_order": 23
+            },
+            "1.30": {
+                "field_name": "total_time",
+                "field_title": "Total Time to reach the lesion (minutes from incision time) ",
+                "field_type": "integer",
+                "field_order": 24
+            },
+            "1.31": {
+                "field_name": "procedure_time",
+                "field_title": "Procedure time (min)",
+                "field_type": "integer",
+                "field_order": 25
+            },
+            "1.32": {
+                "field_name": "approach_successful",
+                "field_title": "Was the approach successful?",
+                "field_type": "bool",
+                "field_order": 26
+            },
+            "1.33": {
+                "field_name": "converter",
+                "field_type": "string",
+                "field_order": 27,
+                "field_constraint_data": "ci3_endoscopy_approach-Endoscopy Approach|ci3_percutaneous_approach-Percutaneous Approach|ci3_cut_down_approach-Cut Down Approach|ci3_laparoscopic_approach-Laparoscopic Approach",
+                "field_constraint_description": "converter"
+            }
+        },
+        "parent": {
+            "3": "$type.ci3"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,240 @@
+{
+    "353": {
+        "_id": "$type.tmj_patient_demographics",
+        "_type": "type",
+        "name": "tmj_patient_demographics",
+        "title": "Patient Demographics",
+        "parent": {
+            "4": "$type.tmj_questionnaires"
+        },
+        "fields": {
+            "4.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Patient Information",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "4.2": {
+                "field_name": "last_name",
+                "field_title": "Last name",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "4.3": {
+                "field_name": "first_name",
+                "field_title": "First name",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "4.4": {
+                "field_name": "initial",
+                "field_title": "Middle name or initial",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "4.5": {
+                "field_name": "maiden_name",
+                "field_title": "Maiden name",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "4.6": {
+                "field_name": "dob",
+                "field_title": "Date of birth",
+                "field_type": "date",
+                "field_order": 6
+            },
+            "4.7": {
+                "field_name": "sex",
+                "field_title": "Sex Parameter for Clinical Use",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "male|female|unknown|asked but declined"
+            },
+            "4.8": {
+                "field_name": "gender",
+                "field_title": "Gender",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "male|female|non-binary|transgender female|transgender male|other|does not wish to disclose"
+            },
+            "4.9": {
+                "field_name": "employment_status",
+                "field_title": "Employment status",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "employed|not in labor force|unemployed|disabled|volunteer"
+            },
+            "4.10": {
+                "field_name": "education",
+                "field_title": "Education",
+                "field_type": "text",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "4.11": {
+                "field_name": "social_status",
+                "field_title": "Social Status",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Caregiver|Parent|Guardian|Other"
+            },
+            "4.12": {
+                "field_name": "insurance_type",
+                "field_title": "Insurance Type",
+                "field_type": "string",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "4.13": {
+                "field_name": "marital_status",
+                "field_title": "Marital status",
+                "field_type": "string",
+                "field_order": 13,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Annulled|Divorced|Interlocutory|Legally Separated|Married|Polygamous|Never Married|Domestic partner|Unmarried|Widowed|Unknown"
+            },
+            "4.14": {
+                "field_name": "ethnicity",
+                "field_title": "Ethnicity",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "Hispanic or Latino|Not Hispanic or Latino"
+            },
+            "4.15": {
+                "field_name": "race",
+                "field_title": "Race",
+                "field_type": "string",
+                "field_order": 15,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "American Indian or Alaskan Native|Asian|Black or African American|Native Hawaiian or other Pacific Islander|White|Unknown or other"
+            },
+            "4.16": {
+                "field_name": "subtitle_2",
+                "field_title": "Contact Information",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_description": "subtitle"
+            },
+            "4.17": {
+                "field_name": "country",
+                "field_title": "Country",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint": "search",
+                "field_constraint_data": "{\r\n\"fetch\":[\"ISO\"],\r\n\"url\":\"?cmd=file&mode=csv&filename=voc/countries.csv&raw=1&start=0\",\r\n\"inline\":[\r\n\t{\"name\":\"ISO\",\"title\":\"ISO\",\"display\":\"none\",\"search\":\"true\"},\r\n\t{\"name\":\"country\",\"title\":\"Country\",\"display\":\"title\",\"search\":\"true\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"code\",\"title\":\"code\"}\r\n]\r\n}"
+            },
+            "4.18": {
+                "field_name": "street",
+                "field_title": "Street number and name",
+                "field_type": "string",
+                "field_order": 18,
+                "field_is_optional_fg": true
+            },
+            "4.19": {
+                "field_name": "street2",
+                "field_title": "Street - second line",
+                "field_type": "string",
+                "field_order": 19,
+                "field_is_optional_fg": true
+            },
+            "4.20": {
+                "field_name": "city",
+                "field_title": "City",
+                "field_type": "string",
+                "field_order": 20,
+                "field_is_optional_fg": true
+            },
+            "4.21": {
+                "field_name": "state",
+                "field_title": "State of residence",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint": "search",
+                "field_constraint_data": "{\r\n\"fetch\":[\"code\"],\r\n\"url\":\"?cmd=file&mode=csv&filename=voc/tmj_states.csv&raw=1&start=0\",\r\n\"inline\":[\r\n\t{\"name\":\"subdivision\",\"title\":\"subdivision\",\"display\":\"title\",\"search\":\"true\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"code\",\"title\":\"code\"}\r\n]\r\n}\r\n>is_shown_fg=$(country)=='US'||$(country)=='UM'"
+            },
+            "4.22": {
+                "field_name": "zip",
+                "field_title": "Zip code",
+                "field_type": "string",
+                "field_order": 22,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=true;value_fg='$(this)';if($(country)=='US'){ var valid = /^\\d{5}(?:-\\d{4})?$/g.test(value_fg);has_error=(!valid).toString();if(!valid){error_message='Insert correct Zip Code';}else{has_error='false';error_message='';}}"
+            },
+            "4.23": {
+                "field_name": "mobile_phone_us",
+                "field_title": "Mobile phone",
+                "field_type": "string",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(country)=='US';",
+                "field_constraint_description": "phone"
+            },
+            "4.24": {
+                "field_name": "mobile_phone_non_us",
+                "field_title": "Mobile phone",
+                "field_type": "string",
+                "field_order": 24,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(country)!='US'"
+            },
+            "4.25": {
+                "field_name": "email",
+                "field_title": "E-mail address",
+                "field_type": "string",
+                "field_order": 25,
+                "field_constraint_description": "email"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/TMJ-Registry/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/Administrators/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

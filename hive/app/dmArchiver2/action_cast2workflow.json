@@ -1,0 +1,42 @@
+{
+    "157": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "name": "cast2workflow",
+        "order": 15,
+        "path": "/Convert/cast2workflow",
+        "required_permission": 4,
+        "type_name": "workflow",
+        "url": "?cmdr=scast&type=workflow&ids=$(ids)",
+        "title": "Covert to workflow",
+        "description": "Convert to workflow",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

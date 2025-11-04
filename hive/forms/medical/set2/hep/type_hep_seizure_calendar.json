@@ -1,0 +1,307 @@
+{
+    "517": {
+        "_id": "$type.hep_seizure_calendar",
+        "_type": "type",
+        "name": "hep_seizure_calendar",
+        "title": "Pre-HEP Seizure Calendar",
+        "description": "This form should be used in conjunction with the DISCOVER form. After a patient describes their seizure type(s), you will fill out this Calendar using the letter code(s) you assigned to each seizure type in the DISCOVER form. If the patient reports a seizure cluster for mycolonus and/or absence as defined in the DISCOVER form, use the corresponding letter code. \n<br /><br />\nIf possible, write the <b>exact dates</b> for each seizure in the box of the correct week (e.g. if a patient had 1 seizure of type A on June 10th, write \"1A 6/10/15\" in the 8th - 14th box of the Jun-15 row). If the patient is unable to provide specific seizure dates, try to get the approximate week of the seizure; if unknown, move right across the columns to the less specific frequencies. If a patient reports seizures occurring earlier than 2 years ago, use the blank calendar page in the next tab to capture these. Be sure to fill in the month column and date of completion! <br /><br />\n(Please note that some of the seizure types you discuss with the patient may not be considered seizures after your PI reviews the DISCOVER form with you and the patient. These seizures should be removed from your final document.)\t\t\t\t\t\t\t\t\t\t",
+        "fields": {
+            "1.1": {
+                "field_name": "seizure_types_count",
+                "field_title": "1. How many seizure types does the patient have?",
+                "field_type": "string",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "instructions_1",
+                "field_order": 2,
+                "field_constraint_data": "description",
+                "field_constraint_description": "description",
+                "field_description": "2. Fill in letter codes and patient-provided seizure names from the DISCOVER form for each type:<br><br>\t\t\t\t\t\t\t\t\n3. Add the onset date for each type (exact if known; if not, at least approximate year): \"When was the first time you had this type of seizure?\"\t\t\t\t\t\t\n<br><br>\n4. <span>For types with onset >2 years ago, ask patient to estimate a. total number of seizures of this type, and b. frequency of seizures (e.g. 1/month, 1/year):</span>\t\t\t\t\t\t\t\t\t"
+            },
+            "1.3": {
+                "field_name": "seizures_parent",
+                "field_title": "Seizures",
+                "field_type": "array",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "col-3"
+            },
+            "1.4": {
+                "field_name": "letter_code",
+                "field_title": "Letter code",
+                "field_type": "string",
+                "field_parent": "seizures_parent",
+                "field_order": 1,
+                "field_constraint_data": "{\n\"fetch\":[\"value\"],\n\"fetchProp\":\"seizure_code\",\n\"url\":\"?api=0&cmdr=objList&prop=seizure_code,seizure_name,seizure_type,seizure_semiology&mode=csv&type=hep_seizure_semiology_and_classification_form\",\n\"groupBy\":\"path\",\n\"target_fields\":[\n\t{\"source\":\"seizure_name\",\"destination\":\"seizure_name\"}\n],\n\"inline\":[\n\t{\"name\":\"value\",\"title\":\"value\",\"display\":\"title\"}\n],\n\"outline\":[\n\t{\"name\":\"value\",\"title\":\"value\"}\n]\n}",
+                "field_constraint_description": "autocomplete"
+            },
+            "1.5": {
+                "field_name": "seizure_name",
+                "field_title": "Seizure name",
+                "field_type": "string",
+                "field_parent": "seizures_parent",
+                "field_order": 2,
+                "field_constraint_data": "{\n\"fetch\":[\"value\"],\n\"fetchProp\":\"seizure_name\",\n\"url\":\"?api=0&cmdr=objList&prop=seizure_code,seizure_name,seizure_type,seizure_semiology&mode=csv&type=hep_seizure_semiology_and_classification_form\",\n\"groupBy\":\"path\",\n\"target_fields\":[\n\t{\"source\":\"seizure_code\",\"destination\":\"letter_code\"}\n],\n\"inline\":[\n\t{\"name\":\"value\",\"title\":\"value\",\"display\":\"title\"}\n],\n\"outline\":[\n\t{\"name\":\"value\",\"title\":\"value\"}\n]\n}",
+                "field_constraint_description": "autocomplete"
+            },
+            "1.6": {
+                "field_name": "seizure_type_onset_desc",
+                "field_title": "Seizure type onset",
+                "field_type": "string",
+                "field_parent": "seizures_parent",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "description"
+            },
+            "1.7": {
+                "field_name": "exact_date_unknown",
+                "field_title": "Exact date unknown",
+                "field_type": "bool",
+                "field_parent": "seizures_parent",
+                "field_order": 3.5,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.8": {
+                "field_name": "exact_date",
+                "field_title": "Exact date",
+                "field_type": "date",
+                "field_parent": "seizures_parent",
+                "field_order": 4,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(exact_date_unknown)!='true'"
+            },
+            "1.9": {
+                "field_name": "approx_date",
+                "field_title": "Approx date",
+                "field_type": "string",
+                "field_parent": "seizures_parent",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(exact_date_unknown)=='true'"
+            },
+            "1.10": {
+                "field_name": "approx_seizure_count_desc",
+                "field_title": "Approx seizure count\t",
+                "field_type": "string",
+                "field_parent": "seizures_parent",
+                "field_order": 6,
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "description"
+            },
+            "1.11": {
+                "field_name": "total_number_unknown",
+                "field_title": "Total number unknown",
+                "field_type": "bool",
+                "field_parent": "seizures_parent",
+                "field_order": 6.5,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.12": {
+                "field_name": "total_number",
+                "field_title": "Total number",
+                "field_type": "string",
+                "field_parent": "seizures_parent",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(total_number_unknown)!='true'"
+            },
+            "1.13": {
+                "field_name": "frequency",
+                "field_title": "Frequency",
+                "field_type": "string",
+                "field_parent": "seizures_parent",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(total_number_unknown)=='true'"
+            },
+            "1.14": {
+                "field_name": "longest_time_without_seizure ",
+                "field_title": "5. What is the longest time you have gone without a seizure since your seizures started?",
+                "field_type": "text",
+                "field_order": 4
+            },
+            "1.15": {
+                "field_name": "when_started_medications",
+                "field_title": "6. When did you start taking medications for seizures?",
+                "field_type": "text",
+                "field_order": 5
+            },
+            "1.16": {
+                "field_name": "noticed_difference",
+                "field_title": "7. Have you noticed a difference in seizure frequency before and after medication?",
+                "field_type": "text",
+                "field_order": 6
+            },
+            "1.17": {
+                "field_name": "largest_number_of_seizures_desc",
+                "field_title": "8. What is the largest number of seizures you have had",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_description": "description"
+            },
+            "1.18": {
+                "field_name": "largest_number_of_seizures_day",
+                "field_title": "in 1 day?",
+                "field_type": "string",
+                "field_order": 8
+            },
+            "1.19": {
+                "field_name": "largest_number_of_seizures_week",
+                "field_title": "in 1 week?",
+                "field_type": "string",
+                "field_order": 9
+            },
+            "1.20": {
+                "field_name": "seizure_code",
+                "field_title": "Seizure code",
+                "field_type": "string",
+                "field_parent": "calendar_parent",
+                "field_order": 1,
+                "field_constraint_data": "{\n\"fetch\":[\"value\"],\n\"fetchProp\":\"seizure_code\",\n\"url\":\"?api=0&cmdr=objList&prop=seizure_code,seizure_name,seizure_type,seizure_semiology&mode=csv&type=hep_seizure_semiology_and_classification_form\",\n\"groupBy\":\"path\",\n\"target_fields\":[\n\t{\"source\":\"seizure_name\",\"destination\":\"seizure_name_cal\"},\n        {\"source\":\"seizure_type\",\"destination\":\"classification\"},\n        {\"source\":\"seizure_semiology\",\"destination\":\"description\"}\n],\n\"inline\":[\n\t{\"name\":\"value\",\"title\":\"value\",\"display\":\"title\"}\n],\n\"outline\":[\n\t{\"name\":\"value\",\"title\":\"value\"}\n]\n}",
+                "field_constraint_description": "autocomplete"
+            },
+            "1.21": {
+                "field_name": "seizure_name_cal",
+                "field_title": "Seizure name",
+                "field_type": "string",
+                "field_parent": "calendar_parent",
+                "field_order": 3,
+                "field_constraint_data": "{\n\"fetch\":[\"value\"],\n\"fetchProp\":\"seizure_name\",\n\"url\":\"?api=0&cmdr=objList&prop=seizure_code,seizure_name,seizure_type,seizure_semiology&mode=csv&type=hep_seizure_semiology_and_classification_form\",\n\"groupBy\":\"path\",\n\"target_fields\":[\n\t{\"source\":\"seizure_code\",\"destination\":\"seizure_code\"},\n        {\"source\":\"seizure_type\",\"destination\":\"classification\"},\n        {\"source\":\"seizure_semiology\",\"destination\":\"description\"}\n],\n\"inline\":[\n\t{\"name\":\"value\",\"title\":\"value\",\"display\":\"title\"}\n],\n\"outline\":[\n\t{\"name\":\"value\",\"title\":\"value\"}\n]\n}",
+                "field_constraint_description": "autocomplete"
+            },
+            "1.22": {
+                "field_name": "classification",
+                "field_title": "Classification",
+                "field_type": "string",
+                "field_parent": "calendar_parent",
+                "field_order": 5,
+                "field_constraint_data": "1. Clearly generalized seizures, but unable to further classify|1.1. Tonic clonic (in any combination)|1.2. Absence|1.2.1. Typical|1.2.2. Eyelid myoclonia|1.3. Myoclonic|2. Clearly focal seizures, but unable to further classify (Exclude)|2.1. Without impairment of consciousness or responsiveness (Exclude)|2.1.1. With observable motor or autonomic component (roughly corresponds to the concept of \"simple partial seizure\") (Exclude)|2.1.2. Involving subjective sensory or psychic phenomena only (corresponds to the concept of \"aura\") (Exclude)|2.2. With impairment of consciousness or responsiveness (roughly corresponds to the concept of \"focal seizures with dyscognitive features\") (Exclude)|2.3. Evolving to a bilateral, convulsive seizure (involving tonic, clonic, or tonic and clonic components; replaces the term \"secondarily generalized seizure\") (Exclude)|3. Seizure type is unclassified (Adjudicate)|4. Unconfirmed seizure type (This category should be used for patients with confirmed epilepsy who have some events for which the Primary Investigator does not have >80% certainty that they are seizures.)"
+            },
+            "1.23": {
+                "field_name": "seperator_2",
+                "field_title": "seperator_2",
+                "field_type": "string",
+                "field_parent": "calendar_parent",
+                "field_order": 6,
+                "field_constraint_description": "separator"
+            },
+            "1.24": {
+                "field_name": "seizure_count",
+                "field_title": "Seizure count",
+                "field_type": "integer",
+                "field_parent": "calendar_parent",
+                "field_order": 8,
+                "field_constraint": "choice",
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='false'"
+            },
+            "1.25": {
+                "field_name": "calendar_parent",
+                "field_title": "Seizure calendar",
+                "field_type": "array",
+                "field_order": 10,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "col-6"
+            },
+            "1.26": {
+                "field_name": "seizures_amount_range",
+                "field_title": "Seizure count range",
+                "field_type": "string",
+                "field_parent": "calendar_parent",
+                "field_order": 10.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.27": {
+                "field_name": "unsure_about_seizure_count",
+                "field_title": "Select this to enter a number range if you are unsure of the exact amount of seizures. ",
+                "field_type": "bool",
+                "field_parent": "calendar_parent",
+                "field_order": 10,
+                "field_constraint_description": "checkbox"
+            },
+            "1.28": {
+                "field_name": "seizures_amount_range_from",
+                "field_title": "From ",
+                "field_type": "integer",
+                "field_parent": "calendar_parent",
+                "field_order": 10.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='true'"
+            },
+            "1.29": {
+                "field_name": "seizures_amount_range_to",
+                "field_title": "To",
+                "field_type": "integer",
+                "field_parent": "calendar_parent",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='true'"
+            },
+            "1.30": {
+                "field_name": "seperator_1",
+                "field_type": "string",
+                "field_parent": "calendar_parent",
+                "field_order": 12,
+                "field_constraint_description": "separator"
+            },
+            "1.31": {
+                "field_name": "seizure_count_period",
+                "field_title": "Seizure count period",
+                "field_type": "string",
+                "field_parent": "calendar_parent",
+                "field_order": 13,
+                "field_constraint_data": "per day|per week|per month|per year\n>is_shown_fg=$(unsure_about_seizure_dates)=='true'"
+            },
+            "1.32": {
+                "field_name": "seizure_dates",
+                "field_title": "Seizure date(s)",
+                "field_type": "date",
+                "field_parent": "calendar_parent",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_constraint": "regexp",
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(unsure_about_seizure_dates)=='false'",
+                "field_description": "Please be as precise as possible. If you do not know the month or day, leave them as Unknown. You must select a year for both From and To."
+            },
+            "1.33": {
+                "field_name": "exact_date_range",
+                "field_title": "Seizure date range",
+                "field_type": "date",
+                "field_parent": "calendar_parent",
+                "field_order": 15,
+                "field_constraint": "range",
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(unsure_about_seizure_dates)=='true'"
+            },
+            "1.34": {
+                "field_name": "unsure_about_seizure_dates",
+                "field_title": "Select this if you are unsure of the exact date or want to enter a date range.",
+                "field_type": "bool",
+                "field_parent": "calendar_parent",
+                "field_order": 16,
+                "field_constraint_description": "checkbox"
+            }
+        },
+        "parent": {
+            "4": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "133": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "housekeeper",
+                "dir": "$(HIVE.repo)/hive/app/system/housekeeper",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.system.housekeeper",
+        "description": "HOUSEKEEPER ensures continuous monitoring of HIVE processes and cleanup of old resources.",
+        "authors": {
+            "7": "A.Golikov",
+            "24": "V.Simonyan"
+        }
+    }
+}

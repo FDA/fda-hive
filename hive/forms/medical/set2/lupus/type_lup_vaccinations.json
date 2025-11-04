@@ -1,0 +1,73 @@
+{
+    "575": {
+        "_id": "$type.lup_vaccinations",
+        "_type": "type",
+        "name": "lup_vaccinations",
+        "title": "Vaccinations",
+        "description": "<h5>Please record all vaccinations the participant took before participating in the study.</h5>",
+        "fields": {
+            "1.1": {
+                "field_name": "vaccines",
+                "field_title": "Vaccines",
+                "field_type": "array",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "col-4"
+            },
+            "1.2": {
+                "field_name": "vaccine_type",
+                "field_title": "Vaccine type",
+                "field_type": "string",
+                "field_parent": "vaccines",
+                "field_order": 1.01,
+                "field_constraint_data": "Dengue (DEN4CYD; 9-16 yrs)|Diphtheria, tetanus & acellular pertussis (DTaP)|Haemophilus influenzae type b (Hib)|Hepatitis A (HepA)|Hepatitis B (HepB)|Human papillomavirus (HPV)|Inactivated poliovirus (IPV: <18yrs)|Influenza (IIV4)|Influenza (LAIV4)|Influenza recombinant (RIV4)|Measles, mumps, rubella (MMR)|Meningococcal (MenACWY-D ≥9 mos, MenACWY-CRM ≥2 mos, MenACWY-TT ≥2years)|Meningococcal A, C, W, Y (MenACWY)|Meningococcal B (MenB)|Meningococcal B (MenB-4C, MenB-FHbp)|Pneumococcal (PCV15, PCV20)|Pneumococcal conjugate (PCV13)|Pneumococcal polysaccharide (PPSV23)|Rotavirus (RV)|SARS-CoV-2|Tetanus, diphtheria & acellular pertussis (Tdap: >7 yrs)|Varicella (VAR)|Zoster recombinant (RZV)|RSV|Unknown|Other"
+            },
+            "1.3": {
+                "field_name": "manufacturer",
+                "field_title": "Manufacturer",
+                "field_type": "string",
+                "field_parent": "vaccines",
+                "field_order": 1.03,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.4": {
+                "field_name": "number_of_doses",
+                "field_title": "Number of doses",
+                "field_type": "integer",
+                "field_parent": "vaccines",
+                "field_order": 1.04,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "vaccine_type_other",
+                "field_title": "Specify vaccine type",
+                "field_type": "string",
+                "field_parent": "vaccines",
+                "field_order": 1.02,
+                "field_constraint_data": "{'maxlength':'50'}\r\n>is_shown_fg=$(vaccine_type)=='Other'"
+            }
+        },
+        "parent": {
+            "4": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

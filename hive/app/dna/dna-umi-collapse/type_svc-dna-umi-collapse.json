@@ -1,0 +1,67 @@
+{
+    "285": {
+        "_id": "$type.svc-dna-umi-collapse",
+        "_type": "type",
+        "name": "svc-dna-umi-collapse",
+        "title": "UMI Collapse",
+        "description": "// UMI collapsing utility\nlocation: hive.app.dna.dna-umi-collapse",
+        "parent": {
+            "1": "$type.svc-ngs"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "reads",
+                "field_title": "Read files",
+                "field_type": "obj",
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read"
+            },
+            "1.2": {
+                "field_name": "references",
+                "field_title": "References",
+                "field_type": "obj",
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.4": {
+                "field_name": "algorithm",
+                "field_title": "Algorithm",
+                "field_type": "integer",
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///UMI-tools|1///FGBio"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

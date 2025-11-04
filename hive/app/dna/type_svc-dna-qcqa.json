@@ -1,0 +1,41 @@
+{
+    "179": {
+        "_id": "$type.svc-dna-qcqa",
+        "_type": "type",
+        "name": "svc-dna-qcqa",
+        "title": "DNA QC and QA Tools",
+        "description": "//\nlocation:hive.app.dna",
+        "parent": {
+            "10": "$type.svc-dna"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

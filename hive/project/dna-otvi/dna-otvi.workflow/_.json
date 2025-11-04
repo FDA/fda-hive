@@ -1,0 +1,232 @@
+{
+	"workflows" : {
+		"name" : "exotvi1-hc",
+		"title" : "Excision OTVI HC pipeline 1",
+		"description" : "parameters to be specified externally folder,repl1_fwd,repl1_rev,repl2_fwd,repl2_rev,repl3_fwd,repl3_rev,repl1_merged,repl2_merged,repl3_merged,gblock_ref,noeditbar_ref,nominated_ref,hiv_ref,aav_ref,hg_ref,barcode",
+		"sample_launch" : "~/out/debug-Linux-x86_64/bin/wfl -preset app.verbose=1;debug on;folder='oct10722';barcodes='CGGTCA;ACGCGA';barcode.length=6;umi_size=5;ut_fwd=24194;ut_rev=24195;uc_fwd=24198;uc_rev=24199;tr_fwd=24216;tr_rev=24217;gblock_ref=24250;nominated_ref=18816;aav_ref=24205;hiv_ref=24201;hg_ref=24209;  -pipeline ~/code/hive/app/expipe/ex-otvi5.json",
+		"comment" : "excision otvi hc pipeline",
+		"_type" : "workflow",
+		"config" : [
+			{
+				"name" : "hive.cfg",
+				"execute" : [
+				"hive.tmpdir='/tmp/SRR/';"
+				]
+			}
+		],
+		"steps" : [
+			{
+				"name" : "setup",
+				"execute" : [
+					"refset=''+prob_ref+';'+hiv_ref+';'+aav_ref",
+					"integrset=''+hg_ref+';'+prob_ref+';'+hiv_ref+';'+aavintegr_ref",
+					"folderID=HIVE.folderCreate(folder);",
+					"folderSpikeID=HIVE.folderCreate('Spikes', folderID);",
+					"folderNominID=HIVE.folderCreate('Nominated', folderID);",
+					"folderAAVID=HIVE.folderCreate('AAV',folderID);"
+				]
+			},
+			{
+				"name" : "merger",
+				"clone" : [
+					"samples"
+				],
+				"execute" : [
+					"if( isvar('::repl_merged['+#0+']') ){merger$#0.archID=repl_merged[$#0];} else {merger$#0.fwd=repl_fwd[$#0];merger$#0.rev=repl_rev[$#0];merger$#0.algo=2;merger$#0.folder=folderID;}",
+					"merger$#0.name=folder+'_'+$0+'.fastq';",
+					"if( isvar('::adapter_r1') )merger$#0.adapter_r1=adapter_r1;if( isvar('::adapter_r2') )merger$#0.adapter_r2=adapter_r2;",
+					"if( isvar('::repl_merged['+#0+']') ){d=true;} else { HIVE.launchReadMerger('merger$#0');}"
+				]
+			},
+			{
+				"name" : "find_spikes",
+				"clone" : [
+					"samples"
+				],
+				"condition" : [
+					"merger.status==wflow.done"
+				],
+				"execute" : [
+					"merger$#0.status==wflow.done;",
+					"comment --=====  Aligning sequences to spike constructs to delineate spikes sequences =====-- ",
+					"find_spikes$#0.minMatchLen=90;find_spikes$#0.minMatchUnit=0;find_spikes$#0.maxMissQueryPercent=3;find_spikes$#0.folder=folderSpikeID;",
+					"find_spikes$#0.query=merger$#0.archID;find_spikes$#0.subject=gblock_ref;find_spikes$#0.name=merger$#0.name+'-merged vs gBlocks';",
+					"find_spikes$#0.must_have_subsequences=barcodes;find_spikes$#0.must_have_subsequences_umishift=umi_size;find_spikes$#0.must_have_subsequences_revcomp=1;",
+					"find_spikes$#0.must_cover_ref_positions='-10,10';find_spikes$#0.must_cover_ref_position_relative_to='cutsite=';",
+					"HIVE.launchHexagon('find_spikes'+#0);",
+					"comment --=====  Retrieve spiked sequences into separate fastq  =====-- ",
+					"HIVE.archiveHexagonReads(find_spikes$#0._id,merger$#0.name+'-spike.fastq',1,'find_spikes$#0_spike',folderSpikeID);",
+					"if( umi_collapse==1 ){comment --======  UMI collapse barcoded reads  =====-- }",
+					"if( umi_collapse==1 ){umispike$#0.name=merger$#0.name+'-umispike-collapsed.fastq';umispike$#0.reads=find_spikes$#0_spike._ids;umispike$#0.references=gblock_ref;umispike$#0.folder=folderSpikeID;}",
+					"if( umi_collapse==1 ){HIVE.launchUMICollapser('umispike$#0');}",
+					"if( umi_collapse==1 ){comment --======  Reallign UMI-ed barcodes to gblock reference to account for baarcoded umied sequences =====-- }",
+					"if( umi_collapse==1 ){align_umirebarcode$#0.minMatchLen=90;align_umirebarcode$#0.minMatchUnit=0;align_umirebarcode$#0.maxMissQueryPercent=3;align_umirebarcode$#0.folder=folderSpikeID;}",
+					"if( 0 ){align_umirebarcode$#0.trimLowScoreEndsMaxMismatches=10;align_umirebarcode$#0.trimLowScoreEndsWindow=10;}",
+					"if( 0 ){align_umirebarcode$#0.must_cover_ref_position_relative_to='cutsite=';align_umirebarcode$#0.must_cover_ref_positions='-10,20';}",
+					"if( umi_collapse==1 ){align_umirebarcode$#0.query=umispike$#0._ids;align_umirebarcode$#0.subject=gblock_ref;align_umirebarcode$#0.name=merger$#0.name+'-umispike vs gBlocks';}",
+					"if( umi_collapse==1 ){hept_umirebarcode$#0.collapseRpts=0;hept_umirebarcode$#0.startCountingImperfect=-5;hept_umirebarcode$#0.endCountingImperfect=5;hept_umirebarcode$#0.imperfectCountingRelativePos='cutsite=';hept_umirebarcode$#0.imperfectTotalCoveragePosition=0;}",
+					"if( umi_collapse==1 ){HIVE.launchHexaHeptagon('align_umirebarcode'+#0,'hept_umirebarcode'+#0,);}"
+				]
+			},
+			{
+				"name" : "find_sites",
+				"clone" : [
+					"samples"
+				],
+				"condition" : [
+					"merger.status==wflow.done"
+				],
+				"execute" : [
+					"merger$#0.status==wflow.done;",
+					"comment --=====  Aligning sequences to nominated sites (cutpositions) , AAV, HIV =====-- ",
+					"align_nominated$#0.minMatchLen=90;align_nominated$#0.minMatchUnit=0;align_nominated$#0.maxMissQueryPercent=5;align_nominated$#0.folder=folderNominID;",
+					"align_nominated$#0.trimLowScoreEndsMaxMismatches=10;align_nominated$#0.trimLowScoreEndsWindow=10;",
+					"align_nominated$#0.must_cover_ref_position_relative_to='cutsite=';align_nominated$#0.must_cover_ref_positions='-10,10';align_nominated$#0.must_cover_subsequences=1;align_nominated$#0.must_cover_all=0;",
+					"align_nominated$#0.must_have_subsequences=barcodes;align_nominated$#0.must_have_subsequences_umishift=umi_size;align_nominated$#0.must_have_subsequences_revcomp=1;align_nominated$#0.must_have_negative=1;",
+					"align_nominated$#0.query=merger$#0.archID;align_nominated$#0.subject=refset;align_nominated$#0.name=merger$#0.name+'-merged vs Nominated';",
+					"HIVE.launchHexagon('align_nominated'+#0);",
+					"comment --======  Retrieve sequences that are aligned to nominated sites, AAV, HIV  =====-- ",
+					"HIVE.archiveHexagonReads(align_nominated$#0._id,merger$#0.name+'-target.fastq',1,'align_nominated$#0_target',folderNominID);",
+					"comment --======  Aligning (aligned) sequences to human genome to see if there is a better alignment on human =====-- ",
+					"align_targethuman$#0.minMatchLen=90;align_targethuman$#0.minMatchUnit=0;align_targethuman$#0.maxMissQueryPercent=5;align_targethuman$#0.folder=folderNominID;align_targethuman$#0.keepAllMatches=3;",
+					"align_targethuman$#0.seed=14;",
+					"align_targethuman$#0.query=align_nominated$#0_target._ids;align_targethuman$#0.subject=''+hg_ref+';'+refset;align_targethuman$#0.name=merger$#0.name+'-target vs Human';",
+					"HIVE.launchHexagon('align_targethuman'+#0);",
+					"comment --======  Retrieve sequences that best align to nominhuman genome to see if there is a better alignment on human =====-- ",
+					"HIVE.archiveHexagonReads(align_targethuman$#0._id,merger$#0.name+'-sitesonly.fastq','1&subRange=27-245','find_sites$#0_sites',folderNominID);",
+					"if( umi_collapse==1 ){comment --======  UMI collapse sites only reads  =====-- }",
+					"if( umi_collapse==1 ){umi$#0.name=merger$#0.name+'-umi-collapsed.fastq';umi$#0.reads=find_sites$#0_sites._ids;umi$#0.references=refset;umi$#0.folder=folderNominID;}",
+					"if( umi_collapse==1 ){HIVE.launchUMICollapser('umi$#0');}"
+				]
+			},
+			{
+				"name" : "align_otvi_spikes",
+				"clone" : [
+				"samples"
+				],
+				"condition" : [
+					"find_spikes.status==wflow.done"
+				],
+				"execute" : [
+					"find_spikes$#0.status==wflow.done;",
+					"comment --======  Aligning spike sequences to human unedited barcoded constructs human for InDel Analysis =====-- ",
+					"align_spikes$#0.minMatchLen=90;align_spikes$#0.minMatchUnit=0;align_spikes$#0.maxMissQueryPercent=15;align_spikes$#0.folder=folderSpikeID;",
+					"align_spikes$#0.trimLowScoreEndsMaxMismatches=10;align_spikes$#0.trimLowScoreEndsWindow=10;",
+					"align_spikes$#0.must_cover_ref_position_relative_to='cutsite=';align_spikes$#0.must_cover_ref_positions='-10,40';",
+		
+					"if( umi_collapse==1 )align_spikes$#0.query=umispike$#0._ids; else align_spikes$#0.query=find_spikes$#0_spike._ids;",
+					"align_spikes$#0.subject=''+noeditbar_ref+';'+hiv_ref+';'+aav_ref;align_spikes$#0.name=merger$#0.name+'-spike vs BarcodedNominated';",
+		
+					"if(0){align_spikes$#0.must_have_subsequences=barcodes;align_spikes$#0.must_have_subsequences_umishift=umi_size;align_spikes$#0.must_have_subsequences_revcomp=1;}",
+		
+					"hept_spikes$#0.collapseRpts=0;hept_spikes$#0.startCountingImperfect=-5;hept_spikes$#0.endCountingImperfect=5;hept_spikes$#0.imperfectCountingRelativePos='cutsite=';hept_spikes$#0.imperfectTotalCoveragePosition=0;",
+					"HIVE.launchHexaHeptagon('align_spikes'+#0,'hept_spikes'+#0);",
+					
+					"comment --======  Aligning spike sequences to human unedited barcoded constructs human for SV analysis =====-- ",
+					"align_sv_spikes$#0.minMatchLen=20;align_sv_spikes$#0.minMatchUnit=0;align_sv_spikes$#0.maxMissQueryPercent=5;align_sv_spikes$#0.folder=folderSpikeID;",
+					"align_sv_spikes$#0.trimLowScoreEndsMaxMismatches=10;align_sv_spikes$#0.trimLowScoreEndsWindow=20;",
+					"align_sv_spikes$#0.keepAllMatches=2;",
+					
+					"align_sv_spikes$#0.query=align_spikes$#0.query;align_sv_spikes$#0.subject=''+noeditbar_ref+';'+hiv_ref+';'+aav_ref;align_sv_spikes$#0.name=merger$#0.name+'-sv_spike vs BarcodedNominated';",
+					
+					"di_spikes$#0.maxNonOverlap=50;di_spikes$#0.maxOverlap=30;di_spikes$#0.minPeakCov=1;di_spikes$#0.minReadCov=20;di_spikes$#0.minSameRefDist='none';di_spikes$#0.minNonOverlappingSubAlignmentLength=20;",
+					"HIVE.launchHexaDIProfiler('align_sv_spikes'+#0,'di_spikes'+#0);"
+				]
+			},
+			{
+				"name" : "align_otvi_sites",
+				"clone" : [
+					"samples"
+				],
+				"condition" : [
+					"merger.status==wflow.done"
+				],
+				"execute" : [
+					"find_sites$#0.status==wflow.done;",
+					"comment --======  Aligning sequences that have the best alignment to nominated sites, AAV and HIV to their references only ======-- ",
+					"align_sites$#0.minMatchLen=90;align_sites$#0.minMatchUnit=0;align_sites$#0.maxMissQueryPercent=15;align_sites$#0.folder=folderNominID;",
+					"align_sites$#0.trimLowScoreEndsMaxMismatches=10;align_sites$#0.trimLowScoreEndsWindow=10;",
+					"align_sites$#0.must_cover_ref_position_relative_to='cutsite=';align_sites$#0.must_cover_ref_positions='-10,10';",
+					"if(umi_collapse==1){align_sites$#0.query=umi$#0._ids;align_sites$#0.name=merger$#0.name+'-umi-sitesonly vs Nominated';}else {align_sites$#0.query=find_sites$#0_sites._ids;align_sites$#0.name=merger$#0.name+'-sitesonly vs Nominated';}",
+					"align_sites$#0.subject=refset;",
+					"hept_sites$#0.collapseRpts=0;hept_sites$#0.startCountingImperfect=-5;hept_sites$#0.endCountingImperfect=5;hept_sites$#0.imperfectCountingRelativePos='cutsite=';hept_sites$#0.imperfectTotalCoveragePosition=0;",
+					"HIVE.launchHexaHeptagon('align_sites'+#0,'hept_sites'+#0);",
+					
+					"comment --======  Aligning nominated sequences to Nominated sites for SV analysis =====-- ",
+					"align_sv_sites$#0.minMatchLen=40;align_sv_sites$#0.minMatchUnit=0;align_sv_sites$#0.maxMissQueryPercent=5;align_sv_sites$#0.folder=folderNominID;",
+					"align_sv_sites$#0.trimLowScoreEndsMaxMismatches=10;align_sv_sites$#0.trimLowScoreEndsWindow=20;",
+					"align_sv_sites$#0.keepAllMatches=2;",
+					
+					"align_sv_sites$#0.query=align_sites$#0.query;align_sv_sites$#0.subject=''+refset+';';align_sv_sites$#0.name=merger$#0.name+'-sv_sitesonly vs Nominated';",
+					
+					"di_sites$#0.maxNonOverlap=50;di_sites$#0.maxOverlap=30;di_sites$#0.minPeakCov=1;di_sites$#0.minReadCov=20;di_sites$#0.minNonOverlappingSubAlignmentLength=20;",
+					"HIVE.launchHexaDIProfiler('align_sv_sites'+#0,'di_sites'+#0);",
+					
+					"if(0){comment --======  DI Profiler Unfiltered SV analysis =====-- }",
+					"if(0){di_unfiltered_sites$#0.folder=folderNominID;di_unfiltered_sites$#0.name=merger$#0.name+'-sv_sitesonly vs unfiltered Nominated;');}",
+					"if(0){di_unfiltered_sites$#0.alignmentID=align_sv_sites#0._id;}",
+					"if(0){di_unfiltered_sites$#0.maxNonOverlap=50;di_unfiltered_sites$#0.maxOverlap=30;di_unfiltered_sites$#0.minPeakCov=1;di_unfiltered_sites$#0.minReadCov=20;di_unfiltered_sites$#0.minNonOverlappingSubAlignmentLength=20;}",
+					"if(0){HIVE.launchDIProfiler('di_unfiltered_sites'+#0);}"
+				]
+			},
+			{
+				"name" : "integrated_aav",
+				"clone" : [
+					"samples"
+				],
+				"condition" : [
+					"merger.status==wflow.done"
+				],
+				"execute" : [
+					"comment --======  Aligning sequences to aav flip_flops =====-- ",
+					"align_flipflop#0.minMatchLen=40;align_flipflop$#0.minMatchUnit=0;align_flipflop$#0.maxMissQueryPercent=5;align_flipflop$#0.folder=folderAAVID;",
+					"align_flipflop$#0.trimLowScoreEndsMaxMismatches=10;align_flipflop$#0.trimLowScoreEndsWindow=20;",
+					"align_flipflop$#0.query=merger$#0.archID;align_flipflop$#0.subject=aavintegr_ref;align_flipflop$#0.name=merger$#0.name+'- vs AAV-FlipFlop';",
+					"HIVE.launchHexagon('align_flipflop'+#0);",
+					"comment --======  Retrieve sequences that are aligned to flip flops =====-- ",
+					"HIVE.archiveHexagonReads(align_flipflop$#0._id,merger$#0.name+'-flipflop.fastq',1,'align_flipflop$#0_flipfop',folderAAVID);",
+					
+					"if( umi_collapse==1 ){comment --======  UMI collapse sites only reads  =====-- }",
+					"if( umi_collapse==1 ){umi_flipflops$#0.name=merger$#0.name+'-umi-flipflops.fastq';umi_flipflops$#0.reads=align_flipflop$#0_flipfop._ids;umi_flipflops$#0.references=aavintegr_ref;umi_flipflops#0.folder=folderAAVID;}",
+					"if( umi_collapse==1 ){HIVE.launchUMICollapser('umi_flipflops$#0');}",
+					
+					"comment --======  Align and DI profile human genome and flip fops =====-- ",
+					"align_integr$#0.minMatchLen=40;align_integr$#0.minMatchUnit=0;align_integr$#0.maxMissQueryPercent=5;align_integr$#0.folder=folderAAVID;",
+					"align_integr$#0.trimLowScoreEndsMaxMismatches=10;align_integr$#0.trimLowScoreEndsWindow=20;",
+					"align_integr$#0.keepAllMatches=2;",
+					"align_integr$#0.subject=integrset;",
+					"if(umi_collapse==1){align_integr$#0.query=umi_flipflops$#0._ids;align_integr$#0.name=merger$#0.name+'-umi-flipflop vs IntegrationHuman';} else {align_integr$#0.query=align_flipflop#0_flipflop._ids;align_integr$#0.name=merger$#0.name+'-flipflop vs IntegrationHuman';}",
+					
+					"di_integr$#0.maxNonOverlap=50;di_integr$#0.maxOverlap=30;di_integr$#0.minPeakCov=1;di_integr$#0.minReadCov=20;di_integr$#0.minNonOverlappingSubAlignmentLength=20;",
+					"di_integr$#0.jumpRangeStart=-10;di_integr$#0.jumpRangeEnd=10;di_integr$#0.jumpRangeRelativeTo='cutsite=';di_integr$#0.maximumChewback=25;di_integr$#0.maximumChewbackRight=25;",
+					"HIVE.launchHexaDIProfiler('align_integr'+#0,'di_integr'+#0);"
+				]
+			},
+			{
+				"name" : "collector",
+				"clone" : [
+					"samples"
+				],
+				"condition" : [
+					"merger.status==wflow.done"
+				],
+				"execute" : [
+					"align_otvi_spikes$#0.status==wflow.done;",
+					"align_otvi_sites$#0.status==wflow.done;",
+					"comment --====== Collecting data ======-- ",
+					"HIVE.cpURL(wflow._id,'Barcoded_HitList.csv',find_spikes$#0._ids,merger$#0.name,'cmdr=alCount&down=1&objs=%s',1);",
+					"HIVE.cpURL(wflow._id,'Barcoded_UMIHitList.csv',align_umirebarcode$#0._ids,merger$#0.name,'cmdr=alCount&down=1&objs=%s',1);",
+					"if(umi_collapse==1)HIVE.cpURL(wflow._id,'Spike_HitList.csv',align_spikes$#0._ids,merger$#0.name,'cmdr=alCount&down=1&objs=%s',1);",
+					"HIVE.cpURL(wflow._id,'Nominated_HitList.csv',align_sites$#0._ids,merger$#0.name,'cmdr=alCount&down=1&objs=%s',1);",
+					"HIVE.cpFile(wflow._id,'Imperfect_NominatedStatistics.csv',hept_sites$#0._ids,merger$#0.name,'imperfect.csv',1,0,0);",
+					"HIVE.cpFile(wflow._id,'Imperfect_SpikeStatistics.csv',hept_spikes$#0._ids,merger$#0.name,'imperfect.csv',1,0,0);",
+					"HIVE.cpFile(wflow._id,'Spike-SVProfile.csv',di_spikes$#0._ids,merger$#0.name,'di-profile.csv',1,0,0);",
+					"HIVE.cpFile(wflow._id,'Nominated-SVProfile.csv',di_sites$#0._ids,merger$#0.name,'di-profile.csv',1,0,0);",
+					"HIVE.cpFile(wflow._id,'Nominated-Unfiltered-SVProfile.csv',di_unfiltered_sites$#0._ids,merger$#0.name,'di-profile.csv',1,0,0);",
+					"HIVE.cpFile(wflow._id,'AAV-Integration-SVProfile.csv',di_integr$#0._ids,merger$#0.name,'di-profile.csv',1,0,0);"
+				]
+			}
+		]
+	}
+}
+

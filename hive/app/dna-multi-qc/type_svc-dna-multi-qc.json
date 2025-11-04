@@ -1,0 +1,51 @@
+{
+    "type.315": {
+        "_id": "type.315",
+        "_type": "type",
+        "name": "svc-dna-multi-qc",
+        "title": "Dna Multi QC",
+        "description": "Dna multi file QC",
+        "parent": {
+            "1": "type.29"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "query_objId",
+                "field_title": "FASTQ Read Files",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

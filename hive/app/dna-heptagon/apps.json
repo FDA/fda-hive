@@ -1,0 +1,45 @@
+{
+    "40609": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Recombination-algorithm",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-recomb",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Post-Alignment"
+        ],
+        "_perm": []
+    },
+    "12181": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Heptagon-Profiler",
+        "base_app_description": null,
+        "base_app_version": 2.1,
+        "base_app_url": "?cmd=dna-heptagon",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Post-Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

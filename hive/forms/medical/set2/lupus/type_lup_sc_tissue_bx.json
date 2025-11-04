@@ -1,0 +1,113 @@
+{
+    "566": {
+        "_id": "$type.lup_sc_tissue_bx",
+        "_type": "type",
+        "name": "lup_sc_tissue_bx",
+        "title": "Biopsy",
+        "fields": {
+            "1.1": {
+                "field_name": "biospecimen",
+                "field_title": "Select the biospecimen",
+                "field_type": "string",
+                "field_order": 1.01,
+                "field_constraint_data": "Kidney biopsy|Bone marrow|Synovium fluid/cells|CSF (spinal tap) cells and fluid|Other"
+            },
+            "1.2": {
+                "field_name": "biospecimen_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 1.02,
+                "field_constraint_data": "is_shown_fg=$(biospecimen)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.3": {
+                "field_name": "kidney_preparation_type",
+                "field_title": "Select the preparation type for the kidney biopsy",
+                "field_type": "string",
+                "field_order": 1.03,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "Fresh tissue in ethanol|FFPE block|Microslide\r\n>is_shown_fg=$(biospecimen)=='Kidney biopsy'"
+            },
+            "1.4": {
+                "field_name": "collection_datetime",
+                "field_title": "Date and time of collection",
+                "field_type": "datetime",
+                "field_order": 1.04,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=true;if($(this)!=''&&$(shipment_date_1)!=''&&this.dateTimeStrFormatNoTZ('$(this)')>this.dateStrFormatNoTZ('$(shipment_date_1)')){ has_error=true;error_message=\"Collection date can't be greater than shipment date.\";}else if($(this)!=''){has_error=false;error_message=null;}"
+            },
+            "1.5": {
+                "field_name": "collected_lab_manual",
+                "field_title": "Was the sample collected, stored and processed per the specimen collection SOPs in the Laboratory Manual?",
+                "field_type": "bool",
+                "field_order": 1.05
+            },
+            "1.6": {
+                "field_name": "why_not_per_collected_lab_manual",
+                "field_title": "Please explain why the sample was not collected per the Laboratory Manual",
+                "field_type": "string",
+                "field_order": 1.06,
+                "field_constraint_data": "is_shown_fg=$(collected_lab_manual)=='false'"
+            },
+            "1.7": {
+                "field_name": "subtitle_1",
+                "field_title": "Please scan the biospecimen vial/container and indicate if they were shipped",
+                "field_type": "string",
+                "field_order": 1.07,
+                "field_constraint_description": "subtitle",
+                "field_description": "Scan the vial's QR code and scan the shipping envelope barcode"
+            },
+            "1.8": {
+                "field_name": "tube_1",
+                "field_title": "Vial/Container",
+                "field_type": "string",
+                "field_order": 1.08,
+                "field_constraint_data": "{\"maxlength\":\"11\"}",
+                "field_constraint_description": "scanner"
+            },
+            "1.9": {
+                "field_name": "shipped_1",
+                "field_title": "Shipped",
+                "field_type": "bool",
+                "field_order": 1.09,
+                "field_constraint_description": "checkbox"
+            },
+            "1.10": {
+                "field_name": "tracking_no_1",
+                "field_title": "Shipment Tracking Number",
+                "field_type": "string",
+                "field_order": 1.1,
+                "field_constraint_data": "is_shown_fg=$(shipped_1)=='true'",
+                "field_constraint_description": "barcode"
+            },
+            "1.11": {
+                "field_name": "shipment_date_1",
+                "field_title": "Shipment Date",
+                "field_type": "date",
+                "field_order": 1.11,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(shipped_1)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.lup_sample_collection"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

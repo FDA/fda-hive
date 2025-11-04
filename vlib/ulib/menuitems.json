@@ -1,0 +1,634 @@
+{
+    "1": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 3,
+        "url": "?cmd=uusage",
+        "title": "Usage",
+        "path": "/profile/usage",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "2": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 2,
+        "url": "javascript:vjObjEvent(\"winop\", \"vjVisual\",\"dvUser\",\"toggle\");",
+        "title": "Settings",
+        "path": "/profile/settings",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "3": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 1,
+        "url": "?cmd=user",
+        "title": "Account Info",
+        "path": "/profile/info",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "4": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 11,
+        "title": "eval:gUserGetInfo(\"name\")",
+        "path": "/profile",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "5": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 11,
+        "url": "?cmd=news",
+        "title": "News",
+        "path": "/news",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "6": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 10,
+        "url": "?cmd=logout&follow=login",
+        "title": "Logout",
+        "path": "/logout",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "7": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 8,
+        "url": "?cmd=userReg",
+        "title": "Register",
+        "path": "/register",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/public/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "8": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 7,
+        "url": "?cmd=login&follow=home",
+        "title": "Login",
+        "path": "/login",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/public/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "9": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 6,
+        "url": "?cmd=main-tutorials",
+        "title": "Help",
+        "path": "/help",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "10": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "right",
+        "order": 5,
+        "url": "?cmd=contact",
+        "title": "Contact",
+        "path": "/contact",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "11": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "order": 2,
+        "url": "?cmd=home",
+        "title": "Home",
+        "path": "/home",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "12": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "order": 1,
+        "url": "r/home?tab=main",
+        "title": "Main",
+        "path": "/about/main",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "13": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "order": 1,
+        "url": "r/home?tab=about",
+        "title": "About",
+        "path": "/about",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "14": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "order": 1,
+        "target": "new",
+        "url": "https://hive.fda.gov/_layouts/15/Events.aspx?ListGuid=3354e44b-58bd-4890-b6d2-f43531cc65a8&AudienceTarget=false ",
+        "title": "Events",
+        "path": "/about/events",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "15 ": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "order": 1,
+        "url": "https://hive.fda.gov/SitePages/CBER-HIVE-Tutorials.aspx",
+        "title": "Tutorials",
+        "target": "new",
+        "path": "/about/tutorials",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "16": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "order": 1,
+        "target": "new",
+        "url": "https://hive.fda.gov/SitePages/CBER-HIVE-Publications-and-Materials.aspx",
+        "title": "Publications",
+        "path": "/about/publications",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    },
+    "17": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "align": "left",
+        "target": "new",
+        "order": 1,
+        "url": "https://hive.fda.gov/SitePages/CBER-HIVE-Team-and-Organizational-Chart.aspx",
+        "title": "People",
+        "path": "/about/people",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

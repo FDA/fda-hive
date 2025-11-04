@@ -1,0 +1,173 @@
+<id>hlp.obj.svc-align-hexagon.advanced.parameters.html</id>
+<title>HIVE-Hexagon</title>
+<definition>DNA Sequence Alignment</definition>
+<description>
+HIVE alignments are highly customizable to meet 
+the flexible demands of a variety of use-cases. 
+The following provides instruction and discussion 
+about advanced alignment parameters.
+<br/>
+<br/>
+<br/>
+<span class='heading'>Advanced Parameters</span>:
+<ul style="padding-left:4%">
+
+<dl>
+    <dt><span class='pn'>Reference Annotation Filter</span></dt>
+        <dd>
+            Clicking on the arrow of the dropdown menu allows 
+            you to select any annotation file available to you 
+            in your user home directory. This file will be used 
+            as the source for the type of annotation designated 
+            in the corresponding "Reference Annotation Types" field. 
+            If selected, alignments will only be reported for 
+            regions annotated by this designation.
+        </dd>
+<br/>
+    <dt><span class='pn'>Reference Annotation Types</span></dt>
+        <dd>
+            Opening the dropdown menu allows selection of the type 
+            of annotation included in the source file designated by 
+            the corresponding "Reference Annotation Filter" field.
+        </dd>
+<br/>
+    <dt><span class='pn'>Force Reindexing of Subject</span></dt>
+        <dd>
+            Here you can designate a name for this specific 
+            alignment process for simple search and retrieval 
+            from your user home directory.
+        </dd>
+<br/>
+    <dt><span class='pn'>Advanced Parameters</span></dt>
+        <dd>
+            <a href="hlp.obj.svc-align-hexagon.advanced.parameters.link1.html">
+            Click here to view subparameter descriptions</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Filters</span></dt>
+        <dd>
+            <span class='pn'>Repeat and Transposition Discovery</span> - This 
+            parameter allows the user to perform more detailed multi-pass 
+            lookups in order to identify repeats and transpositions, or repeats 
+            only, by selection of the preferred option from the drop-down menu. 
+            Inclusion of this search comes at the expense of a longer run-time, 
+            so the default is set to exclude this search.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Parameters</span></dt>
+<dd>
+            <a href="hlp.obj.svc-align-hexagon.advanced.parameters.link2.html">
+            Click here to view subparameter descriptions</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Alignment Test-Run Slice</span></dt>
+        <dd>
+            This allows a user to conduct a test-run of parameters 
+            by specifying the size of a subset of sequences to run 
+            per computational thread. The default of all indicates 
+            to run all sequences in the alignment. To use the test-run 
+            feature, the user must specify a number of sequences to 
+            run on each thread.
+        </dd>
+<br/>
+    <dt><span class='pn'>Low Complexity Filter</span></dt>
+        <dd>
+            Some subjects are well known to have regions or entire sequences 
+            of low complexity and a high degree of repeats. With these subjects 
+            in mind, HIVE allows the user to specify masking such that regions 
+            of both reads and references can be excluded from the alignment by 
+            defining the minimal entropy threshold and a window size of the 
+            sequence to be ignored.
+            <ul>
+                <li>
+                    <span class='pn'>Reference masking</span> - The first dropdown menu 
+                    allows the user to define the Minimal Shannon Entropy of a region of 
+                    the reference genome allowed to be included in an alignment. Default 
+                    is 0 - permissive, which allows all regions to be included. The second 
+                    dropdown menu allows the user to specify the Window Size of the 
+                    reference genome to ignore if the calculated entropy drops below the 
+                    specified Minimal Shannon Entropy. Default of do not mask low complexity 
+                    regions allows inclusion of all regions regardless of calculated entropy.
+                </li>
+                <li>
+                    <span class='pn'>Short read filtration</span> - The first dropdown menu 
+                    allows the user to define the Minimal Shannon Entropy of a region of any 
+                    short read allowed to be included in an alignment. Default is 0 - permissive, 
+                    which allows all regions to be included. The second dropdown menu allows 
+                    the user to specify the Window Size of all short reads to ignore if the 
+                    calculated entropy drops below the specified Minimal Shannon Entropy. 
+                    Default of do not mask low complexity regions allows inclusion of all 
+                    regions regardless of calculated entropy.
+                </li>
+            </ul>
+        </dd>
+<br/>
+    <dt><span class='pn'>Markovnikov rule on filtered matches</span></dt>
+        <dd>
+            Checking this parameter will dictate that, for some read with two or more identically scoring candidate regions, Hexagon will call a single alignment for the region 
+            with the most coverage.
+        </dd>
+<br/>
+    <dt><span class='pn'>Maximum Number of hits per Read to Consider</span></dt>
+        <dd>
+            In the case where an individual read hits multiple locations on 
+            the reference, this parameter allows the user to designate a 
+            maximum number of hits per that read to be considered for optimal 
+            alignment. Because optimal alignment is a computationally heavy step, 
+            minimizing the count of candidates to undergo optimal alignment 
+            helps to decrease overall required computation time. The default is 
+            set to 200.
+        </dd>
+<br/>
+    <dt><span class='pn'>Number of Computational Subjects per Single Thread</span></dt>
+        <dd>
+            This parameter allows the user to specify the maximum number of 
+            sequences per thread to be aligned by a single compute node.
+        </dd>
+<br/>
+    <dt><span class='pn'>Paired end filters</span></dt>
+        <dd>
+            Paired end filters are specifically designed for use on paired 
+            end reads sets. Normally, selecting any set of paired ends R1 and 
+            R2 as Sequence Read inputs in Hexagon does not tell Hexagon to 
+            acknowledge them as a forward and reverse paired end reads. Rather, 
+            Hexagon treats them as two unrelated reads. However, checking any of 
+            the paired end filters will tell Hexagon to recognize the reads as 
+            originating from two ends of one continuous sequence. 
+            <a href="hlp.obj.svc-align-hexagon.advanced.parameters.link4.html">
+            Click here to view Paired End Filters descriptions</a>.
+        </dd>
+<br/>
+    <dt><span class='pn'>Score Filter</span></dt>
+        <dd>
+            Each alignment produces a score based on matches, mismatches, 
+            insertions, deletions and gaps.  Usually, a higher score is 
+            correlated with a better alignment.  This option allows the user 
+            to eliminate alignment scores below a specified threshold. The 
+            default setting of None will report all alignments and discard 
+            nothing.</li>
+            
+        </dd>
+<br/>
+    <dt><span class='pn'>Use Double Length Hash Optimization</span></dt>
+        <dd>
+            Double hashing helps to resolve potential hash collisions occurring 
+            when two different values (in this case, regions of the genome) result 
+            in the same hash value. In this case, the second hash is set 
+            automatically to the identical length of the first. Double hashing is 
+            more computationally costly and therefore is not done by default. However, 
+            it may be good technique to enable for genomes with known regions of 
+            long repeats and low complexity.</li>
+            
+        </dd>
+<br/>
+    <dt><span class='pn'>Use Exact Match Preference Optimization</span></dt>
+        <dd>
+            In the case where a read seeds to multiple locations, this 
+            option limits consideration only to those positions which 
+            exactly match the read.
+        </dd>
+</dl>
+<a href="hlp.svc-align-hexagon.html">Click here to go back to General Parameters</a>.
+</description>
+

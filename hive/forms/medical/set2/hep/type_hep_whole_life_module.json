@@ -1,0 +1,1230 @@
+{
+    "524": {
+        "_id": "$type.hep_whole_life_module",
+        "_type": "type",
+        "name": "hep_whole_life_module",
+        "title": "DISC Parent",
+        "description": "<h4>Safety Interventions Instructions for HEP</h4>\nAs a safety precaution, all participants who endorse current depression on the DISC must be referred for psychiatric evaluation. Please plan ahead for this possibility by creating a list of local mental health providers to be given to participants if needed.<br><br>\nParticipants who are found to have a lifetime history of major depression on the DISC (MDD section) and who answer question 14 as their current age will be referred for psychiatric treatment.<br><br>\nWith all psychiatric referrals, the phenotyping clinician should explain to the participant that the interview suggests that they should seek evaluation by a mental health provider; please emphasize that this is not a clinical diagnosis. The participant’s parent or guardian must also be notified immediately of any psychiatric diagnoses, including if the parent/guardian is not present during the C-SSRS administration. Lastly, please also ask for written permission from the participant and/or parent or guardian to contact their primary care provider and notify them of the participant’s DISC score indicative of depression.<br><br>\nAfter completion of the study visit:<br>\n-\tfill out the HEP Safety Intervention Form in REDCap, and<br>\n-\tfollow up with the participant 1 week after referral to confirm they were able to schedule an appointment with a mental health provider.<br><br>\nIf you have any questions or concerns as to a participant’s diagnosis, please contact Dr. Andres Kanner at 847-476-1811 (or if Dr. Kanner is unavailable, Dr. Siddhartha Nadkarni at 917-763-1016).\n<br><br>\nTo be administered to parents of children ages seven and older for those diagnoses not present or “subthreshold” in current state.\n<br><br>\nNote: “Subthreshold” means that impairment and onset questions for the diagnosis were asked.",
+        "fields": {
+            "1.1": {
+                "field_name": "blankfield",
+                "field_type": "string",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "description",
+                "field_description": "<br>As a safety precaution, all participants who endorse current depression on the DISC must be referred for psychiatric evaluation. Please plan ahead for this possibility by creating a list of local mental health providers to be given to participants if needed. <br> <br>\nParticipants who are found to have a lifetime history of major depression on the DISC (MDD section) and who answer question 14 as their current age will be referred for psychiatric treatment.<br> <br>\nWith all psychiatric referrals, the phenotyping clinician should explain to the participant that the interview suggests that they should seek evaluation by a mental health provider; please emphasize that this is not a clinical diagnosis. The participant’s parent or guardian must also be notified immediately of any psychiatric diagnoses, including if the parent/guardian is not present during the C-SSRS administration. Lastly, please also ask for written permission from the participant and/or parent or guardian to contact their primary care provider and notify them of the participant’s DISC score indicative of depression.<br> <br>\nAfter completion of the study visit:<br>\n-\tfill out the HEP Safety Intervention Form in REDCap, and<br>\n-\tfollow up with the participant 1 week after referral to confirm they were able to schedule an appointment with a mental health provider.<br> <br>\nIf you have any questions or concerns as to a participant’s diagnosis, please contact Dr. Andres Kanner at 847-476-1811 (or if Dr. Kanner is unavailable, Dr. Siddhartha Nadkarni at 917-763-1016).\n"
+            },
+            "1.2": {
+                "field_name": "gad_l",
+                "field_title": "Generalized Anxiety Disorder (GAD-L)",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.3": {
+                "field_name": "gad_l_q1",
+                "field_title": "1. Since [he/she] turned five years old, has there ever been a period of time when [he/she] seemed to worry too much about a number of different things … maybe things like whether [he/she] would make good grades in school … or how [he/she] would do in sports … or that [he/she] might have some sickness or illness?",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.4": {
+                "field_name": "gad_l_q1sbt1",
+                "field_title": "IF NO, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1)=='No'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.5": {
+                "field_name": "gad_l_q1s1",
+                "field_title": "1A. Did [his/her] worrying too much about things go on for a long time, at least for several months in a row?",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)=='Yes'"
+            },
+            "1.6": {
+                "field_name": "gad_l_q1sbt2",
+                "field_title": "IF NO, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1s1)=='No'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "gad_l_q1s2",
+                "field_title": "1B. Did it seem like it was very hard for [him/her] to stop [himself/ herself] from worrying about these things?",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)=='Yes'&&$(gad_l_q1s1)!='No'"
+            },
+            "1.8": {
+                "field_name": "gad_l_q1sbt3",
+                "field_title": "IF NO, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1s2)=='No'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.9": {
+                "field_name": "gad_l_q2",
+                "field_title": "2. How old was [he/she] when [he/she] first started to worry so much? (Years)",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No';is_disabled_fg=$(gad_l_q1_checkbox1)=='true';if($(gad_l_q1_checkbox1)=='true'){value_fg='Unknown';}"
+            },
+            "1.10": {
+                "field_name": "gad_l_q1_checkbox1",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 8.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.11": {
+                "field_name": "gad_l_q2s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q1_checkbox1)=='true'"
+            },
+            "1.12": {
+                "field_name": "gad_l_q3",
+                "field_title": "3. How old was [he/she] when [he/she] stopped worrying that much? (Years)",
+                "field_type": "string",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No';is_disabled_fg=$(gad_l_q1_checkbox2)=='true';if($(gad_l_q1_checkbox2)=='true'){value_fg='Unknown';}"
+            },
+            "1.13": {
+                "field_name": "gad_l_q1_checkbox2",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 10.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.14": {
+                "field_name": "gad_l_q3s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q1_checkbox2)=='true'"
+            },
+            "1.15": {
+                "field_name": "subtitle_1",
+                "field_title": "4. Now I want to ask you some questions about the time [he/she] worried so much [between the ages of ___ and ___ /when [he/she] was ___ /when [he/she] was in ___ grade(s)].",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.16": {
+                "field_name": "gad_l_q4",
+                "field_title": "Did it seem like worrying so much made it hard for [him/her] to keep [his/her] mind on other things?",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'"
+            },
+            "1.17": {
+                "field_name": "gad_l_q4sbt1",
+                "field_title": "IF YES, GO TO Q 10",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q4)=='Yes'&&$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.18": {
+                "field_name": "gad_l_q5",
+                "field_title": "5. When [he/she] seemed worried like that, did [he/she] also seem tense, restless, or tired out?",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q4)!='Yes'"
+            },
+            "1.19": {
+                "field_name": "gad_l_q5sbt1",
+                "field_title": "IF YES, GO TO Q 10",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_data": "is_shown_fg=$(gad_l_q5)=='Yes'&&$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q4)!='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.20": {
+                "field_name": "gad_l_q6",
+                "field_title": "6. When [he/she] seemed worried like that, was [he/she] grouchy or irritable a lot of the time?",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q4)!='Yes'&&$(gad_l_q5)!='Yes'"
+            },
+            "1.21": {
+                "field_name": "gad_l_q7",
+                "field_title": "7. Did worrying so much interfere with [his/her] sleep?",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q4)!='Yes'&&$(gad_l_q5)!='Yes'"
+            },
+            "1.22": {
+                "field_name": "gad_l_q8",
+                "field_title": "8. Did it seem like worrying like that gave [him/her] headaches or other aches and pains?",
+                "field_type": "string",
+                "field_order": 20,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q4)!='Yes'&&$(gad_l_q5)!='Yes'"
+            },
+            "1.23": {
+                "field_name": "gad_l_q9",
+                "field_title": "9. Did worrying like that seem to make [him/her] get tired very easily?",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'&&$(gad_l_q4)!='Yes'&&$(gad_l_q5)!='Yes'"
+            },
+            "1.24": {
+                "field_name": "gad_l_q10",
+                "field_title": "10. Did worrying so much cause any serious problems for [him/her] at home, (at school) or with [his/her] friends?",
+                "field_type": "string",
+                "field_order": 22,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'"
+            },
+            "1.25": {
+                "field_name": "gad_l_q11",
+                "field_title": "11. Did [he/she] ever see a doctor, counselor, or some other person like that because [he/she] worried too much?",
+                "field_type": "string",
+                "field_order": 23,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'"
+            },
+            "1.26": {
+                "field_name": "gad_l_q12",
+                "field_title": "12. Did worrying a lot seem to make [him/her] feel really unhappy or bother [him/her] a lot?",
+                "field_type": "string",
+                "field_order": 24,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(gad_l_q1)!='No'&&$(gad_l_q1s1)!='No'&&$(gad_l_q1s2)!='No'"
+            },
+            "1.27": {
+                "field_name": "soph_l",
+                "field_title": "Social Phobia (SoPH-L)",
+                "field_type": "string",
+                "field_order": 25,
+                "field_constraint_description": "subtitle"
+            },
+            "1.28": {
+                "field_name": "soph_l_q1",
+                "field_title": "1. Since [he/she] turned five years old, was there a time when [he/she] seemed nervous or uncomfortable almost every time [he/she] had to talk to people [he/she] didn’t know well?",
+                "field_type": "string",
+                "field_order": 26,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.29": {
+                "field_name": "soph_l_q2",
+                "field_title": "2. Since [he/she] turned five years old, was there a time when [he/she] seemed very nervous or uncomfortable almost every time [he/she] had to do something when other people were looking at [him/her] … like speaking in front of the class … or eating where other people could see [him/her] – like in the school lunchroom or at a restaurant?",
+                "field_type": "string",
+                "field_order": 27,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.30": {
+                "field_name": "soph_l_subtitle_1",
+                "field_title": "IF ANY * RESPONSES WAS CODED IN Q 1 - 2, CONTINUE ALL OTHERS, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 28,
+                "field_constraint_description": "subtitle"
+            },
+            "1.31": {
+                "field_name": "soph_l_q3",
+                "field_title": "3. Now I want you to think about the reason [he/she] felt nervous or uncomfortable about [talking to people [he/she] didn’t know well/doing something when other people were looking at [him/her]]. Do you think this was because [he/she] was afraid that [he/she] would embarrass [himself/herself] or make a fool of [himself/herself]? ",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes'"
+            },
+            "1.32": {
+                "field_name": "soph_l_q4",
+                "field_title": "4. Did [his/her] being nervous or uncomfortable whenever [he/she] [talked to people [he/she] didn’t know well/did something when other people were looking at [him/ her]] last several months in a row?",
+                "field_type": "string",
+                "field_order": 31,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes'"
+            },
+            "1.33": {
+                "field_name": "soph_l_subtitle_3",
+                "field_title": "IF NO, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 32,
+                "field_constraint_data": "is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)=='No'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.34": {
+                "field_name": "soph_l_q5",
+                "field_title": "5. How old was [he/she] when [he/she] first started being afraid of [talking to people [he/she] didn’t know well/doing something when other people were looking at [him/her]]?",
+                "field_type": "string",
+                "field_order": 33,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No';is_disabled_fg=$(soph_l_q5_checkbox1)=='true';if($(soph_l_q5_checkbox1)=='true'){value_fg='Unknown';}"
+            },
+            "1.35": {
+                "field_name": "soph_l_q5_checkbox1",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 33.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.36": {
+                "field_name": "soph_l_q5s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 34,
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'&&$(soph_l_q5_checkbox1)=='true'"
+            },
+            "1.37": {
+                "field_name": "soph_l_q6",
+                "field_title": "6. How old was [he/she] when [he/she] last was afraid of [talking to people [he/she] didn’t know well/doing something when other people were looking at [him/her]]?",
+                "field_type": "string",
+                "field_order": 35,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No';is_disabled_fg=$(soph_l_q5_checkbox2)=='true';if($(soph_l_q5_checkbox2)=='true'){value_fg='Unknown';}"
+            },
+            "1.38": {
+                "field_name": "soph_l_q5_checkbox2",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 35.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.39": {
+                "field_name": "soph_l_q6s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 36,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'&&$(soph_l_q5_checkbox2)=='true'"
+            },
+            "1.40": {
+                "field_name": "soph_l_q7",
+                "field_title": "7. Now I want to ask you some questions about other things that were going on [between the ages of ___ and ___ /when [he/she] was ___ /when [he/she] was in ___ grade(s)]. During that time, did [he/she] have friends [his/her] age who [he/she] liked spending time with?",
+                "field_type": "string",
+                "field_order": 38,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'"
+            },
+            "1.41": {
+                "field_name": "soph_l_q8",
+                "field_title": "8. Did being nervous or uncomfortable when [he/she] [talked to people [he/she] didn’t know well/did something when other people were looking at [him/her]] cause any serious problems for [him/her] at home, (at school) or with [his/her] friends?",
+                "field_type": "string",
+                "field_order": 39,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'"
+            },
+            "1.42": {
+                "field_name": "soph_l_q9",
+                "field_title": "9. Did [he/she] ever see a doctor, counselor, or some other person like that because [he/she] was nervous or uncomfortable when [he/she] [talked to people [he/she] didn’t know well/did something when other people were looking at [him/her]]?",
+                "field_type": "string",
+                "field_order": 40,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'"
+            },
+            "1.43": {
+                "field_name": "soph_l_10",
+                "field_title": "10. Did being nervous or uncomfortable when [he/she] [talked to people [he/she] didn’t know well/did something when other people were looking at [him/her]] seem to make [him/her] feel really unhappy or bother [him/her] a lot?",
+                "field_type": "string",
+                "field_order": 41,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(soph_l_q1)=='Yes'||$(soph_l_q2)=='Yes')&&$(soph_l_q4)!='No'"
+            },
+            "1.44": {
+                "field_name": "spph_l",
+                "field_title": "Specific Phobia (SpPh-L)",
+                "field_type": "string",
+                "field_order": 42,
+                "field_constraint_description": "subtitle"
+            },
+            "1.45": {
+                "field_name": "spph_l_subtitle1",
+                "field_title": "Since  [he/she] turned five years old, has there been a time when [he/she] was almost always very, very afraid of:",
+                "field_type": "string",
+                "field_order": 43,
+                "field_constraint_description": "subtitle"
+            },
+            "1.46": {
+                "field_name": "spph_l_q1",
+                "field_title": "1. Dogs, birds, snakes, insects, or any other animals?",
+                "field_type": "string",
+                "field_order": 44,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.47": {
+                "field_name": "spph_l_q2",
+                "field_title": "2. How about being really afraid of being up high or in a high place?",
+                "field_type": "string",
+                "field_order": 45,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.48": {
+                "field_name": "spph_l_q3",
+                "field_title": "3. How about being really afraid of thunder and lightening?",
+                "field_type": "string",
+                "field_order": 46,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.49": {
+                "field_name": "spph_l_q4",
+                "field_title": "4. … or being afraid of the dark?",
+                "field_type": "string",
+                "field_order": 47,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.50": {
+                "field_name": "spph_l_q5",
+                "field_title": "5. Was [he/she] very afraid of water, like a pool or a lake?",
+                "field_type": "string",
+                "field_order": 48,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.51": {
+                "field_name": "spph_l_q6",
+                "field_title": "6. … or being on a bridge … or in a tunnel … or on a highway?",
+                "field_type": "string",
+                "field_order": 49,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.52": {
+                "field_name": "spph_l_q7",
+                "field_title": "7. Was [he/she] really afraid of elevators or escalators?",
+                "field_type": "string",
+                "field_order": 50,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.53": {
+                "field_name": "spph_l_q8",
+                "field_title": "8. Was [he/she] very afraid of needles or shots?",
+                "field_type": "string",
+                "field_order": 51,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.54": {
+                "field_name": "spph_l_q9",
+                "field_title": "9. Was [he/she] really afraid to see blood or to see someone with a bad cut?",
+                "field_type": "string",
+                "field_order": 52,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.55": {
+                "field_name": "spph_l_subtitle2",
+                "field_title": "IF A YES RESPONSE WAS CODED IN Q 1 - 9, CONTINUE ALL OTHERS, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 53,
+                "field_constraint_description": "subtitle"
+            },
+            "1.56": {
+                "field_name": "spph_l_q10",
+                "field_title": "10. You said [he/she] was afraid of [NAME SPECIFIC FEAR(S)]. Was [he/she] afraid of [[NAME SPECIFIC FEAR]/any of those things] for several months in a row or longer?",
+                "field_type": "string",
+                "field_order": 54,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'"
+            },
+            "1.57": {
+                "field_name": "spph_l_subtitle3",
+                "field_title": "IF MORE THAN ONE FEAR, ASK Q 10A, ALL OTHERS, GO TO Q 11",
+                "field_type": "string",
+                "field_order": 55,
+                "field_constraint_data": "is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.58": {
+                "field_name": "spph_l_q10s1",
+                "field_title": "10A. Which one(s) was [he/she] afraid of for several months or longer?",
+                "field_type": "string",
+                "field_order": 56,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'"
+            },
+            "1.59": {
+                "field_name": "spph_l_q11",
+                "field_title": "11. How old was [he/she] when [he/she] first started to be afraid of (any of) [NAME FEAR(S)]?",
+                "field_type": "string",
+                "field_order": 57,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes';is_disabled_fg=$(spph_l_q11_checkbox1)=='true';if($(spph_l_q11_checkbox1)=='true'){value_fg='Unknown';}"
+            },
+            "1.60": {
+                "field_name": "spph_l_q11_checkbox1",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 57.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.61": {
+                "field_name": "spph_l_q11s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 58,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=($(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes')&&$(spph_l_q11_checkbox1)=='true'"
+            },
+            "1.62": {
+                "field_name": "spph_l_q12",
+                "field_title": "12. How old was [he/she] when [he/she] became less afraid of [NAME FEAR(S)]?",
+                "field_type": "string",
+                "field_order": 59,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes';is_disabled_fg=$(spph_l_q11_checkbox2)=='true';if($(spph_l_q11_checkbox2)=='true'){value_fg='Unknown';}"
+            },
+            "1.63": {
+                "field_name": "spph_l_q11_checkbox2",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 59.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.64": {
+                "field_name": "spph_l_q12s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 60,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=($(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes')&&$(spph_l_q11_checkbox2)=='true'"
+            },
+            "1.65": {
+                "field_name": "spph_l_q13",
+                "field_title": "13. Now I want to ask you some questions about the time [he/she] was afraid of [NAME FEAR(S)] [between ages ___ and ___ /when [he/she] was ___ /when [he/she] was in ___ grade(s)].  When [he/she]\thad to [go in/go near/see/get/go on] [NAME FEAR(S)], did [it/ they] nearly always make [him/her] feel really upset?",
+                "field_type": "string",
+                "field_order": 61,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'"
+            },
+            "1.66": {
+                "field_name": "spph_l_q14",
+                "field_title": "14. Was [he/she] so afraid of [NAME FEAR(S)] that [he/she] tried to stay away from [them/it]?",
+                "field_type": "string",
+                "field_order": 62,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'"
+            },
+            "1.67": {
+                "field_name": "spph_l_q14s1",
+                "field_title": "14A. If [he/she] couldn’t stay away from [them/it], did [he/she] feel afraid the whole time [he/she] was there?",
+                "field_type": "string",
+                "field_order": 63,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(spph_l_q14)=='No'&&($(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes')"
+            },
+            "1.68": {
+                "field_name": "spph_l_q14_subtitle1",
+                "field_title": "IF A YES RESPONSE WAS CODED IN Q 14 OR Q 14A, CONTINUE, ALL OTHERS, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 64,
+                "field_constraint_data": "is_shown_fg=$(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.69": {
+                "field_name": "spph_l_q15",
+                "field_title": "15. Did being afraid like that cause any big problems for [him/her] at home, (at school) or with [his/her] friends?",
+                "field_type": "string",
+                "field_order": 65,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes')&&($(spph_l_q14)=='Yes'||$(spph_l_q14s1)=='Yes')"
+            },
+            "1.70": {
+                "field_name": "spph_l_q16",
+                "field_title": "16. Did [he/she] ever see a doctor, counselor, or some other person like that because [he/she] was afraid of [NAME FEAR(S)]?",
+                "field_type": "string",
+                "field_order": 66,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes')&&($(spph_l_q14)=='Yes'||$(spph_l_q14s1)=='Yes')"
+            },
+            "1.71": {
+                "field_name": "spph_l_q17",
+                "field_title": "17. Did being afraid of [NAME FEAR(S)] make [him/her] feel really unhappy or bother [him/her] a lot?",
+                "field_type": "string",
+                "field_order": 67,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(spph_l_q9)=='Yes'||$(spph_l_q8)=='Yes'||$(spph_l_q7)=='Yes'||$(spph_l_q6)=='Yes'||$(spph_l_q5)=='Yes'||$(spph_l_q4)=='Yes'||$(spph_l_q3)=='Yes'||$(spph_l_q2)=='Yes'||$(spph_l_q1)=='Yes')&&($(spph_l_q14)=='Yes'||$(spph_l_q14s1)=='Yes')"
+            },
+            "1.72": {
+                "field_name": "pan_l",
+                "field_title": "PANIC (PAN-L)",
+                "field_type": "string",
+                "field_order": 68,
+                "field_constraint_description": "subtitle"
+            },
+            "1.73": {
+                "field_name": "pan_l_q1",
+                "field_title": "1. Since [he/she] turned five years old, was there ever a time when [he/she] had a sudden attack of feeling very scared and strange things would happen to [him/her], all at once … things like [he/she] couldn’t catch [his/her] breath … or [he/she] felt like [he/she] was choking … or [his/her] heart started beating really fast … or [his/her] chest hurt … or [he/she] felt dizzy … or [he/she] felt very hot or cold … or [he/she] felt like [he/she] was going to die or go crazy?",
+                "field_type": "string",
+                "field_order": 69,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.74": {
+                "field_name": "pan_l_q1s1",
+                "field_title": "1A. Would [he/she] have two or more of these feelings at the same time?",
+                "field_type": "string",
+                "field_order": 70,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'"
+            },
+            "1.75": {
+                "field_name": "pan_l_q1s2",
+                "field_title": "1B. Did [he/she] say that several of these feelings started within the same few minutes, like an attack?",
+                "field_type": "string",
+                "field_order": 72,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'"
+            },
+            "1.76": {
+                "field_name": "pan_l_q1s3",
+                "field_title": "1C. Has [he/she] had more than one attack like this?",
+                "field_type": "string",
+                "field_order": 74,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'"
+            },
+            "1.77": {
+                "field_name": "pan_l_q1_subtitle3",
+                "field_title": "IF NO, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 75,
+                "field_constraint_data": "is_shown_fg=$(pan_l_q1s1)=='No'||$(pan_l_q1s2)=='No'||$(pan_l_q1s3)=='No'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.78": {
+                "field_name": "pan_l_q1s4",
+                "field_title": "1D. Did these attacks ever come on when [he/she] didn’t expect them?",
+                "field_type": "string",
+                "field_order": 76,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.79": {
+                "field_name": "pan_l_q2",
+                "field_title": "2. How old was [he/she] when [he/she] first had one of these attacks?",
+                "field_type": "string",
+                "field_order": 77,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No';is_disabled_fg=$(pan_l_q3_checkbox1)=='true';if($(pan_l_q3_checkbox1)=='true'){value_fg='Unknown';}"
+            },
+            "1.80": {
+                "field_name": "pan_l_q3_checkbox1",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 77.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.81": {
+                "field_name": "pan_l_q2s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 78,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'&&$(pan_l_q3_checkbox1)=='true'"
+            },
+            "1.82": {
+                "field_name": "pan_l_q3",
+                "field_title": "3. How old was [he/she] the last time [he/she] had one of these attacks?",
+                "field_type": "string",
+                "field_order": 79,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No';is_disabled_fg=$(pan_l_q3_checkbox2)=='true';if($(pan_l_q3_checkbox2)=='true'){value_fg='Unknown';}"
+            },
+            "1.83": {
+                "field_name": "pan_l_q3_checkbox2",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 79.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.84": {
+                "field_name": "pan_l_q3s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 80,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'&&$(pan_l_q3_checkbox2)=='true'"
+            },
+            "1.85": {
+                "field_name": "pan_l_q4",
+                "field_title": "4. Now I want to ask you some questions about the time [he/she] was having these attacks [between the ages of ___ and ___ /when [he/she] was ___ /when [he/she] was in ___ grade(s)].  After [he/she] had an attack, did [he/she] seem to worry a lot that it might happen again?",
+                "field_type": "string",
+                "field_order": 81,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.86": {
+                "field_name": "pan_l_q4s1",
+                "field_title": "4A. Did [he/she] say that [he/she] worried that having these attacks meant there was something really wrong with [him/her]?",
+                "field_type": "string",
+                "field_order": 82,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q4)=='No'&&$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.87": {
+                "field_name": "pan_l_q4s2",
+                "field_title": "4B. Did [he/she] stop doing things [he/she] liked because [he/she] thought [he/she] might have an attack if [he/she] did them?",
+                "field_type": "string",
+                "field_order": 83,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q4)=='No'&&$(pan_l_q4s1)=='No'&&$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.88": {
+                "field_name": "pan_l_q4s3",
+                "field_title": "4C. Did [he/she] stop going places where [he/ she] might not be able to get help if [he/ she] had an attack?",
+                "field_type": "string",
+                "field_order": 84,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q4)=='No'&&$(pan_l_q4s1)=='No'&&$(pan_l_q4s2)=='No'&&$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.89": {
+                "field_name": "pan_l_q5",
+                "field_title": "5. Did having these attacks cause any serious problems for [him/her] at home, (at school) or with [his/her] friends?",
+                "field_type": "string",
+                "field_order": 85,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.90": {
+                "field_name": "pan_l_q6",
+                "field_title": "6. Did [he/she] ever see a doctor, counselor, or some other person like that about these attacks?",
+                "field_type": "string",
+                "field_order": 86,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.91": {
+                "field_name": "pan_l_q7",
+                "field_title": "7. Did having these attacks seem to make [him/her] feel really unhappy or bother [him/her] a lot?",
+                "field_type": "string",
+                "field_order": 87,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(pan_l_q1)=='Yes'&&$(pan_l_q1s1)!='No'&&$(pan_l_q1s2)!='No'&&$(pan_l_q1s3)!='No'"
+            },
+            "1.92": {
+                "field_name": "mdd_l",
+                "field_title": "Major Depressive Disorder (MDD-L)",
+                "field_type": "string",
+                "field_order": 88,
+                "field_constraint_description": "subtitle"
+            },
+            "1.93": {
+                "field_name": "mdd_l_q1",
+                "field_title": "1. I’ll be asking you next about whether [he/she] has had a couple of weeks or more when [he/she] seemed depressed or sad most of the time or seemed like [he/she] didn’t enjoy things. I don’t mean just ordinary sadness; I mean a couple of weeks when nearly all the time [he/she] seemed really sad or miserable … or when [he/she] just couldn’t seem to enjoy anything as much as usual … or nothing [he/she] did seemed fun … or when [he/she] was so irritable or grouchy that everything got on [his/her] nerves. Since [he/she] turned five years old, has it ever seemed like [he/she] felt like that almost every day for a couple of weeks in a row?",
+                "field_type": "string",
+                "field_order": 90,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.94": {
+                "field_name": "mdd_l_q2",
+                "field_title": "2. Which of the feelings I mentioned did [he/she] have at that time? That is, did [he/ she] seem sad all day long?",
+                "field_type": "string",
+                "field_order": 91,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.95": {
+                "field_name": "mdd_l_q3",
+                "field_title": "3. Did it seem like [he/she] couldn’t enjoy anything or that nothing seemed fun?",
+                "field_type": "string",
+                "field_order": 92,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.96": {
+                "field_name": "mdd_l_q4",
+                "field_title": "4. Did [he/she] seem really grouchy or irritable almost every day?",
+                "field_type": "string",
+                "field_order": 93,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.97": {
+                "field_name": "mdd_l_subtitle2",
+                "field_title": "NOTE 2:\tWAS A YES RESPONSE CODED IN Q 2 OR Q 4?",
+                "field_type": "bool",
+                "field_order": 94,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "value_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q4)=='Yes')?'true':'false';"
+            },
+            "1.98": {
+                "field_name": "mdd_l_subtitle3",
+                "field_title": "IF A YES RESPONSE WAS CODED IN Q 2 - 4, CONTINUE AND USE FIRST YES “MOOD” AS KEYWORD IN Q 5 - 20. ALL OTHERS, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 95,
+                "field_constraint_description": "subtitle"
+            },
+            "1.99": {
+                "field_name": "mdd_l_q5",
+                "field_title": "5. Now I want to ask you some questions about the time [he/she] was [sad/not able to enjoy things/grouchy or irritable]. When [he/she] was [sad/not able to enjoy things/grouchy or irritable], did it seem like it was hard for [him/her] to keep [his/her] mind on what [he/she] was doing, to think clearly, or to make up [his/her] mind about even little things?",
+                "field_type": "string",
+                "field_order": 96,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes'"
+            },
+            "1.100": {
+                "field_name": "mdd_l_q6",
+                "field_title": "6. When [he/she] was [sad/not able to enjoy things/grouchy or irritable], did [he/she] feel that [he/she] was “no good,” or did [he/she] blame [himself/herself] for all sorts of things?",
+                "field_type": "string",
+                "field_order": 97,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes'"
+            },
+            "1.101": {
+                "field_name": "mdd_l_q7",
+                "field_title": "7. When [he/she] was [sad/not able to enjoy things/grouchy or irritable], did [his/her] eating change … for example, did [he/she] eat much less than usual … or did [he/ she] eat a whole lot more than usual?",
+                "field_type": "string",
+                "field_order": 98,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes'"
+            },
+            "1.102": {
+                "field_name": "mdd_l_q8",
+                "field_title": "8. Did [he/she] seem really tired all the time, or did it seem like [he/she] had so little energy that it took a big effort to do anything?",
+                "field_type": "string",
+                "field_order": 99,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes'"
+            },
+            "1.103": {
+                "field_name": "mdd_l_subtitle4",
+                "field_title": "IF 5 OR MORE YES RESPONSES WERE CODED IN Q 3 - 8 AND NOTE 2, GO TO Q 13",
+                "field_type": "string",
+                "field_order": 100,
+                "field_constraint_data": "is_shown_fg=$(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.104": {
+                "field_name": "mdd_l_q9",
+                "field_title": "9. When [he/she] was [sad/not able to enjoy things/grouchy or irritable], did [his/her] sleeping change so that [he/she] wanted to sleep all the time, or so that [he/she] had trouble with falling asleep or staying asleep?",
+                "field_type": "string",
+                "field_order": 101,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true')"
+            },
+            "1.105": {
+                "field_name": "mdd_l_subtitle5",
+                "field_title": "IF 5 OR MORE YES RESPONSES WERE CODED IN Q 3 - 9 AND NOTE 2, GO TO Q 13",
+                "field_type": "string",
+                "field_order": 102,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true')",
+                "field_constraint_description": "subtitle"
+            },
+            "1.106": {
+                "field_name": "mdd_l_q10",
+                "field_title": "10. Was there a change in how much [he/she] talked or moved around; for example, did [he/she] talk less or move around a lot more slowly … or did [he/she] become very restless and find it hard to keep still?",
+                "field_type": "string",
+                "field_order": 103,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true')"
+            },
+            "1.107": {
+                "field_name": "mdd_l_subtitle6",
+                "field_title": "IF 5 OR MORE YES RESPONSES WERE CODED IN Q 3 - 10 AND NOTE 2, GO TO Q 13",
+                "field_type": "string",
+                "field_order": 104,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true')",
+                "field_constraint_description": "subtitle"
+            },
+            "1.108": {
+                "field_name": "mdd_l_q11",
+                "field_title": "11. When [he/she] was [sad/not able to enjoy things/grouchy or irritable], did [he/she] talk about death a lot or say that [he/she] was thinking about killing [himself/ herself]?",
+                "field_type": "string",
+                "field_order": 105,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true')"
+            },
+            "1.109": {
+                "field_name": "mdd_l_q12",
+                "field_title": "12. Did [he/she] try to kill [himself/herself]?",
+                "field_type": "string",
+                "field_order": 106,
+                "field_constraint_data": "No|Yes\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true')"
+            },
+            "1.110": {
+                "field_name": "mdd_l_subtitle7",
+                "field_title": "NOTE 3: WAS A YES RESPONSE CODED IN Q 11 OR Q 12?",
+                "field_type": "bool",
+                "field_order": 107,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true');value_fg=($(mdd_l_q11)=='Yes'||$(mdd_l_q12)=='Yes')?'true':'false';"
+            },
+            "1.111": {
+                "field_name": "mdd_l_subtitle8",
+                "field_title": "IF 3 OR MORE YES RESPONSES WAS CODED IN Q 3 - 12 AND NOTES 2 AND 3, CONTINUE. ALL OTHERS, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 108,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&!(([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10)].filter((value) => value == 'Yes').length >= 5)&&$(mdd_l_subtitle2)=='true')",
+                "field_constraint_description": "subtitle"
+            },
+            "1.112": {
+                "field_name": "mdd_l_q13",
+                "field_title": "13. How old was [he/she] the first time [he/she] had a period of several weeks of feeling [sad/not able to enjoy things/grouchy or irritable] and had problems with [NAME symptoms in Q 3 - 12]?",
+                "field_type": "string",
+                "field_order": 109,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''));is_disabled_fg=$(mdd_l_q13_checkbox1)=='true';if($(mdd_l_q13_checkbox1)=='true'){value_fg='Unknown';}"
+            },
+            "1.113": {
+                "field_name": "mdd_l_q13_checkbox1",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 109.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))",
+                "field_constraint_description": "checkbox"
+            },
+            "1.114": {
+                "field_name": "mdd_l_q13s1",
+                "field_title": "13A. What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 110,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(mdd_l_q13_checkbox1)=='true'&&($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.115": {
+                "field_name": "mdd_l_q14",
+                "field_title": "14. How old was [he/she] the last time [he/she] had a period of several weeks of feeling [sad/not able to enjoy things/grouchy or irritable] and had problems like these?",
+                "field_type": "string",
+                "field_order": 111,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''));is_disabled_fg=$(mdd_l_q13_checkbox2)=='true';if($(mdd_l_q13_checkbox2)=='true'){value_fg='Unknown';}"
+            },
+            "1.116": {
+                "field_name": "mdd_l_q13_checkbox2",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 111.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))",
+                "field_constraint_description": "checkbox"
+            },
+            "1.117": {
+                "field_name": "mdd_l_q14s1",
+                "field_title": "14A. What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 112,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(mdd_l_q13_checkbox2)=='true'&&($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.118": {
+                "field_name": "mdd_l_q15",
+                "field_title": "15. When [he/she] felt [sad/not able to enjoy things/grouchy or irritable] like this, was [he/she] taking drugs or medicine or drinking alcohol?",
+                "field_type": "string",
+                "field_order": 113,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.119": {
+                "field_name": "mdd_l_q15s1",
+                "field_title": "15A. What was [he/she] taking?",
+                "field_type": "string",
+                "field_order": 114,
+                "field_constraint_data": "is_shown_fg=$(mdd_l_q15)=='Yes'&&($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.120": {
+                "field_name": "mdd_l_q16",
+                "field_title": "16. Did [he/she] have some physical problem that made [him/her] feel this way?",
+                "field_type": "string",
+                "field_order": 115,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.121": {
+                "field_name": "mdd_l_q16s1",
+                "field_title": "16A. What was that?",
+                "field_type": "string",
+                "field_order": 116,
+                "field_constraint_data": "is_shown_fg=$(mdd_l_q16)=='Yes'&&($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.122": {
+                "field_name": "mdd_l_q17",
+                "field_title": "17. Now I want to ask you whether these periods when [he/she] was [sad/not able to enjoy things/grouchy or irritable] [between the ages ___ and ___ /when [he/she] was ___ /when [he/she] was in ___ grade(s)] caused problems in [his/her] life. Did these periods of being [sad/not able to enjoy things/grouchy or irritable] cause any serious problems for [him/her] at home, (at school) or with [his/her] friends?",
+                "field_type": "string",
+                "field_order": 117,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.123": {
+                "field_name": "mdd_l_q18",
+                "field_title": "18. Did [he/she] ever see a doctor, counselor, or some other person like that because [he/she] was [sad/not able to enjoy things/grouchy or irritable]?",
+                "field_type": "string",
+                "field_order": 118,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes'||value == 'true').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.124": {
+                "field_name": "mdd_l_q19_hidden",
+                "field_title": "19. Did it seem to make [him/her] feel really unhappy or bother [him/her] a lot that [he/ she] had these periods of feeling [sad/not able to enjoy things/grouchy or irritable]?",
+                "field_type": "string",
+                "field_order": 119,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.125": {
+                "field_name": "mdd_l_q19",
+                "field_title": "19. Did it seem to make [him/her] feel really unhappy or bother [him/her] a lot that [he/ she] had these periods of feeling [sad/not able to enjoy things/grouchy or irritable]?",
+                "field_type": "string",
+                "field_order": 119.1,
+                "field_default_value": "119",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.126": {
+                "field_name": "mdd_l_q20",
+                "field_title": "20. When [he/she] felt [sad/not able to enjoy things/grouchy or irritable] did this begin soon after someone [he/she] was close to died?",
+                "field_type": "string",
+                "field_order": 120,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.127": {
+                "field_name": "mdd_l_q20s1",
+                "field_title": "20A. Were there ever several weeks when [he/she] was [sad/not able to enjoy things/grouchy or irritable] like this and someone hadn’t died?",
+                "field_type": "string",
+                "field_order": 121,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(mdd_l_q20)=='Yes'&&($(mdd_l_q2)=='Yes'||$(mdd_l_q3)=='Yes'||$(mdd_l_q4)=='Yes')&&((([$(mdd_l_q3),$(mdd_l_q4),$(mdd_l_q5),$(mdd_l_q6),$(mdd_l_q7),$(mdd_l_q8),$(mdd_l_q9),$(mdd_l_q10),$(mdd_l_q11),$(mdd_l_q12)].filter((value) => value == 'Yes').length >= 3)&&$(mdd_l_subtitle2)=='true'&&$(mdd_l_subtitle7)=='true')||($(mdd_l_q11)==''||$(mdd_l_q12)==''))"
+            },
+            "1.128": {
+                "field_name": "man_l",
+                "field_title": "Mania (MAN-L)",
+                "field_type": "string",
+                "field_order": 122,
+                "field_constraint_description": "subtitle"
+            },
+            "1.129": {
+                "field_name": "man_l_q1",
+                "field_title": "1. Now I want to ask about a time when you or other people were worried about [him/her] because [he/she] was getting too excited or happy, so excited or happy that nothing could calm [him/her] down. I don’t mean just being happy or excited because something really special was happening. I am talking about a real change from how [he/she] usually is, when there was nothing special going on … a change that lasted for several days, and made other people worry about [him/her]. Since [he/she] turned five years old, has [he/she] ever had a time like that?",
+                "field_type": "string",
+                "field_order": 123,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know"
+            },
+            "1.130": {
+                "field_name": "man_l_q1s1",
+                "field_title": "1A. Was there at least a whole week when [he/she] felt too happy or excited almost all the time?",
+                "field_type": "string",
+                "field_order": 134,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q1)=='Yes'"
+            },
+            "1.131": {
+                "field_name": "man_l_q1s2",
+                "field_title": "1B. Did [he/she] have to go to the hospital because you or other people were worried about the way [he/she] was acting?",
+                "field_type": "string",
+                "field_order": 135,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q1)=='Yes'"
+            },
+            "1.132": {
+                "field_name": "man_l_subtitle1",
+                "field_title": "a: IF A YES RESPONSE WAS CODED IN Q 1A OR Q 1B, GO TO Q 3",
+                "field_type": "string",
+                "field_order": 136,
+                "field_constraint_data": "is_shown_fg=$(man_l_q1)=='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.133": {
+                "field_name": "man_l_q2",
+                "field_title": "2. How about a whole week when [he/she] was unusually grouchy and irritable, when [he/she] would get very angry or snap at other people if they did any little thing [he/she] didn’t like and when [he/she] didn’t seem to be able to control how angry other people made [him/her]. Has [he/she] ever had a week or more when [he/ she] felt as grouchy or irritable as that?",
+                "field_type": "string",
+                "field_order": 137,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q1s1)!='Yes'&&$(man_l_q1s2)!='Yes'"
+            },
+            "1.134": {
+                "field_name": "man_l_q2s1",
+                "field_title": "2A. Was there at least a whole week when [he/she] felt grouchy or irritable almost all the time?",
+                "field_type": "string",
+                "field_order": 138,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q2)=='Yes'&&$(man_l_q1s1)!='Yes'&&$(man_l_q1s2)!='Yes'"
+            },
+            "1.135": {
+                "field_name": "man_l_q2s2",
+                "field_title": "2B. Did [he/she] have to go to the hospital because you or other people were worried about the way [he/she] was acting?",
+                "field_type": "string",
+                "field_order": 139,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q2)=='Yes'&&$(man_l_q1s1)!='Yes'&&$(man_l_q1s2)!='Yes'"
+            },
+            "1.136": {
+                "field_name": "man_l_subtitle2",
+                "field_title": "b: IF A YES RESPONSE CODED IN Q 2A OR Q 2B, CONTINUE ALL OTHERS, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 140,
+                "field_constraint_data": "is_shown_fg=$(man_l_q2)=='Yes'&&$(man_l_q1s1)!='Yes'&&$(man_l_q1s2)!='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.137": {
+                "field_name": "man_l_q3",
+                "field_title": "3. When [he/she] was [too excited or too happy/grouchy or irritable] did [he/she] seem very restless, so that [he/she] had to keep moving around, or be on the go all the time?",
+                "field_type": "string",
+                "field_order": 141,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes'"
+            },
+            "1.138": {
+                "field_name": "man_l_q3s1",
+                "field_title": "3A. When [he/she] was [too excited or too happy/grouchy or irritable] was [he/she] a lot more active, for example, did [he/she] take on a whole lot of projects at the same time, did [he/she] make lots of new friends, or start lots of new things?",
+                "field_type": "string",
+                "field_order": 142,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q3)=='No'&&($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')"
+            },
+            "1.139": {
+                "field_name": "man_l_q4",
+                "field_title": "4. When [he/she] was [too excited or too happy/grouchy or irritable] did [he/she] say that [he/she] was very important or famous, or that [he/she] had special abilities that made [him/her] stronger, smarter, or better than other people?",
+                "field_type": "string",
+                "field_order": 143,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes'"
+            },
+            "1.140": {
+                "field_name": "man_l_q5",
+                "field_title": "5. When [he/she] was [too excited or too happy/grouchy or irritable] did [he/she] talk so much or so fast that it was hard for people to follow what [he/she] was saying, or to get a word in?",
+                "field_type": "string",
+                "field_order": 144,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes'"
+            },
+            "1.141": {
+                "field_name": "man_l_q6",
+                "field_title": "6. When [he/she] was [too excited or too happy/grouchy or irritable] did [he/she] say that [his/her] mind was racing from one thought to another, or that [his/her] thoughts was coming so fast that [he/she] couldn’t say everything [he/she] was thinking?",
+                "field_type": "string",
+                "field_order": 145,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=$(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes'"
+            },
+            "1.142": {
+                "field_name": "man_l_subtitle3",
+                "field_title": "IF 4 OR MORE YES RESPONSES WERE CODED IN Q 3 - 6, GO TO Q 10",
+                "field_type": "string",
+                "field_order": 146,
+                "field_constraint_data": "is_shown_fg=$(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.143": {
+                "field_name": "man_l_q7",
+                "field_title": "7. When [he/she] was [too excited or too happy/grouchy or irritable] did it seem like it was hard for [him/her] to keep [his/her] mind on what [he/she] was doing because every little thing would catch [his/her] attention and get [him/her] off track?",
+                "field_type": "string",
+                "field_order": 147,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6)].filter((value) => value == 'Yes').length < 4)"
+            },
+            "1.144": {
+                "field_name": "man_l_subtitle4",
+                "field_title": "IF 4 YES RESPONSES WERE CODED IN Q 3 - 7, GO TO Q 10",
+                "field_type": "string",
+                "field_order": 148,
+                "field_constraint_data": "is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6)].filter((value) => value == 'Yes').length < 4)",
+                "field_constraint_description": "subtitle"
+            },
+            "1.145": {
+                "field_name": "man_l_q8",
+                "field_title": "8. When [he/she] was [too excited or too happy/grouchy or irritable], did [he/she] sleep a lot less than usual without seeming tired the next day?",
+                "field_type": "string",
+                "field_order": 149,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&!([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7)].filter((value) => value == 'Yes').length >= 4)"
+            },
+            "1.146": {
+                "field_name": "man_l_subtitle5",
+                "field_title": "IF 4 YES RESPONSES WERE CODED IN Q 3 - 8, GO TO Q 10",
+                "field_type": "string",
+                "field_order": 150,
+                "field_constraint_data": "is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&!([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7)].filter((value) => value == 'Yes').length >= 4)",
+                "field_constraint_description": "subtitle"
+            },
+            "1.147": {
+                "field_name": "man_l_q9",
+                "field_title": "9. When [he/she] was [too excited or too happy/grouchy or irritable] did [he/she] do things that [he/she] later wished [he/she] hadn’t done, for example: spending way too much money, buying things [he/she] really didn’t need, or doing something sexual that [he/she] normally wouldn’t have done?",
+                "field_type": "string",
+                "field_order": 151,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&!([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8)].filter((value) => value == 'Yes').length >= 4)"
+            },
+            "1.148": {
+                "field_name": "man_l_subtitle6",
+                "field_title": "c: IF 2 OR MORE YES RESPONSES CODED IN Q 3 - 9, CONTINUE․ ALL OTHERS, GO TO NEXT DIAGNOSIS",
+                "field_type": "string",
+                "field_order": 152,
+                "field_constraint_data": "is_shown_fg=$(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.149": {
+                "field_name": "man_l_q10",
+                "field_title": "10. How old was [he/she] the first time [he/she] had a week or more when [he/she] was [too excited or too happy/grouchy or irritable] and was [NAME SYMP- TOMS IN Q 3 - 9]?",
+                "field_type": "string",
+                "field_order": 153,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2);is_disabled_fg=$(man_l_q10_checkbox1)=='true';if($(man_l_q10_checkbox1)=='true'){value_fg='Unknown';}"
+            },
+            "1.150": {
+                "field_name": "man_l_q10_checkbox1",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 153.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)",
+                "field_constraint_description": "checkbox"
+            },
+            "1.151": {
+                "field_name": "man_l_q10s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 154,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(man_l_q10_checkbox1)=='true'&&($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.152": {
+                "field_name": "man_l_q11",
+                "field_title": "11. How old was [he/she] the last time [he/she] had a week like that?",
+                "field_type": "string",
+                "field_order": 155,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2);is_disabled_fg=$(man_l_q10_checkbox2)=='true';if($(man_l_q10_checkbox2)=='true'){value_fg='Unknown';}"
+            },
+            "1.153": {
+                "field_name": "man_l_q10_checkbox2",
+                "field_title": "Age is unknown",
+                "field_type": "bool",
+                "field_order": 155.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)",
+                "field_constraint_description": "checkbox"
+            },
+            "1.154": {
+                "field_name": "man_l_q11s1",
+                "field_title": "What grade was [he/she] in?",
+                "field_type": "string",
+                "field_order": 156,
+                "field_constraint_data": "PRE-K|KINDERGARTEN|GRADE SCHOOL|COLLEGE FRESHMAN|SOPHOMORE|JUNIOR|SENIOR|POST B.A.\n>is_shown_fg=$(man_l_q10_checkbox2)=='true'&&($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.155": {
+                "field_name": "man_l_q12",
+                "field_title": "12. When [he/she] was [too excited or too happy/grouchy or irritable] like this, was [he/ she] taking drugs or medicine or drinking alcohol?",
+                "field_type": "string",
+                "field_order": 157,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.156": {
+                "field_name": "man_l_q12s1",
+                "field_title": "12A. What was [he/she] taking?",
+                "field_type": "string",
+                "field_order": 158,
+                "field_constraint_data": "is_shown_fg=$(man_l_q12)=='Yes'&&($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.157": {
+                "field_name": "man_l_q13",
+                "field_title": "13. Did [he/she] have some physical problem that made [him/her] act this way?",
+                "field_type": "string",
+                "field_order": 159,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.158": {
+                "field_name": "man_l_q13s1",
+                "field_title": "13A. What was that?",
+                "field_type": "string",
+                "field_order": 160,
+                "field_constraint_data": "is_shown_fg=$(man_l_q13)=='Yes'&&($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.159": {
+                "field_name": "man_l_q14",
+                "field_title": "14. Now I want to ask you some questions about the times [he/she] was [too excited or too happy/grouchy or irritable] [between the ages of ___ and ___ /when [he/she] was ___ /when [he/she] was in ___ grade(s)]. Did [his/her] acting this way cause any serious problems for [him/her] at home, (at school) or with [his/her] friends?",
+                "field_type": "string",
+                "field_order": 161,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.160": {
+                "field_name": "man_l_q15",
+                "field_title": "15. Did [he/she] ever see a doctor, counselor, or some other person like that because [he/she] was [too excited or too happy/grouchy or irritable]?",
+                "field_type": "string",
+                "field_order": 162,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            },
+            "1.161": {
+                "field_name": "man_l_q16",
+                "field_title": "16. Did acting this way seem to make [him/her] feel really unhappy or bother [him/her] a lot?",
+                "field_type": "string",
+                "field_order": 163,
+                "field_constraint_data": "No|Sometimes/Somewhat|Yes|Refused to answer|Not applicable|Don't know\n>is_shown_fg=($(man_l_q1s1)=='Yes'||$(man_l_q1s2)=='Yes'||$(man_l_q2s1)=='Yes'||$(man_l_q2s2)=='Yes')&&([$(man_l_q3),$(man_l_q4),$(man_l_q5),$(man_l_q6), ,$(man_l_q7),$(man_l_q8),$(man_l_q9)].filter((value) => value == 'Yes').length >= 2)"
+            }
+        },
+        "parent": {
+            "4": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

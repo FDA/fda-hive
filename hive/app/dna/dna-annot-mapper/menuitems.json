@@ -1,0 +1,39 @@
+{
+    "2629": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "description": "This tool allows you to crossmap two or more profiles or annotations to discover similarities and differences between them.",
+        "icon": "img-algo/svc-annotation-mapper.gif",
+        "order": 2,
+        "url": "?cmd=annotationMapper&cmdMode=iondb",
+        "path": "/Portal/Annotations/General/Annotation_Mapper",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

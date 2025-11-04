@@ -1,0 +1,68 @@
+{
+    "382": {
+        "_id": "$type.tasct_other_treatments",
+        "_type": "type",
+        "name": "tasct_other_treatments",
+        "title": "Other Treatments",
+        "fields": {
+            "1.1": {
+                "field_name": "currently_receiving_treatment",
+                "field_title": "Apart from medications, are you currently receiving any treatment for any mental health conditions?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "select_treatments",
+                "field_title": "Please select the treatments you are currently receiving",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Counselling|Psychological therapy|Psychiatrist visits\r\n>is_shown_fg=$(currently_receiving_treatment)=='true'",
+                "field_constraint_description": "subquestion"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

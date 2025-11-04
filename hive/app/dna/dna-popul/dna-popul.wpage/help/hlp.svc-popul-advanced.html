@@ -1,0 +1,128 @@
+<id>hlp.svc-popul.html</id>
+<title>HIVE Hexahedron</title>
+<definition>Coordinated Clonal Analysis</definition>
+<description>
+The HIVE <span class='toolname'>Hexahedron Coordinated 
+Clonal Analysis</span> tool renders visualization of 
+all possible subclones contained in a single sample. 
+Subclones are computed by reconstruction of an 
+arbitrary number of haplotypes from NGS data and 
+reported with corresponding relative frequencies. This 
+analysis is ideal for application to viral samples, 
+particularly RNA viruses. This workflow may also be 
+useful to distinguish between subclonal populations 
+of tumors.
+
+<br/>
+<br/><br/>
+<span class='heading'>Advanced inputs and parameters</span>:
+<ul style="padding-left:4%">
+<dl>
+    <dt><span class='pn'>Bifurcate based on</span></dt>
+        <dd>
+            Designate the criterion for a bifurcation event 
+            from frequency, pvalue, or bayes. The default 
+            is set to frequency.
+        </dd>
+<br/>
+    <dt><span class='pn'>Clone swap</span></dt>
+        <dd>
+            If selected, this option will automatically swap 
+            a clone to the predominant clone (that with the 
+            higher coverage) in the frame. This swap is 
+            turned off by default.
+        </dd>
+<br/>
+    <dt><span class='pn'>Threshold of fuzzy regions</span></dt>
+        <dd>
+            Because of the way the alignments are brought to 
+            the sliding frame from left to right, coverage drops 
+            off significantly after a certain point (unique to 
+            each experiment). This percentage allows the user to 
+            specify the minimum percentage of the mutation 
+            threshold for which a bifurcation event can be called, 
+            taking into account this fuzziness. For instance, if 
+            this parameter is set to 75% and the mutation threshold 
+            is set to 2%, then the threshold to call a bifurcation 
+            is 75% of 2%, or 1.5%, with respect to the depth of 
+            coverage across all frames covering that position. 
+            Default is set to 50%.
+        </dd>
+<br>
+    <dt><span class='pn'>Minimum overlap of sliding window</span></dt>
+        <dd>
+            Specify the minimum number of nucleotide positions, with 
+            respect to the reference alignment frame, required to 
+            overlap between adjacent frames. Minimum set to 100 bases.
+        </dd>
+<br/>
+    <dt><span class='pn'>Ignored gap threshold (percentage)</span></dt>
+        <dd>
+            Specify the minimum percentage of coverage with respect 
+            to the average coverage at a gapped position in the 
+            reference multiple alignment required to ignore the gap 
+            and call a contig at the position. Default set to 5%.
+        </dd>
+<br/>        
+    <dt><span class='pn'>Force continuity</span></dt>
+        <dd>
+            Consider reads extending around gapped regions to be 
+            continuous, therefore maintaining the positional 
+            coordinates of the refereces. Default is set to yes.
+        </dd>
+<br/>
+    <dt><span class='pn'>Noise</span></dt>
+        <dd>
+            The value is dynamically generated based on entropy 
+            calculations from alignments. Default set to 3.
+        </dd>
+<br/>
+    <dt><span class='pn'>Trees</span></dt>
+        <dd>
+            The parameters below allow the user to specify 
+            properties of trees corresponding to the phylogeny 
+            of reported clones. By default, trees are not 
+            computed as this is a computationally heavy request.
+        </dd>
+        <ul>
+            <li>
+                <i>Tree size:</i> Specify the maximum number of reads 
+                to be sampled for each frame
+            </li>
+            <li>
+                <i>Width of tree frame:</i> Specify the width of the 
+                tree frame as the number of nucleotide positions to 
+                consider within a single frame
+            </li>
+            <li>
+                <i>Step of tree frame:</i> Specify the step of the tree 
+                frame as the number of bases between the beginnings of 
+                adjacent frames
+            </li>
+            <li>
+                <i>Minimum overlap in tree frame:</i> Designate the 
+                minimum number of overlapping positions between 
+                adjacent tree frames
+            </li>
+            <li>
+                <i>Trees from the population frames:</i> If selected, 
+                the tree builder will us ethe same frames automatically 
+                generated for the clone expansion computation for the 
+                tree building algoright. By default, this option is 
+                turned off
+            </li>
+            <li>
+                <i>Generate trees:</i> This option must be selected in 
+                order to generate and view trees for the identified 
+                clones. By default, trees are not generated
+            </li>
+        </ul>
+<br/>
+
+</dl>
+</ul>
+<br/>
+<a href="hlp.svc-popul.html">To go back to General Parameters for Hexahedron, click here</a>.<br/>
+<br/>
+<a href="hlp.svc-popul.results.html">To view help on interpreting Hexahedron results, please click here.</a>
+</description>

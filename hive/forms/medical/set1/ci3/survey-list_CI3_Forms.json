@@ -1,0 +1,132 @@
+{
+    "4766": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "CI3_Forms",
+        "readable_name": "Initial surgery",
+        "sl_order": 1,
+        "survey": {
+            "10": {
+                "10.1": {
+                    "name": "$type.ci3_demographics",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": false,
+                    "optional_fields": 1
+                }
+            },
+            "24": {
+                "24.1": {
+                    "name": "$type.ci3_pre_operative",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "25": {
+                "25.1": {
+                    "name": "$type.ci3_percutaneous_approach",
+                    "order": 5,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "26": {
+                "26.1": {
+                    "name": "$type.ci3_cut_down_approach",
+                    "order": 6,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "27": {
+                "27.1": {
+                    "name": "$type.ci3_laparoscopic_approach",
+                    "order": 7,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "28": {
+                "28.1": {
+                    "name": "$type.ci3_open_surgery_approach",
+                    "order": 8,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "39": {
+                "39.1": {
+                    "name": "$type.ci3_endoscopy_approach",
+                    "order": 9,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "64": {
+                "64.1": {
+                    "name": "$type.ci3_symptoms",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "90": {
+                "90.0": {
+                    "name": "$type.ci3_health_questionnaire",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "119": {
+                "119.0": {
+                    "name": "$type.ci3_imaging",
+                    "order": 10,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

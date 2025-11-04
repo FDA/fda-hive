@@ -1,0 +1,47 @@
+{
+    "148": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2protein",
+        "order": 12,
+        "path": "/Convert/convert2protein",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&objtype=prot-seq&ids=$(ids)&datatype=fasta",
+        "title": "To Protein Sequence as FastA file",
+        "description": "Convert file formatted as fastA to Protein Sequence object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

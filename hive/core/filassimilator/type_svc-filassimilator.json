@@ -1,0 +1,43 @@
+{
+    "1": {
+        "_id": "type.1051",
+        "_type": "type",
+        "name": "svc-filassimilator",
+        "title": "File assimilator",
+        "parent": {
+            "1": "type.1015",
+            "2": "type.330"
+        },
+        "prefetch": true,
+        "fields": {
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

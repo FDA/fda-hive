@@ -1,0 +1,46 @@
+{
+    "150": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "export_hivepack",
+        "order": 10,
+        "path": "/Export/export_hivepack",
+        "required_permission": 128,
+        "response": "qpProcSubmit",
+        "target": "ajax",
+        "type_name": "base+",
+        "url": "?cmdr=-qpProcSubmit&svc=dmCompressor&prop.x._type=svc-compressor&prop.x.name=Objects%20HIVEPack&prop.x.function=objHivePack&prop.x.withDependencies=true&prop.x.objs=$(ids)",
+        "title": "as HIVEPack",
+        "description": "Export the object as HIVEPack with dependencies",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

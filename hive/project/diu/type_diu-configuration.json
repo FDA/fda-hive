@@ -1,0 +1,112 @@
+{
+    "12471": {
+        "_id": "$type.diu-configuration",
+        "_type": "type",
+        "name": "diu-configuration",
+        "title": "Configuration",
+        "singleton": 0,
+        "fields": {
+            "1.0": {
+                "field_name": "controller_uci",
+                "field_title": "controller_uci",
+                "field_type": "string",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "1.2": {
+                "field_name": "controller_ip",
+                "field_title": "controller_ip",
+                "field_type": "string",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "1.3": {
+                "field_name": "controller_port",
+                "field_title": "controller_port",
+                "field_type": "string",
+                "field_default_value": "9951",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "1.4": {
+                "field_name": "default_geolocation",
+                "field_title": "default_geolocation",
+                "field_type": "string",
+                "field_default_value": "0,0",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "1.6": {
+                "field_name": "unique-name",
+                "field_title": "Unique Name",
+                "field_type": "string",
+                "field_is_key_fg": true
+            },
+            "1.8": {
+                "field_name": "sessionID",
+                "field_title": "SessionID",
+                "field_type": "string"
+            },
+            "1.10": {
+                "field_name": "isa-connection-status",
+                "field_title": "ISA connectection Status",
+                "field_type": "string",
+                "field_default_value": "idle",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "unknown|failure|connected|idle"
+            },
+            "1.12": {
+                "field_name": "collection-timezone",
+                "field_title": "Collection Timezone",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/public/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

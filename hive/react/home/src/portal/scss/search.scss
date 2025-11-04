@@ -1,0 +1,17 @@
+.highlight{
+    position:relative;
+    z-index: 0;
+}
+.highlight::after{
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 18px;
+    bottom: 2px;
+    left: 0px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+            border-radius: 3px;
+    z-index: -1;
+    background-color: rgba(243, 189, 25, 0.5);
+}

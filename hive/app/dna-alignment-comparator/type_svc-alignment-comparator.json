@@ -1,0 +1,114 @@
+{
+    "type.250": {
+        "_id": "type.250",
+        "_type": "type",
+        "name": "svc-alignment-comparator",
+        "title": "Alignment Comparator",
+        "description": "Alignment Comparator utility",
+        "parent": {
+            "1": "type.331"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "aligners",
+                "field_title": "Alignments to use",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-align-dnaseq+,folder"
+            },
+            "1.2": {
+                "field_name": "annotationToUse",
+                "field_title": "Annotation File for Collapsing HIts",
+                "field_type": "obj",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.3": {
+                "field_name": "collapseBy",
+                "field_title": "Collapse Hits By",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint": "choice+",
+                "field_constraint_data": "transcript_id|gene_id|Sequence Identifier///seqID"
+            },
+            "1.4": {
+                "field_name": "collapseID",
+                "field_title": "Output IDs",
+                "field_type": "string",
+                "field_order": 5,
+                "field_default_value": "gene_name",
+                "field_constraint": "choice+",
+                "field_constraint_data": "gene_name|transcript_name"
+            },
+            "1.5": {
+                "field_name": "minHits",
+                "field_title": "Minimal hits",
+                "field_type": "real",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "minRPKM",
+                "field_title": "Minimal RPKM",
+                "field_type": "real",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "seqClassify",
+                "field_title": "Classify partial subalignments",
+                "field_type": "integer",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Do not classify|1///Split into subalignment categories"
+            },
+            "1.8": {
+                "field_name": "valueToUse",
+                "field_title": "What to output",
+                "field_type": "string",
+                "field_order": 3,
+                "field_default_value": "3",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Hits|2///RPKM|3///Both RPKM and hits"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

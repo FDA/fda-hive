@@ -1,0 +1,87 @@
+{
+    "168": {
+        "_id": "$type.u-ionAnnot",
+        "_type": "type",
+        "name": "u-ionAnnot",
+        "title": "ionAnnot type",
+        "description": "//Annotation file in ionDB format\nlocation: hive.app.dna",
+        "parent": {
+            "1": "$type.ionDB"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "annot_description",
+                "field_title": "description for annot",
+                "field_type": "string",
+                "field_order": 0
+            },
+            "1.2": {
+                "field_name": "annot_source",
+                "field_title": "Annotation Source",
+                "field_type": "string",
+                "field_order": 10,
+                "field_default_value": "genbank",
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Source of the annotation"
+            },
+            "1.3": {
+                "field_name": "reference_objs",
+                "field_title": "Reference Object",
+                "field_type": "obj",
+                "field_order": 8,
+                "field_is_readonly_fg": 1,
+                "field_is_multi_fg": true,
+                "field_description": "Dependency Referece"
+            },
+            "1.4": {
+                "field_name": "source",
+                "field_title": "Source",
+                "field_type": "string",
+                "field_order": 10,
+                "field_default_value": "genbank",
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true,
+                "field_description": "From genbank or table"
+            },
+            "1.5": {
+                "field_name": "source_obj",
+                "field_title": "Source Object",
+                "field_type": "obj",
+                "field_order": 9,
+                "field_is_readonly_fg": 1,
+                "field_description": "When the annotation's converted from a table"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

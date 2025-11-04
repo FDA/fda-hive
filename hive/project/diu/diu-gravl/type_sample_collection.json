@@ -1,0 +1,101 @@
+{
+    "198538": {
+        "_id": "$type.sample_collection",
+        "_type": "type",
+        "name": "sample_collection",
+        "title": "Sample Collection",
+        "description": "Information about the Sample collection",
+        "parent": {
+            "7": "$type.wastewater_collection"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "collection_date",
+                "field_title": "Date",
+                "field_type": "date",
+                "field_order": 1
+            },
+            "11.2": {
+                "field_name": "collection_time",
+                "field_title": "Time",
+                "field_type": "time",
+                "field_order": 2
+            },
+            "11.3": {
+                "field_name": "collection_location_name",
+                "field_title": "Location Name",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint": "choice+",
+                "field_constraint_data": "S Plane Base (SPB)|Ault Field (AF)",
+                "field_description": "Where the sample was located at."
+            },
+            "11.4": {
+                "field_name": "collection_method",
+                "field_title": "Method",
+                "field_type": "obj",
+                "field_order": 5,
+                "field_constraint": "type",
+                "field_constraint_data": "da_collection_method",
+                "field_is_readonly_fg": 0
+            },
+            "11.5": {
+                "field_name": "collection_individual",
+                "field_title": "Individual",
+                "field_type": "string",
+                "field_order": 6,
+                "field_description": "Who performed the collection.",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false
+            },
+            "11.6": {
+                "field_name": "collection_individual_position",
+                "field_title": "Rank or Position",
+                "field_order": 7,
+                "field_type": "string",
+                "field_description": "The rank or position of the individual doing the collection.",
+                "field_is_optional_fg": true
+            },
+            "11.8": {
+                "field_name": "collection_location_base",
+                "field_title": "Location Base",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint": "choice+",
+                "field_constraint_data": "Whidbey|Naval Base Guam",
+                "field_description": "The base that the sample was collected at."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

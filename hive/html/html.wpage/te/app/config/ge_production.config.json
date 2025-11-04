@@ -1,0 +1,11 @@
+{
+    "hiveUrl":"http://hive.eurovasc.org/dna.cgi?",
+    "projectName": "MDEpiNet",
+    "projectTitle": "MDEpiNet/Hive Surveys",
+    "projectKeywords": "Healthcare Operations, Survey, MDEpiNet, Hive",
+    "logoImage":"logo-mdepinet.png",
+    "allowDataDownload": true,
+    "userAutoActivation": "2",
+    "administratorGroups" : "",
+    "defaultRegistrationPage" : "register-doctor"
+}

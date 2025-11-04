@@ -1,0 +1,53 @@
+{
+    "type.554": {
+        "_id": "type.554",
+        "_type": "type",
+        "name": "svc-download-ftp",
+        "title": "FTP Download Service",
+        "parent": {
+            "1": "type.549"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.4": {
+                "field_name": "datasource",
+                "field_title": "Data Source",
+                "field_type": "string",
+                "field_order": 2,
+                "field_default_value": "ftp",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": false,
+                "field_is_hidden_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

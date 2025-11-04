@@ -1,0 +1,20 @@
+{
+    "98": {
+        "_id": "$upsert()",
+        "_type": "wpage",
+        "name": "glauncher",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

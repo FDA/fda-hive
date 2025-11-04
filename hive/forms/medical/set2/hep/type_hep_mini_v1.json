@@ -1,0 +1,1083 @@
+{
+    "504": {
+        "_id": "$type.hep_mini_v1",
+        "_type": "type",
+        "name": "hep_mini_v1",
+        "title": "MINI International Neuropsychiatric Interview ",
+        "description": "<h4>Safety Interventions Instructions for HEP</h4>\nAs a safety precaution, all participants who endorse current depression on the MINI must be referred for psychiatric evaluation. Please plan ahead for this possibility by creating a list of local mental health providers to be given to participants if needed.<br /><br />\nParticipants who screen positive for “MAJOR DEPRESSIVE EPISODE, CURRENT” in module A must be referred to a mental health provider for psychiatric evaluation. <br /><br />\nWith all psychiatric referrals, the phenotyping clinician should explain to the participant that the interview suggests that they should seek evaluation by a mental health provider; please emphasize that this is not a clinical diagnosis. Please also ask for written permission from the participant to contact their primary care provider and notify them of the MINI score indicative of depression. <br /><br />\nAfter completion of the study visit:<br />\n-\tfill out the HEP Safety Intervention Form in REDCap, and<br />\n-\tfollow up with the participant 1 week after referral to confirm they were able to schedule an appointment with a mental health provider.\n<br /><br />\nIf you have any questions or concerns as to a participant’s diagnosis, please contact Dr. Andres Kanner at 847-476-1811 (or if Dr. Kanner is unavailable, Dr. Siddhartha Nadkarni at 917-763-1016).",
+        "fields": {
+            "1.1": {
+                "field_name": "section_1",
+                "field_title": "A. MAJOR DEPRESSIVE EPISODE",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "depressed",
+                "field_title": "A1. Have you been consistently depressed or down, most of the day, nearly every day, for the past two weeks?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "enjoy_things",
+                "field_title": "A2. In the past two weeks, have you been much less interested in most things or much less able to enjoy the things you used to enjoy most of the time?",
+                "field_type": "bool",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "section_2",
+                "field_title": "A3. Over the past two weeks:",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_description": "description"
+            },
+            "1.5": {
+                "field_name": "appetite_decreased",
+                "field_title": "a) Was your appetite decreased or increased nearly every day?  Did your weight decrease or increase without trying intentionally (i.e., by ±5% of body weight or ±8 lbs. or ±3.5 kgs., for a 160 lb./70 kg. person in a month)?",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_constraint_description": "subquestion"
+            },
+            "1.6": {
+                "field_name": "trouble_sleeping",
+                "field_title": "b) Did you have trouble sleeping nearly every night (difficulty falling asleep, waking up in the middle of the night, early morning wakening or sleeping excessively)?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_description": "subquestion"
+            },
+            "1.7": {
+                "field_name": "talk_move_slower",
+                "field_title": "c) Did you talk or move more slowly than normal or were you fidgety, restless or having trouble sitting still almost every day?",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_constraint_description": "subquestion"
+            },
+            "1.8": {
+                "field_name": "feeltired",
+                "field_title": "d) Did you feel tired or without energy almost every day?",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_description": "subquestion"
+            },
+            "1.9": {
+                "field_name": "feel_worthless",
+                "field_title": "e) Did you feel worthless or guilty almost every day?",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_constraint_description": "subquestion"
+            },
+            "1.10": {
+                "field_name": "difficulty_concentrating",
+                "field_title": "f) Did you have difficulty concentrating or making decisions almost every day?",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_constraint_description": "subquestion"
+            },
+            "1.11": {
+                "field_name": "feel_suicidal",
+                "field_title": "g) Did you repeatedly consider hurting yourself, feel suicidal, or wish that you were dead?",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_constraint_description": "subquestion"
+            },
+            "1.12": {
+                "field_name": "major_depressive_episode_diagnose",
+                "field_title": "ARE 5 OR MORE ANSWERS (A1-A3) CODED YES?",
+                "field_type": "bool",
+                "field_order": 12.5,
+                "field_constraint_data": "value_fg=([$(appetite_decreased),$(trouble_sleeping),$(talk_move_slower),$(feeltired),$(feel_worthless),$(difficulty_concentrating),$(feel_suicidal),$(enjoy_things),$(depressed)].filter((value) => value == 'true').length >= 5) ? 'true' : 'false'",
+                "field_description": "If patient has Major Depressive Episode, Current, use this information in coding the corresponding questions on page 2 (A6d, A6e)."
+            },
+            "1.13": {
+                "field_name": "conclusion1_1",
+                "field_type": "string",
+                "field_order": 12.7,
+                "field_constraint_data": "is_shown_fg=([$(appetite_decreased),$(trouble_sleeping),$(talk_move_slower),$(feeltired),$(feel_worthless),$(difficulty_concentrating),$(feel_suicidal),$(enjoy_things),$(depressed)].filter((value) => value == 'true').length >= 5);value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Major Depressive Episode</div>"
+            },
+            "1.14": {
+                "field_name": "other_episodes_of_two_weeks",
+                "field_title": "A4a.  During your lifetime, did you have other episodes of two weeks or more when you had most of the problems we just talked about?",
+                "field_type": "bool",
+                "field_order": 13
+            },
+            "1.15": {
+                "field_name": "interval_without_symptoms",
+                "field_title": "A4b. In between 2 of these episodes , did you ever have an interval of at least 2 months, without any of these symptoms?",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "section_3",
+                "field_title": "MAJOR DEPRESSIVE EPISODE WITH MELANCHOLIC FEATURES (optional)",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(enjoy_things)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.17": {
+                "field_name": "lose_ability_to_enjoy",
+                "field_title": "A5a. During the most severe period of the current episode we just discussed, did you lose almost completely your ability to enjoy nearly everything?",
+                "field_type": "bool",
+                "field_order": 16,
+                "field_constraint_data": "is_shown_fg=$(enjoy_things)=='true'"
+            },
+            "1.18": {
+                "field_name": "ability_cheer_up",
+                "field_title": "A5b. During the most severe period of the current episode, did you lose your ability to respond to things that previously gave you pleasure, or cheered you up?",
+                "field_type": "bool",
+                "field_order": 17,
+                "field_constraint_data": "is_shown_fg=$(enjoy_things)=='true'"
+            },
+            "1.19": {
+                "field_name": "fail_to_make_better",
+                "field_title": "When something good happens does it fail to make you feel better, even temporarily?",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_constraint_data": "is_shown_fg=$(ability_cheer_up)=='false'&&$(enjoy_things)=='true'"
+            },
+            "1.20": {
+                "field_name": "section_4",
+                "field_title": "A6. Over the past two weeks:",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.21": {
+                "field_name": "depressed_different",
+                "field_title": "A6a.  Did you feel depressed in a way that is different from the kind of feeling you experience when someone close to you dies?",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true'"
+            },
+            "1.22": {
+                "field_name": "feel_regularly_worse",
+                "field_title": "A6b. Did you feel regularly worse in the morning, almost every day?",
+                "field_type": "bool",
+                "field_order": 21,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true'"
+            },
+            "1.23": {
+                "field_name": "wake_up_earlier",
+                "field_title": "A6c. Did you wake up at least 2 hours before the usual time of awakening and have difficulty getting back to sleep, almost every day?",
+                "field_type": "bool",
+                "field_order": 22,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true'"
+            },
+            "1.24": {
+                "field_name": "A3c_yes",
+                "field_title": "A6d. IS A3c CODED YES (PSYCHOMOTOR RETARDATION OR AGITATION)?",
+                "field_type": "bool",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true';value_fg=$(talk_move_slower)=='true'? 'true' : 'false';"
+            },
+            "1.25": {
+                "field_name": "A3a_yes",
+                "field_title": "A6e. IS A3a CODED YES FOR ANOREXIA OR WEIGHT LOSS?",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true';value_fg=$(appetite_decreased)=='true'? 'true' : 'false'"
+            },
+            "1.26": {
+                "field_name": "excessive_guilt",
+                "field_title": "A6f. Did you feel excessive guilt or guilt out of proportion to the reality of the situation?",
+                "field_type": "bool",
+                "field_order": 25,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true';"
+            },
+            "1.27": {
+                "field_name": "A6_yes_answers",
+                "field_title": "ARE 3 OR MORE A6 ANSWERS CODED YES? ",
+                "field_type": "bool",
+                "field_order": 25.5,
+                "field_constraint_data": "is_shown_fg=$(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true';value_fg=([$(depressed_different),$(feel_regularly_worse),$(wake_up_earlier),$(A3c_yes),$(A3a_yes),$(excessive_guilt)].filter((value) => value == 'true').length >= 3) ? 'true' : 'false'"
+            },
+            "1.28": {
+                "field_name": "conclusion1",
+                "field_type": "string",
+                "field_order": 26,
+                "field_constraint_data": "is_shown_fg=($(lose_ability_to_enjoy)=='true'||$(ability_cheer_up)=='true')&&[$(depressed_different),$(feel_regularly_worse),$(wake_up_earlier),$(A3c_yes),$(A3a_yes),$(excessive_guilt)].filter((value) => value == 'true').length >= 3;value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Major Depressive Episode with Melancholic Features Current</div>"
+            },
+            "1.29": {
+                "field_name": "section_5",
+                "field_title": "B. DYSTHYMIA",
+                "field_type": "string",
+                "field_order": 27,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(major_depressive_episode_diagnose)=='false'",
+                "field_constraint_description": "subtitle",
+                "field_description": "IF PATIENT'S SYMPTOMS CURRENTLY MEET CRITERIA FOR MAJOR DEPRESSIVE EPISODE, DO NOT EXPLORE THIS MODULE."
+            },
+            "1.30": {
+                "field_name": "felt_sad",
+                "field_title": "B1. Have you felt sad, low or depressed most of the time for the last two years?",
+                "field_type": "bool",
+                "field_order": 28,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.31": {
+                "field_name": "feeling_ok_two_months",
+                "field_title": "B2. Was this period interrupted by your feeling OK for two months or more?",
+                "field_type": "bool",
+                "field_order": 29,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.32": {
+                "field_name": "section_6",
+                "field_title": "B3. During this period of feeling depressed most of the time:",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false'",
+                "field_constraint_description": "description"
+            },
+            "1.33": {
+                "field_name": "appetite_change",
+                "field_title": "B3a. Did your appetite change significantly?",
+                "field_type": "bool",
+                "field_order": 31,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.34": {
+                "field_name": "trouble_sleeping_or_excessively",
+                "field_title": "B3b. Did you have trouble sleeping or sleep excessively?",
+                "field_type": "bool",
+                "field_order": 32,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.35": {
+                "field_name": "feel_tired",
+                "field_title": "B3c. Did you feel tired or without energy?",
+                "field_type": "bool",
+                "field_order": 33,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.36": {
+                "field_name": "lose_self_confidence",
+                "field_title": "B3d. Did you lose your self-confidence?",
+                "field_type": "bool",
+                "field_order": 34,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.37": {
+                "field_name": "trouble_concentrating",
+                "field_title": "B3e. Did you have trouble concentrating or making decisions?",
+                "field_type": "bool",
+                "field_order": 35,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.38": {
+                "field_name": "feel_hopeless",
+                "field_title": "B3f. Did you feel hopeless?",
+                "field_type": "bool",
+                "field_order": 36,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.39": {
+                "field_name": "dysthymia_number_of_yes_answers",
+                "field_title": "ARE 2 OR MORE B3 ANSWERS CODED YES?",
+                "field_type": "bool",
+                "field_order": 36.5,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(major_depressive_episode_diagnose)=='false';value_fg=([$(appetite_change), $(trouble_sleeping_or_excessively), $(feel_tired), $(lose_self_confidence), $(trouble_concentrating), $(feel_hopeless)].filter((value) => value == 'true').length >2) ? 'true' : 'false'"
+            },
+            "1.40": {
+                "field_name": "symptoms_cause_significant_distress",
+                "field_title": "Did the symptoms of depression cause you significant distress or impair your ability to function at work, socially, or in some other important way?",
+                "field_type": "bool",
+                "field_order": 37,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(dysthymia_number_of_yes_answers)=='true'&&$(major_depressive_episode_diagnose)=='false'"
+            },
+            "1.41": {
+                "field_name": "conclusion2",
+                "field_type": "string",
+                "field_order": 38,
+                "field_constraint_data": "is_shown_fg=$(felt_sad)=='true'&&$(feeling_ok_two_months)=='false'&&$(symptoms_cause_significant_distress)=='true'&&([$(appetite_change), $(trouble_sleeping_or_excessively), $(feel_tired), $(lose_self_confidence), $(trouble_concentrating), $(feel_hopeless)].filter((value) => value == 'true').length >2)&&$(major_depressive_episode_diagnose)=='false';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; font-weight: bold; border-radius: 5px;\">Dysthymia Current </div>"
+            },
+            "1.42": {
+                "field_name": "section_7",
+                "field_title": "D. (HYPO) MANIC EPISODE",
+                "field_type": "string",
+                "field_order": 39,
+                "field_constraint_description": "subtitle"
+            },
+            "1.43": {
+                "field_name": "D1a",
+                "field_title": "D1a. Have you ever had a period of time when you were feeling 'up' or 'high' or ‘hyper’\tNO\tYES or so full of energy or full of yourself that you got into trouble, or that other people thought you were not your usual self?  (Do not consider times when you were intoxicated on drugs or alcohol.) IF PATIENT IS PUZZLED OR UNCLEAR ABOUT WHAT YOU MEAN BY 'UP' OR 'HIGH' OR ‘HYPER’, CLARIFY AS FOLLOWS:  By 'up' or 'high' or ‘hyper’ I mean: having elated mood; increased energy; needing less sleep; having rapid thoughts; being full of ideas; having an increase in productivity, motivation, creativity, or impulsive behavior.",
+                "field_type": "bool",
+                "field_order": 40
+            },
+            "1.44": {
+                "field_name": "D1b",
+                "field_title": "D1b. Are you currently feeling ‘up’ or ‘high’ or ‘hyper’ or full of energy?",
+                "field_type": "bool",
+                "field_order": 41,
+                "field_constraint_data": "if($(D1a)=='false'){value_fg= 'false';}"
+            },
+            "1.45": {
+                "field_name": "D2a",
+                "field_title": "D2a. Have you ever been persistently irritable, for several days, so that you had arguments or verbal or physical fights, or shouted at people outside your family?  Have you or others noticed that you have been more irritable or over reacted, compared to other people, even in situations that you felt were justified?",
+                "field_type": "bool",
+                "field_order": 42
+            },
+            "1.46": {
+                "field_name": "D2b",
+                "field_title": "D2b. Are you currently feeling persistently irritable?",
+                "field_type": "bool",
+                "field_order": 43,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "if($(D2a)=='false'){value_fg= 'false';}"
+            },
+            "1.47": {
+                "field_name": "manic_yes_answers",
+                "field_title": "IS D1a OR D2a CODED YES?",
+                "field_type": "bool",
+                "field_order": 43.1,
+                "field_constraint_data": "value_fg=($(D1a)=='true'||$(D2a)=='true') ? 'true' : 'false';"
+            },
+            "1.48": {
+                "field_name": "d3_instruction",
+                "field_type": "string",
+                "field_order": 43.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "IF D1b OR D2b = YES: EXPLORE THE CURRENT AND THE MOST SYMPTOMATIC PAST EPISODE, OTHERWISE IF D1b AND D2b = NO: EXPLORE ONLY THE MOST SYMPTOMATIC PAST EPISODE"
+            },
+            "1.49": {
+                "field_name": "D3",
+                "field_title": "D3. During the times in your life when you felt high, full of energy, or irritable did you",
+                "field_type": "string",
+                "field_order": 44,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.50": {
+                "field_name": "D3a_subtitle",
+                "field_title": "D3a. Feel that you could do things others couldn't do, or that you were an especially important person?",
+                "field_type": "string",
+                "field_order": 44.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.51": {
+                "field_name": "D3a_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 45,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.52": {
+                "field_name": "D3a_sub_current",
+                "field_title": "Can you provide examples?",
+                "field_type": "text",
+                "field_order": 46,
+                "field_constraint_data": "is_shown_fg=$(D3a_current)=='true'&&$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.53": {
+                "field_name": "D3a_sub1",
+                "field_title": "THE EXAMPLES ARE CONSISTENT WITH A DELUSIONAL IDEA",
+                "field_type": "bool",
+                "field_order": 47,
+                "field_constraint_data": "is_shown_fg=$(D3a_current)=='true'&&$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.54": {
+                "field_name": "D3a_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 47.1,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.55": {
+                "field_name": "D3a_sub_past",
+                "field_title": "Can you provide examples?",
+                "field_type": "text",
+                "field_order": 47.2,
+                "field_constraint_data": "is_shown_fg=$(D3a_past)=='true'&&$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.56": {
+                "field_name": "D3a_sub_past1",
+                "field_title": "THE EXAMPLES ARE CONSISTENT WITH A DELUSIONAL IDEA.",
+                "field_type": "bool",
+                "field_order": 47.2,
+                "field_constraint_data": "is_shown_fg=$(D3a_past)=='true'&&$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.57": {
+                "field_name": "D3b_subtitle",
+                "field_title": "D3b. Need less sleep (for example, feel rested after only a few hours sleep)?",
+                "field_type": "string",
+                "field_order": 47.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.58": {
+                "field_name": "D3b_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 48,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.59": {
+                "field_name": "D3b_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 48.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.60": {
+                "field_name": "D3c_subtitle",
+                "field_title": "D3c. Talk too much without stopping, or so fast that people had difficulty understanding?",
+                "field_type": "string",
+                "field_order": 48.7,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.61": {
+                "field_name": "D3c_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 49,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.62": {
+                "field_name": "D3c_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 49.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.63": {
+                "field_name": "D3d_subtitle",
+                "field_title": "D3d. Have racing thoughts?",
+                "field_type": "string",
+                "field_order": 49.7,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.64": {
+                "field_name": "D3d_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 50,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.65": {
+                "field_name": "D3d_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 50.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.66": {
+                "field_name": "D3e_subtitle",
+                "field_title": "D3e. Become easily distracted so that any little interruption could distract you?",
+                "field_type": "string",
+                "field_order": 50.7,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.67": {
+                "field_name": "D3e_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 51,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.68": {
+                "field_name": "D3e_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 51.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.69": {
+                "field_name": "D3f_subtitle",
+                "field_title": "D3f. Become so active or physically restless that others were worried about you?",
+                "field_type": "string",
+                "field_order": 51.7,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.70": {
+                "field_name": "D3f_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 52,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.71": {
+                "field_name": "D3f_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 52.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.72": {
+                "field_name": "D3g_subtitle",
+                "field_title": "D3g. Want so much to engage in pleasurable activities that you ignored the risks or consequences (for example, spending sprees, reckless driving, or sexual indiscretions)?",
+                "field_type": "string",
+                "field_order": 52.7,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.73": {
+                "field_name": "D3g_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 53,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&($(D1b)=='true'||$(D2b)=='true')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.74": {
+                "field_name": "D3g_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 53.2,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.75": {
+                "field_name": "D3_summary_subtitle",
+                "field_title": "ARE 3 OR MORE D3 ANSWERS CODED YES (OR 4 OR MORE IF D1a IS NO (IN RATING PAST EPISODE) AND D1b IS NO (IN RATING CURRENT EPISODE)?",
+                "field_type": "string",
+                "field_order": 53.4,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "RULE: ELATION/EXPANSIVENESS REQUIRES ONLY THREE D3 SYMPTOMS WHILE IRRITABLE MOOD ALONE REQUIRES 4 OF THE D3 SYMPTOMS. VERIFY IF THE SYMPTOMS OCCURRED DURING THE SAME TIME PERIOD."
+            },
+            "1.76": {
+                "field_name": "D3_summary_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 53.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true';value_fg=([$(D3a_current),$(D3b_current),$(D3c_current),$(D3d_current),$(D3e_current),$(D3f_current),$(D3g_current)].filter((value) => value == 'true' ).length >= 3 &&!($(D1a)=='false' && $(D1b)=='false' )) || (([$(D3a_current),$(D3b_current),$(D3c_current),$(D3d_current),$(D3e_current),$(D3f_current),$(D3g_current)].filter((value) => value == 'true' ).length >= 4) && $(D1a)=='false' && $(D1b)=='false') ? 'true' : 'false'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.77": {
+                "field_name": "D3_summary_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 53.7,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true';value_fg=([$(D3a_past),$(D3b_past),$(D3c_past),$(D3d_past),$(D3e_past),$(D3f_past),$(D3g_past)].filter((value) => value == 'true' ).length >= 3 &&!($(D1a)=='false' && $(D1b)=='false' )) || (([$(D3a_past),$(D3b_past),$(D3c_past),$(D3d_past),$(D3e_past),$(D3f_past),$(D3g_past)].filter((value) => value == 'true' ).length >= 4) && $(D1a)=='false' && $(D1b)=='false') ? 'true' : 'false'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.78": {
+                "field_name": "D4",
+                "field_title": "D4. Did these symptoms last at least a week and cause significant problems at home, at work, socially, or at school, or were you hospitalized for these  problems?",
+                "field_type": "string",
+                "field_order": 54,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'",
+                "field_constraint_description": "description"
+            },
+            "1.79": {
+                "field_name": "D4_current",
+                "field_title": "Current Episode",
+                "field_type": "bool",
+                "field_order": 54.2,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.80": {
+                "field_name": "D4_past",
+                "field_title": "Past Episode",
+                "field_type": "bool",
+                "field_order": 54.5,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.81": {
+                "field_name": "conclusion3",
+                "field_title": "THE EPISODE EXPLORED WAS A:",
+                "field_type": "string",
+                "field_order": 55,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.82": {
+                "field_name": "conclusion3_1",
+                "field_type": "string",
+                "field_order": 56,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'&&$(D4_current)=='false';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Hypomanic Episode Current</div>"
+            },
+            "1.83": {
+                "field_name": "conclusion3_2",
+                "field_type": "string",
+                "field_order": 57,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'&&$(D4_past)=='false';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Hypomanic Episode Past</div>"
+            },
+            "1.84": {
+                "field_name": "conclusion3_3",
+                "field_type": "string",
+                "field_order": 57.1,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'&&$(D4_current)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Manic Episode Current</div>"
+            },
+            "1.85": {
+                "field_name": "conclusion3_4",
+                "field_type": "string",
+                "field_order": 57.2,
+                "field_constraint_data": "is_shown_fg=$(manic_yes_answers)=='true'&&$(D3_summary_past)!='false'&&$(D4_past)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Manic Episode Past</div>"
+            },
+            "1.86": {
+                "field_name": "section_8",
+                "field_title": "E. PANIC DISORDER",
+                "field_type": "string",
+                "field_order": 58,
+                "field_constraint_description": "subtitle"
+            },
+            "1.87": {
+                "field_name": "E1a",
+                "field_title": "E1a. Have you, on more than one occasion, had spells or attacks when you suddenly felt anxious, frightened, uncomfortable or uneasy, even in situations where most people would not feel that way?",
+                "field_type": "bool",
+                "field_order": 59
+            },
+            "1.88": {
+                "field_name": "E1b",
+                "field_title": "E1b. Did the spells surge to a peak within 10 minutes of starting?",
+                "field_type": "bool",
+                "field_order": 60,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'"
+            },
+            "1.89": {
+                "field_name": "E2",
+                "field_title": "E2. At any time in the past, did any of those spells or attacks come on unexpectedly or occur in an unpredictable or unprovoked manner?",
+                "field_type": "bool",
+                "field_order": 61,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'"
+            },
+            "1.90": {
+                "field_name": "E3",
+                "field_title": "E3. Have you ever had one such attack followed by a month or more of persistent concern about having another attack, or worries about the consequences of the attack or did you make a significant change in your behavior because of the attacks (e.g., shopping only with a companion, not wanting to leave your house, visiting the emergency room repeatedly, or seeing your doctor more frequently because of the symptoms?",
+                "field_type": "bool",
+                "field_order": 62,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.91": {
+                "field_name": "E4_subtitle",
+                "field_title": "E4. During the worst spell that you can remember:",
+                "field_type": "string",
+                "field_order": 63,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'",
+                "field_constraint_description": "description"
+            },
+            "1.92": {
+                "field_name": "E4a",
+                "field_title": "E4a. Did you have skipping, racing or pounding of your heart?",
+                "field_type": "bool",
+                "field_order": 64,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.93": {
+                "field_name": "E4b",
+                "field_title": "E4b. Did you have sweating or clammy hands?",
+                "field_type": "bool",
+                "field_order": 65,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.94": {
+                "field_name": "E4c",
+                "field_title": "E4c. Were you trembling or shaking?",
+                "field_type": "bool",
+                "field_order": 66,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.95": {
+                "field_name": "E4d",
+                "field_title": "E4d. Did you have shortness of breath or difficulty breathing?",
+                "field_type": "bool",
+                "field_order": 67,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.96": {
+                "field_name": "E4e",
+                "field_title": "E4e. Did you have a choking sensation or a lump in your throat?",
+                "field_type": "bool",
+                "field_order": 68,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.97": {
+                "field_name": "E4f",
+                "field_title": "E4f. Did you have chest pain, pressure or discomfort?",
+                "field_type": "bool",
+                "field_order": 69,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.98": {
+                "field_name": "E4g",
+                "field_title": "E4g. Did you have nausea, stomach problems or sudden diarrhea?",
+                "field_type": "bool",
+                "field_order": 70,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.99": {
+                "field_name": "E4h",
+                "field_title": "E4h. Did you feel dizzy, unsteady, lightheaded or faint?",
+                "field_type": "bool",
+                "field_order": 71,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.100": {
+                "field_name": "E4i",
+                "field_title": "E4i. Did things around you feel strange, unreal, detached or unfamiliar, or did you feel outside of or detached from part or all of your body?",
+                "field_type": "bool",
+                "field_order": 72,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.101": {
+                "field_name": "E4j",
+                "field_title": "E4j. Did you fear that you were losing control or going crazy?",
+                "field_type": "bool",
+                "field_order": 73,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.102": {
+                "field_name": "E4k",
+                "field_title": "E4k. Did you fear that you were dying?",
+                "field_type": "bool",
+                "field_order": 74,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.103": {
+                "field_name": "E4l",
+                "field_title": "E4l. Did you have tingling or numbness in parts of your body?",
+                "field_type": "bool",
+                "field_order": 75,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.104": {
+                "field_name": "E4m",
+                "field_title": "E4m. Did you have hot flushes or chills?",
+                "field_type": "bool",
+                "field_order": 76,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'"
+            },
+            "1.105": {
+                "field_name": "E5",
+                "field_title": "E5. ARE BOTH E3, AND 4 OR MORE E4 ANSWERS, CODED YES?",
+                "field_type": "bool",
+                "field_order": 77,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false';value_fg=([$(E4a),$(E4b),$(E4c),$(E4d),$(E4e),$(E4f),$(E4g),$(E4h),$(E4i),$(E4j),$(E4k),$(E4l),$(E4m)].filter((value) => value == 'true').length >= 4)&&$(E3)=='true' ? 'true' : 'false'"
+            },
+            "1.106": {
+                "field_name": "E5_diagnosis",
+                "field_type": "string",
+                "field_order": 77.5,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'&&$(E5)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Panic Disorder Lifetime</div>"
+            },
+            "1.107": {
+                "field_name": "E6",
+                "field_title": "E6. IF E5 = NO, ARE ANY E4 ANSWERS CODED YES?",
+                "field_type": "bool",
+                "field_order": 78,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'&&$(E5)=='false';value_fg=([$(E4a),$(E4b),$(E4c),$(E4d),$(E4e),$(E4f),$(E4g),$(E4h),$(E4i),$(E4j),$(E4k),$(E4l),$(E4m)].filter((value) => value == 'true').length >= 1) ? 'true' : 'false';"
+            },
+            "1.108": {
+                "field_name": "E6_diagnosis",
+                "field_type": "string",
+                "field_order": 78.5,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'&&$(E5)=='false'&&$(E6)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Limited Symptom Attacks Lifetime</div>"
+            },
+            "1.109": {
+                "field_name": "E7",
+                "field_title": "E7. In the past month, did you have such attacks repeatedly (2 or more) followed by persistent concern about having another attack?",
+                "field_type": "bool",
+                "field_order": 79,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'&&$(E6)=='false';"
+            },
+            "1.110": {
+                "field_name": "E7_diagnosis",
+                "field_type": "string",
+                "field_order": 79.5,
+                "field_constraint_data": "is_shown_fg=$(E1a)!='false'&&$(E1b)!='false'&&$(E2)!='false'&&$(E6)=='false'&&$(E7)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">Panic Disorder Current</div>"
+            },
+            "1.111": {
+                "field_name": "section_9",
+                "field_title": "F. AGORAPHOBIA",
+                "field_type": "string",
+                "field_order": 80,
+                "field_constraint_description": "subtitle"
+            },
+            "1.112": {
+                "field_name": "F1",
+                "field_title": "F1. Have you ever felt anxious or uneasy in places or situations where you might have a panic attack or the panic-like symptoms we just spoke about, or where help might not be available or escape might be difficult: like being in a crowd, standing in a line (queue), when you are alone away from home or alone at home, or when crossing a bridge, traveling in a bus, train or car?",
+                "field_type": "bool",
+                "field_order": 81
+            },
+            "1.113": {
+                "field_name": "F2",
+                "field_title": "F2. Have you ever feared these situations so much that you avoid them, or suffer through them, or need a companion to face them?",
+                "field_type": "bool",
+                "field_order": 82,
+                "field_constraint_data": "if($(F1)=='false'){value_fg= 'false';}"
+            },
+            "1.114": {
+                "field_name": "section_9_conclusion_0",
+                "field_type": "string",
+                "field_order": 82.5,
+                "field_constraint_data": "is_shown_fg=$(F2)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">AGORAPHOBIA LIFETIME </div>"
+            },
+            "1.115": {
+                "field_name": "section_9_conclusion_1",
+                "field_type": "string",
+                "field_order": 83,
+                "field_constraint_data": "is_shown_fg=$(F2)=='false' && $(E7)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">PANIC DISORDER without Agoraphobia CURRENT</div>"
+            },
+            "1.116": {
+                "field_name": "section_9_conclusion_2",
+                "field_type": "string",
+                "field_order": 84,
+                "field_constraint_data": "is_shown_fg=$(F2)=='true' && $(E7)=='true';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">PANIC DISORDER with Agoraphobia CURRENT</div>"
+            },
+            "1.117": {
+                "field_name": "section_9_conclusion_3",
+                "field_type": "string",
+                "field_order": 85,
+                "field_constraint_data": "is_shown_fg=$(F2)=='true' && $(E5)=='false';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">AGORAPHOBIA, LIFETIME without history of Panic Disorder</div>"
+            },
+            "1.118": {
+                "field_name": "section_10",
+                "field_title": "G. SOCIAL PHOBIA (Social Anxiety Disorder)",
+                "field_type": "string",
+                "field_order": 86,
+                "field_constraint_description": "subtitle"
+            },
+            "1.119": {
+                "field_name": "G1",
+                "field_title": "G1. Have you ever felt fearful or embarrassed being watched, being the focus of attention, or fearful of being humiliated?  This includes things like speaking in public, eating in public or with others, writing while someone watches, or being in social situations.",
+                "field_type": "bool",
+                "field_order": 87
+            },
+            "1.120": {
+                "field_name": "G2",
+                "field_title": "G2. Is/was this social fear excessive or unreasonable?",
+                "field_type": "bool",
+                "field_order": 88,
+                "field_constraint_data": "is_shown_fg=$(G1)!='false'"
+            },
+            "1.121": {
+                "field_name": "G3",
+                "field_title": "G3. Do/did you fear these social situations so much that you avoid them or suffer through them?",
+                "field_type": "bool",
+                "field_order": 89,
+                "field_constraint_data": "is_shown_fg=$(G1)!='false'&&$(G2)!='false'"
+            },
+            "1.122": {
+                "field_name": "G4",
+                "field_title": "G4. Do/did these social fears disrupt your normal work or social functioning or cause you significant distress?",
+                "field_type": "bool",
+                "field_order": 90,
+                "field_constraint_data": "is_shown_fg=$(G1)!='false'&&$(G2)!='false'&&$(G3)!='false'"
+            },
+            "1.123": {
+                "field_name": "G4_sub1",
+                "field_title": "Do/did you fear and avoid 4 or more social situations?",
+                "field_type": "bool",
+                "field_order": 91,
+                "field_constraint_data": "is_shown_fg=$(G1)!='false'&&$(G2)!='false'&&$(G3)!='false'&&$(G4)!='false'"
+            },
+            "1.124": {
+                "field_name": "section10con_conclusion2",
+                "field_title": "NOTE TO INTERVIEWER: PLEASE ASSESS WHETHER THE SUBJECT’S FEARS ARE RESTRICTED TO NON-GENERALIZED (“ONLY 1 OR SEVERAL”) SOCIAL SITUATIONS OR EXTEND TO GENERALIZED (“MOST”) SOCIAL SITUATIONS. “MOST” SOCIAL SITUATIONS IS USUALLY OPERATIONALIZED TO MEAN 4 OR MORE SOCIAL SITUATIONS, ALTHOUGH THE DSM-IV DOES NOT EXPLICITLY STATE THIS.",
+                "field_type": "string",
+                "field_order": 92,
+                "field_constraint_data": "is_shown_fg=$(G1)!='false'&&$(G2)!='false'&&$(G3)!='false'&&$(G4)!='false'",
+                "field_constraint_description": "description"
+            },
+            "1.125": {
+                "field_name": "section10con_conclusion3",
+                "field_title": "EXAMPLES OF SUCH SOCIAL SITUATIONS TYPICALLY INCLUDE INITIATING OR MAINTAINING A CONVERSATION, PARTICIPATING IN SMALL GROUPS, DATING, SPEAKING TO AUTHORITY FIGURES, ATTENDING PARTIES, PUBLIC SPEAKING, EATING IN FRONT OF OTHERS, URINATING IN A PUBLIC WASHROOM, ETC.",
+                "field_type": "string",
+                "field_order": 93,
+                "field_constraint_data": "is_shown_fg=$(G1)!='false'&&$(G2)!='false'&&$(G3)!='false'&&$(G4)!='false'",
+                "field_constraint_description": "description"
+            },
+            "1.126": {
+                "field_name": "section10_conclusion1s1",
+                "field_type": "string",
+                "field_order": 94,
+                "field_constraint_data": "is_shown_fg=$(G4)=='true'&&$(G4_sub1)=='true'&&$(G1)!='false'&&$(G2)!='false'&&$(G3)!='false'&&$(G4)!='false';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">GENERALIZED SOCIAL PHOBIA (Social Anxiety Disorder) LIFETIME</div>"
+            },
+            "1.127": {
+                "field_name": "section10_conclusion1s2",
+                "field_type": "string",
+                "field_order": 95,
+                "field_constraint_data": "is_shown_fg=$(G4)=='true'&&$(G4_sub1)=='false'&&$(G1)!='false'&&$(G2)!='false'&&$(G3)!='false'&&$(G4)!='false';value_fg=is_shown_fg?'Yes':'No';",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">NON-GENERALIZED SOCIAL PHOBIA (Social Anxiety Disorder) LIFETIME</div>"
+            },
+            "1.128": {
+                "field_name": "section_11",
+                "field_title": "O. GENERALIZED ANXIETY DISORDER",
+                "field_type": "string",
+                "field_order": 97,
+                "field_constraint_description": "subtitle"
+            },
+            "1.129": {
+                "field_name": "O1a",
+                "field_title": "O1a. Have you ever worried excessively or been anxious about several things?",
+                "field_type": "bool",
+                "field_order": 98
+            },
+            "1.130": {
+                "field_name": "O1b",
+                "field_title": "O1b. Are/were these worries present most days?",
+                "field_type": "bool",
+                "field_order": 99,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'"
+            },
+            "1.131": {
+                "field_name": "O1c",
+                "field_title": "IS THE PATIENT’S ANXIETY RESTRICTED EXCLUSIVELY TO, OR BETTER EXPLAINED BY, ANY DISORDER PRIOR TO THIS POINT?",
+                "field_type": "bool",
+                "field_order": 100,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'"
+            },
+            "1.132": {
+                "field_name": "f02",
+                "field_title": "O2. Do/did you find it difficult to control the worries or do/did they interfere with your ability to focus on what you are doing?",
+                "field_type": "bool",
+                "field_order": 101,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'"
+            },
+            "1.133": {
+                "field_name": "section11_subtitle1",
+                "field_title": "FOR THE FOLLOWING, CODE NO IF THE SYMPTOMS ARE CONFINED TO FEATURES OF ANY DISORDER EXPLORED PRIOR TO THIS POINT",
+                "field_type": "string",
+                "field_order": 102,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.134": {
+                "field_name": "section11_subtitle2",
+                "field_title": "O3. When you were anxious, did you, most of the time:",
+                "field_type": "string",
+                "field_order": 103,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.135": {
+                "field_name": "O3a",
+                "field_title": "O3a. Feel restless, keyed up or on edge?",
+                "field_type": "bool",
+                "field_order": 104,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'"
+            },
+            "1.136": {
+                "field_name": "O3b",
+                "field_title": "O3b. Feel tense?",
+                "field_type": "bool",
+                "field_order": 105,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'"
+            },
+            "1.137": {
+                "field_name": "O3c",
+                "field_title": "O3c. Feel tired, weak or exhausted easily?",
+                "field_type": "bool",
+                "field_order": 106,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'"
+            },
+            "1.138": {
+                "field_name": "O3d",
+                "field_title": "O3d. Have difficulty concentrating or find your mind going blank?",
+                "field_type": "bool",
+                "field_order": 107,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'"
+            },
+            "1.139": {
+                "field_name": "O3e",
+                "field_title": "O3e. Feel irritable?",
+                "field_type": "bool",
+                "field_order": 108,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'"
+            },
+            "1.140": {
+                "field_name": "O3f",
+                "field_title": "O3f. Have difficulty sleeping (difficulty falling asleep, waking up in the middle of the night, early morning wakening or sleeping excessively)?",
+                "field_type": "bool",
+                "field_order": 109,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'"
+            },
+            "1.141": {
+                "field_name": "O3g",
+                "field_title": "ARE 3 OR MORE O3 ANSWERS CODED YES?",
+                "field_type": "bool",
+                "field_order": 110,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false';value_fg=(([$(O3a),$(O3b),$(O3c),$(O3d),$(O3e),$(O3f)].filter((value) => value == 'true').length >= 3) ? 'true':'false');"
+            },
+            "1.142": {
+                "field_name": "section11_conclusion",
+                "field_type": "string",
+                "field_order": 111,
+                "field_constraint_data": "is_shown_fg=$(O1a)!='false'&&$(O1b)!='false'&&$(O1c)!='true'&&$(f02)!='false'&&([$(O3a),$(O3b),$(O3c),$(O3d),$(O3e),$(O3f)].filter((value) => value == 'true').length >= 3);value_fg=is_shown_fg?'Yes':'No'; ",
+                "field_constraint_description": "description",
+                "field_description": "<div style=\"border: 1px solid red; padding: 20px; \n font-weight: bold; border-radius: 5px;\">GENERALIZED ANXIETY DISORDER LIFETIME</div>"
+            }
+        },
+        "parent": {
+            "4": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

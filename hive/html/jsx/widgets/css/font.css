@@ -1,0 +1,103 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-Black.ttf');
+    font-weight:900;
+    font-style:normal;
+}
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-Bold.ttf');
+    font-weight:800;
+    font-style:normal;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-BoldItalic.ttf');
+    font-weight:800;
+    font-style:italic;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-SemiBold.ttf');
+    font-weight:600;
+    font-style:normal;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-SemiBoldItalic.ttf');
+    font-weight:600;
+    font-style:italic;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-Regular.ttf');
+    font-weight:400;
+    font-style:normal;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-Italic.ttf');
+    font-weight:400;
+    font-style:italic;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-Light.ttf');
+    font-weight:300;
+    font-style:normal;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-LightItalic.ttf');
+    font-weight:300;
+    font-style:italic;
+}
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-ExtraLight.ttf');
+    font-weight:100;
+    font-style:normal;
+}
+
+@font-face{
+    font-family: TitilliumWeb;
+    src: url('../fonts/Titillium_Web/TitilliumWeb-ExtraLightItalic.ttf');
+    font-weight:100;
+    font-style:italic;
+}

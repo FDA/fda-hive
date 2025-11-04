@@ -1,0 +1,42 @@
+{
+    "197": {
+        "_id": "$type.svc-align-clustal",
+        "_type": "type",
+        "name": "svc-align-clustal",
+        "title": "Clustal multiple alignment",
+        "description": "//\nlocation: hive.app.dna.dna-alignx",
+        "parent": {
+            "1": "$type.svc-align-multiple"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

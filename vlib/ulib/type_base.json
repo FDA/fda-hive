@@ -1,0 +1,58 @@
+{
+    "type.13": {
+        "_id": "type.13",
+        "_type": "type",
+        "name": "base",
+        "title": "Base type for all types",
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "created",
+                "field_title": "Created",
+                "field_type": "datetime",
+                "field_order": 1e+07,
+                "field_role": "state",
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            },
+            "1.2": {
+                "field_name": "modified",
+                "field_title": "Modified",
+                "field_type": "datetime",
+                "field_order": 1e+07,
+                "field_role": "state",
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

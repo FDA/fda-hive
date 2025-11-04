@@ -1,0 +1,144 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+.hv-button-set{
+    margin-bottom: 10px;
+}
+
+.hv-btn{
+    line-height: 1.499;
+    position: relative;
+    display: inline-block;
+    font-weight: 400;
+    white-space: nowrap;
+    text-align: center;
+    background-image: none;
+    box-shadow: 0 2px 0 rgba(0,0,0,.015);
+    cursor: pointer;
+    -webkit-transition: all .3s cubic-bezier(.645,.045,.355,1);
+    transition: all .3s cubic-bezier(.645,.045,.355,1);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    height: 32px;
+    padding: 0 15px;
+    color: rgba(0,0,0,1);
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 16px;
+}
+span.hv-btn{
+    line-height: 1.6;
+}
+
+.hv-btn:focus, .hv-btn:hover {
+    color: #40a9ff;
+    background-color: #fff;
+    border-color: #40a9ff;
+}
+
+.hv-btn-block{
+    margin: 15px 0px 0px 0px;
+    width: 100%;
+}
+.hv-btn-minor{
+    background-color: rgba(9,30,66,.08);
+    background-color: rgba(232, 234 ,236);
+    color: #344563;
+    border: none;
+    margin: 8px 5px 8px 0;
+    padding: 0 10px;
+    height: 27px;
+}
+.hv-btn-minor:hover {
+    color: #40a9ff;
+    color: #0271cc;
+    background-color: rgba(9,30,66,.13);
+    background-color: rgba(218, 224 ,230);
+     border: none;
+}
+.hv-btn-table {
+    margin: 1px 0px 2px 0px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 15%);
+}
+.hv-btn-link{
+    font-size: inherit;
+    border: none;
+    color: #40a9ff;
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0;
+}
+.hv-btn-link-selected{
+    font-weight: 600;
+}
+
+.hv-btn-link:hover{
+    border: none;
+    color: #40a9ff;
+    text-decoration: underline;
+    background-color: transparent;
+}
+.hv-btn-link-tbl {
+    height: unset;
+}
+.hv-button-set{
+    margin-bottom: 10px;
+    display: inline-block;
+}
+.hv-button-set .hv-btn {
+    margin-right: 8px;
+}
+.hv-btn-bundle
+{   
+    margin-right: 8px;
+    display: inline-block;
+}
+.hv-btn-bundle select
+{   
+    height: 32px;
+}
+
+.hv-btn-bundle button
+{   
+    height: 32px;
+    margin-left: -3px;
+}
+
+
+.hv-btn-bundle-select{
+    border-left: none;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}

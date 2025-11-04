@@ -1,0 +1,139 @@
+{
+    "type.102": {
+        "_id": "type.102",
+        "_type": "type",
+        "name": "user-info",
+        "title": "User Profile Details",
+        "description": "Webform to gather HIVE user biographical and profile information",
+        "parent": {
+            "1": "type.10"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "contact",
+                "field_title": "Contact",
+                "field_type": "list"
+            },
+            "1.2": {
+                "field_name": "contact_email",
+                "field_title": "Email",
+                "field_type": "string",
+                "field_parent": "contact",
+                "field_is_optional_fg": true,
+                "field_description": "Please enter the email address at which you would prefer to receive all contact from other users."
+            },
+            "1.3": {
+                "field_name": "contact_phone",
+                "field_title": "Phone",
+                "field_type": "string",
+                "field_parent": "contact",
+                "field_is_optional_fg": true,
+                "field_description": "Please enter the phone number at which you would prefer to receive all contact from other users."
+            },
+            "1.4": {
+                "field_name": "display_name",
+                "field_title": "User Name",
+                "field_type": "string",
+                "field_description": "Please enter your name as you would like it to appear in your user profile."
+            },
+            "1.5": {
+                "field_name": "education",
+                "field_title": "Education",
+                "field_type": "list"
+            },
+            "1.6": {
+                "field_name": "education_entry",
+                "field_title": "Entry",
+                "field_type": "array",
+                "field_parent": "education"
+            },
+            "1.7": {
+                "field_name": "education_entry_degree",
+                "field_title": "Degree",
+                "field_type": "string",
+                "field_parent": "education_entry",
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "B.S|B.A.|M.S|M.A|M.D.|Ph.D|Other",
+                "field_description": "Please choose the type of the degree earned."
+            },
+            "1.8": {
+                "field_name": "education_entry_institution",
+                "field_title": "Institution",
+                "field_type": "string",
+                "field_parent": "education_entry",
+                "field_is_multi_fg": true,
+                "field_description": "Please enter the name of the institution from which you earned the degree. "
+            },
+            "1.9": {
+                "field_name": "education_entry_program",
+                "field_title": "Program",
+                "field_type": "string",
+                "field_parent": "education_entry",
+                "field_is_multi_fg": true,
+                "field_description": "Please enter the name of program or concentration of the degree/study. "
+            },
+            "1.10": {
+                "field_name": "experience",
+                "field_title": "Experience",
+                "field_type": "string",
+                "field_description": "Please provide details about relevant work, academic or research-related experiences. "
+            },
+            "1.11": {
+                "field_name": "occupation",
+                "field_title": "Occupation",
+                "field_type": "list"
+            },
+            "1.12": {
+                "field_name": "occupation_employer",
+                "field_title": "Employer",
+                "field_type": "string",
+                "field_parent": "occupation",
+                "field_description": "Please provide the name of your current employer."
+            },
+            "1.13": {
+                "field_name": "occupation_location",
+                "field_title": "Location",
+                "field_type": "string",
+                "field_parent": "occupation",
+                "field_description": "Location of employment"
+            },
+            "1.14": {
+                "field_name": "occupation_role",
+                "field_title": "Role",
+                "field_type": "string",
+                "field_parent": "occupation",
+                "field_description": "Please provide a brief job description or title."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

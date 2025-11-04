@@ -1,0 +1,397 @@
+{
+    "4754": {
+        "_id": "$type.ci3_fistula_ret_new",
+        "_type": "type",
+        "name": "ci3_fistula_ret_new",
+        "title": "Fistula operations",
+        "fields": {
+            "1.1": {
+                "field_name": "demographics_subtitle",
+                "field_title": "Demographics",
+                "field_type": "string",
+                "field_order": 0.1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "demographics",
+                "field_title": "Demographics",
+                "field_type": "obj",
+                "field_order": 0.2,
+                "field_constraint": "type",
+                "field_constraint_data": "ci3_demographics"
+            },
+            "1.3": {
+                "field_name": "asa_class",
+                "field_title": "ASA class",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "I|II|III|IV|V"
+            },
+            "1.4": {
+                "field_name": "location_of_procedure",
+                "field_title": "Location of procedure",
+                "field_type": "string",
+                "field_order": 1.1
+            },
+            "1.5": {
+                "field_name": "number_of_fistulas",
+                "field_title": "Number of fistulas",
+                "field_type": "integer",
+                "field_order": 1.2
+            },
+            "1.6": {
+                "field_name": "presumed_reason_for_fistula",
+                "field_title": "Presumed reason for fistula",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Prior any intestinal surgery|Malignancy|Crohn's|Radiation enteritis|Anastomotic stricture|foreign body|Other (trauma,infection,vasculitis,ulcerative colitis)|Unknown"
+            },
+            "1.7": {
+                "field_name": "presumed_reason_for_sbo_other",
+                "field_title": "Other (specify)",
+                "field_type": "text",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(presumed_reason_for_fistula)=='Other (trauma,infection,vasculitis,ulcerative colitis)'"
+            },
+            "1.8": {
+                "field_name": "history_of_abdominal",
+                "field_title": "History of abd or pelvic XRT",
+                "field_type": "bool",
+                "field_order": 5
+            },
+            "1.9": {
+                "field_name": "number_of_prior_hospital_admissions",
+                "field_title": "No of prior hospital admissions",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "0|1|2|3-10|10+"
+            },
+            "1.10": {
+                "field_name": "number_of_prior_surgical_procedures",
+                "field_title": "No of prior surgical procedures",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "0|1|2|3-10|10+"
+            },
+            "1.11": {
+                "field_name": "prior_fistula_treatment",
+                "field_title": "Prior treatment for fistula",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "None|Yes < 6mos|Yes > 6mos|Unknown"
+            },
+            "1.12": {
+                "field_name": "fistula_parent",
+                "field_title": "For each fistula complete the following",
+                "field_type": "array",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.13": {
+                "field_name": "fistula_location",
+                "field_title": "fistula origin location",
+                "field_type": "string",
+                "field_parent": "fistula_parent",
+                "field_order": 10.01,
+                "field_constraint_data": "Proximal small bowel|Mid-small bowel|Distal small bowel|Large bowel"
+            },
+            "1.14": {
+                "field_name": "exit_location",
+                "field_title": "fistula exit location",
+                "field_type": "string",
+                "field_parent": "fistula_parent",
+                "field_order": 10.02
+            },
+            "1.15": {
+                "field_name": "draining",
+                "field_title": "concomittant percutaneous draining of abcess or collection",
+                "field_type": "string",
+                "field_parent": "fistula_parent",
+                "field_order": 10.04
+            },
+            "1.16": {
+                "field_name": "size_of_incision ",
+                "field_title": "Size of incision (cm)",
+                "field_type": "integer",
+                "field_parent": "fistula_parent",
+                "field_order": 10.07
+            },
+            "1.17": {
+                "field_name": "endoscope_used",
+                "field_title": "Endoscope used",
+                "field_type": "string",
+                "field_parent": "fistula_parent",
+                "field_order": 10.08,
+                "field_constraint_data": "Gastroscope|Bronchoscope|Adult c'scope|Ped c'scope|Ureteroscope|Rigid proctoscope|Anoscope|Spyglass|Ambu Scope|Other"
+            },
+            "1.18": {
+                "field_name": "endoscope_used_other",
+                "field_title": "Please specify",
+                "field_type": "text",
+                "field_parent": "fistula_parent",
+                "field_order": 10.09,
+                "field_constraint_data": "is_shown_fg=$(endoscope_used)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.19": {
+                "field_name": "guidewire",
+                "field_title": "Device type (Guidewire)",
+                "field_type": "bool",
+                "field_parent": "fistula_parent",
+                "field_order": 10.11
+            },
+            "1.20": {
+                "field_name": "guidewire_type",
+                "field_title": "Guidewire type - Brand name, size, list all",
+                "field_type": "text",
+                "field_parent": "fistula_parent",
+                "field_order": 10.12,
+                "field_constraint_data": "is_shown_fg=$(guidewire)=='true'"
+            },
+            "1.21": {
+                "field_name": "sheath",
+                "field_title": "Device type (Sheath)",
+                "field_type": "bool",
+                "field_parent": "fistula_parent",
+                "field_order": 10.13
+            },
+            "1.22": {
+                "field_name": "sheath_type",
+                "field_title": "Sheath type - Brand name, size, list all",
+                "field_type": "text",
+                "field_parent": "fistula_parent",
+                "field_order": 10.14,
+                "field_constraint_data": "is_shown_fg=$(sheath)=='true'"
+            },
+            "1.23": {
+                "field_name": "device_used",
+                "field_title": "Device used (catheter, clip, clip+catheter, other closure device)",
+                "field_type": "bool",
+                "field_parent": "fistula_parent",
+                "field_order": 10.16
+            },
+            "1.24": {
+                "field_name": "device_type",
+                "field_title": "Device type",
+                "field_type": "text",
+                "field_parent": "fistula_parent",
+                "field_order": 10.17,
+                "field_constraint_data": "is_shown_fg=$(device_used)=='true'"
+            },
+            "1.25": {
+                "field_name": "simultaneously_cells",
+                "field_title": "Simultaneously performed CELLS procedure",
+                "field_type": "bool",
+                "field_parent": "fistula_parent",
+                "field_order": 10.06
+            },
+            "1.26": {
+                "field_name": "endoscopic_access",
+                "field_title": "endoscopic fistula access",
+                "field_type": "string",
+                "field_parent": "fistula_parent",
+                "field_order": 10.03
+            },
+            "1.27": {
+                "field_name": "simultaneously_laparoscopic_open",
+                "field_title": "Simultaneously performed laparoscopic or open procedure",
+                "field_type": "bool",
+                "field_parent": "fistula_parent",
+                "field_order": 10.05
+            },
+            "1.28": {
+                "field_name": "simultaneously_performed",
+                "field_title": "Simultaneously performed",
+                "field_type": "string",
+                "field_parent": "fistula_parent",
+                "field_order": 10.18,
+                "field_constraint_data": "None performed|Endoscopy via percutaneous|Colonoscopy|Enteroscopy via ileostomy|Other (specify)|N/A|Unknown"
+            },
+            "1.29": {
+                "field_name": "simultaneously_performed_other",
+                "field_title": "Please specify",
+                "field_type": "text",
+                "field_parent": "fistula_parent",
+                "field_order": 10.19,
+                "field_constraint_data": "is_shown_fg=$(simultaneously_performed)=='Other (specify)'"
+            },
+            "1.30": {
+                "field_name": "intraop_imaging",
+                "field_title": "Intraop imaging to reach lesion and execute procedure",
+                "field_type": "string",
+                "field_order": 28,
+                "field_constraint_data": "Fluoroscopy|Cone beam CT|CT|fistuloscopy (e.g spy glass)|Other (e.g. MRI, ultrasound)"
+            },
+            "1.31": {
+                "field_name": "intraop_complications",
+                "field_title": "Intraop complications",
+                "field_type": "string",
+                "field_order": 31,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Bleeding|Free perforation|leakage of contrast(small perforation)|nearby structure or organ damage|Other"
+            },
+            "1.32": {
+                "field_name": "intraop_complications_other",
+                "field_title": "Please specify",
+                "field_type": "text",
+                "field_order": 32,
+                "field_constraint_data": "is_shown_fg=$(intraop_complications)=='Other'"
+            },
+            "1.33": {
+                "field_name": "device_malfunction",
+                "field_title": "Device malfunction",
+                "field_type": "bool",
+                "field_order": 33
+            },
+            "1.34": {
+                "field_name": "malfunction_type",
+                "field_title": "Malfunction type",
+                "field_type": "text",
+                "field_order": 34,
+                "field_constraint_data": "is_shown_fg=$(device_malfunction)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.35": {
+                "field_name": "procedure_time",
+                "field_title": "Procedure time(min)",
+                "field_type": "integer",
+                "field_order": 35
+            },
+            "1.36": {
+                "field_name": "approach_successful",
+                "field_title": "Approach successful",
+                "field_type": "bool",
+                "field_order": 36
+            },
+            "1.37": {
+                "field_name": "return_to_OR",
+                "field_title": "return to OR (within 24hrs)",
+                "field_type": "string",
+                "field_order": 37,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.38": {
+                "field_name": "in_hospital_complications",
+                "field_title": "In hospital complications",
+                "field_type": "string",
+                "field_order": 38,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Intraabd infection|Intestinal perf/leak|Superficial wound infection|Sepsis|MI|Stroke|Pneumonia|DVT/PE|Death"
+            },
+            "1.39": {
+                "field_name": "post_procedure_los",
+                "field_title": "Post procedure length of stay (days)",
+                "field_type": "integer",
+                "field_order": 39
+            },
+            "1.40": {
+                "field_name": "antibiotics",
+                "field_title": "Post procedure antibiotics >24 hrs?",
+                "field_type": "bool",
+                "field_order": 40
+            },
+            "1.41": {
+                "field_name": "recurrence_1_hospital",
+                "field_title": "Recurrence",
+                "field_type": "bool",
+                "field_order": 44
+            },
+            "1.42": {
+                "field_name": "recurrence_1_date",
+                "field_title": "Date of 1st recurrence",
+                "field_type": "date",
+                "field_order": 45
+            },
+            "1.43": {
+                "field_name": "recurrence_1_procedure_date",
+                "field_title": "Date of 1st procedure for recurrence",
+                "field_type": "date",
+                "field_order": 46
+            },
+            "1.44": {
+                "field_name": "recurrence_1_novel",
+                "field_title": "1st recurrence - Novel?",
+                "field_type": "bool",
+                "field_order": 47
+            },
+            "1.45": {
+                "field_name": "recurrence_2_date",
+                "field_title": "Date of 2nd recurrence",
+                "field_type": "date",
+                "field_order": 50
+            },
+            "1.46": {
+                "field_name": "recurrence_2_procedure_date",
+                "field_title": "Date of 2nd procedure for recurrence",
+                "field_type": "date",
+                "field_order": 51
+            },
+            "1.47": {
+                "field_name": "recurrence_2_novel",
+                "field_title": "2st recurrence - Novel?",
+                "field_type": "bool",
+                "field_order": 52
+            },
+            "1.48": {
+                "field_name": "recurrence_3_date",
+                "field_title": "Date of 3rd recurrence",
+                "field_type": "date",
+                "field_order": 55
+            },
+            "1.49": {
+                "field_name": "recurrence_3_procedure_date",
+                "field_title": "Date of 3rd procedure for recurrence",
+                "field_type": "date",
+                "field_order": 56
+            },
+            "1.50": {
+                "field_name": "recurrence_3_novel",
+                "field_title": "3st recurrence - Novel?",
+                "field_type": "bool",
+                "field_order": 57
+            },
+            "1.51": {
+                "field_name": "recurrence_4_date",
+                "field_title": "Date of 4th recurrence",
+                "field_type": "date",
+                "field_order": 60
+            },
+            "1.52": {
+                "field_name": "recurrence_4_procedure_date",
+                "field_title": "Date of 4th procedure for recurrence",
+                "field_type": "date",
+                "field_order": 61
+            },
+            "1.53": {
+                "field_name": "recurrence_4_novel",
+                "field_title": "4st recurrence - Novel?",
+                "field_type": "bool",
+                "field_order": 62
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_retrospective"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

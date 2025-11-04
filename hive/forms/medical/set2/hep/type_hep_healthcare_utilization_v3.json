@@ -1,0 +1,29 @@
+{
+    "492": {
+        "_id": "$type.hep_healthcare_utilization_v3",
+        "_type": "type",
+        "name": "hep_healthcare_utilization_v3",
+        "title": "Healthcare Utilization",
+        "parent": {
+            "3": "$type.hep_healthcare_utilization"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

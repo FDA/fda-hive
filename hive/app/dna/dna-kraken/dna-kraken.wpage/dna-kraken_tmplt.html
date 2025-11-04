@@ -1,0 +1,45 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script src="js/vjIFrameView.js"></script>
+<script src="?cmd=~^dna-kraken$~svc-dna-kraken.js"></script>
+
+<script type="application/javascript">
+
+    setLocationTitle("Kraken Service: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "dna-kraken", "svc-dna-kraken");
+    algoProcess.visibleParameters=["name","inputs","DB"];
+    algoProcess.submitButtonName="Submit";
+    algoProcess.initialPresets={
+        "sysapp":"query:alloftype('sysappdep',{name:'dna-kraken'})[0]",
+        "sysdocker":"query:alloftype('sysdocker',{name:'kraken-metaphlan-image'})[0]",
+        "DB":"query:alloftype('special',{name:'krakenDB'})[0]"
+    };     
+    
+    gInitList += "dnaKrakenInit();";
+    function dnaKrakenInit () {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-dna-kraken',
+            algoTitle: "Kraken Utility"
+        });
+        
+    };
+</script>
+

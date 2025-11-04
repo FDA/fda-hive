@@ -1,0 +1,50 @@
+{
+    "type.86": {
+        "_id": "type.86",
+        "_type": "type",
+        "name": "algorithm-alignment",
+        "title": "Alignment algorihtms",
+        "description": "Alignment algorihtms",
+        "parent": {
+            "1": "type.85"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.0": {
+                "field_name": "type_name",
+                "field_title": "Type name",
+                "field_type": "string",
+                "field_role": "parameter"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

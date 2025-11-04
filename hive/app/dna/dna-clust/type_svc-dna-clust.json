@@ -1,0 +1,318 @@
+{
+    "221": {
+        "_id": "$type.svc-dna-clust",
+        "_type": "type",
+        "name": "svc-dna-clust",
+        "title": "Hierarchical clustering engine",
+        "description": "//Hierarchical clustering tool for alignment profiling results\nlocation: hive.app.dna.dna-clust",
+        "parent": {
+            "1": "$type.svc-profile"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "algorithm",
+                "field_title": "Clustering algorithm",
+                "field_type": "string",
+                "field_order": 4,
+                "field_default_value": "neighbor-joining",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "choice",
+                "field_constraint_data": "single-link///Single link|complete-link///Complete link|neighbor-joining///Neighbor joining|fast-neighbor-joining///Fast neighbor joining|shrunk-only///Do not cluster, only calculate shrunk sequences"
+            },
+            "1.2": {
+                "field_name": "algorithmGroup",
+                "field_title": "Additional algorithm parameters",
+                "field_type": "list",
+                "field_order": 20,
+                "field_is_hidden_fg": true
+            },
+            "1.3": {
+                "field_name": "distance",
+                "field_title": "Distance function",
+                "field_type": "string",
+                "field_order": 5,
+                "field_default_value": "euclidean",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "choice",
+                "field_constraint_data": "euclidean///Euclidean distance|manhattan///Manhattan distance|maximum///Maximum distance|pnorm///p-Norm|canberra///Canberra distance|cosine///Cosine similarity|pearson///Pearson correlation coefficient"
+            },
+            "1.4": {
+                "field_name": "distanceParamsGroup",
+                "field_title": "Distance function parameters",
+                "field_type": "list",
+                "field_order": 6
+            },
+            "1.5": {
+                "field_name": "incompleteSubjects",
+                "field_title": "References with incomplete profiling data",
+                "field_type": "string",
+                "field_order": 12,
+                "field_default_value": "skip",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "choice",
+                "field_constraint_data": "zero///Treat missing data as SNP-free|skip///Skip in calculation",
+                "field_description": "How to treat those references that are missing from some of the selected profiled sequences"
+            },
+            "1.6": {
+                "field_name": "maxThresholdPercent",
+                "field_title": "Maximum (%)",
+                "field_type": "real",
+                "field_parent": "thresholdGroup",
+                "field_order": 16,
+                "field_default_value": "100",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) > 0 && $_(val) <= 100"
+            },
+            "1.7": {
+                "field_name": "minCoverage",
+                "field_title": "Minimum coverage",
+                "field_type": "integer",
+                "field_order": 13,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.8": {
+                "field_name": "minThresholdPercent",
+                "field_title": "Minimum (%)",
+                "field_type": "real",
+                "field_parent": "thresholdGroup",
+                "field_order": 15,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) <= 100"
+            },
+            "1.9": {
+                "field_name": "noise",
+                "field_title": "Noise filtering for unfiltered profiling data",
+                "field_type": "string",
+                "field_order": 10,
+                "field_default_value": "auto",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "choice",
+                "field_constraint_data": "auto///Automatically filter 95% noise|none///Do not filter noise",
+                "field_description": "Only applies to profiles which were not already noise filtered"
+            },
+            "1.10": {
+                "field_name": "pearsonSquared",
+                "field_title": "Pearson squared",
+                "field_type": "bool",
+                "field_parent": "distanceParamsGroup",
+                "field_order": 8,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1
+            },
+            "1.11": {
+                "field_name": "pearsonUncentered",
+                "field_title": "Pearson uncentered",
+                "field_type": "bool",
+                "field_parent": "distanceParamsGroup",
+                "field_order": 9,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1
+            },
+            "1.12": {
+                "field_name": "profileID",
+                "field_title": "HIVE-Heptagon profiling results to compare",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_is_readonly_fg": -1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler"
+            },
+            "1.13": {
+                "field_name": "pValue",
+                "field_title": "p",
+                "field_type": "real",
+                "field_parent": "distanceParamsGroup",
+                "field_order": 7,
+                "field_default_value": "2.0",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "range",
+                "field_constraint_data": "1-2147483647"
+            },
+            "1.14": {
+                "field_name": "referenceID",
+                "field_title": "Reference genome",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_readonly_fg": -1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.15": {
+                "field_name": "saveShrunk",
+                "field_title": "Save generated shrunk sequences",
+                "field_type": "bool",
+                "field_parent": "thresholdGroup",
+                "field_order": 22,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_description": "Save the subsequences that satisfy the threshold as files to allow them to be downloaded and analyzed using external tools"
+            },
+            "1.16": {
+                "field_name": "saveShrunkSNPClass",
+                "field_title": "<b>experimental</b> Save shrunk SNP table for classification analysis",
+                "field_type": "bool",
+                "field_parent": "thresholdGroup",
+                "field_order": 23,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1
+            },
+            "1.17": {
+                "field_name": "saveShrunkSNPPos",
+                "field_title": "<b>experimental</b> Save shrunk SNP table for per-position analysis",
+                "field_type": "bool",
+                "field_parent": "thresholdGroup",
+                "field_order": 24,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1
+            },
+            "1.18": {
+                "field_name": "SNPCompareAlgorithm",
+                "field_title": "SNP Comparison Algorithm",
+                "field_type": "integer",
+                "field_parent": "algorithmGroup",
+                "field_order": 21,
+                "field_default_value": "2",
+                "field_is_readonly_fg": -1,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Compare Consensus|1///Frequency Cutoff|2///Compare two most frequent bases"
+            },
+            "1.19": {
+                "field_name": "subjects",
+                "field_title": "Reference genes",
+                "field_type": "integer",
+                "field_order": 11,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\"fetch\":\"#\",\"url\":\"static://\",\"inline\":[{\"name\":\"#\", \"title\":\"ID\", \"hidden\":false}, {\"name\":\"id\", \"title\": \"Name\", \"hidden\": false}],\"outline\":[{\"name\":\"#\", \"title\":\"ID\", \"hidden\": false}, {\"name\":\"len\", \"title\":\"Length\", \"hidden\": false}, {\"name\": \"id\", \"title\": \"Name\", \"hidden\": false}]}"
+            },
+            "1.20": {
+                "field_name": "thresholdAny",
+                "field_title": "All profiles as long as one profile meets constraint",
+                "field_type": "bool",
+                "field_parent": "thresholdExceptionGroup",
+                "field_order": 18,
+                "field_default_value": "1",
+                "field_is_readonly_fg": -1,
+                "field_description": "Include SNP frequency data from all profiles at a given position as long as the SNP frequency for at least one profile at that position met frequency range constraints"
+            },
+            "1.21": {
+                "field_name": "thresholdExceptionGroup",
+                "field_title": "Exceptions",
+                "field_type": "list",
+                "field_parent": "thresholdGroup",
+                "field_order": 17
+            },
+            "1.22": {
+                "field_name": "thresholdGroup",
+                "field_title": "SNP frequency range to consider",
+                "field_type": "list",
+                "field_order": 14
+            },
+            "1.23": {
+                "field_name": "thresholdWindow",
+                "field_title": "Position range &plusmn; around position that meets constraint",
+                "field_type": "integer",
+                "field_parent": "thresholdExceptionGroup",
+                "field_order": 19,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0",
+                "field_description": "Include SNP frequency data at all positions within a certain delta of a position that met frequency range constraints"
+            },
+            "1.25": {
+                "field_name": "saveShrunkSNPClassGroup",
+                "field_title": "Shrunk SNP for classification",
+                "field_type": "list",
+                "field_parent": "thresholdGroup",
+                "field_order": 25
+            },
+            "1.26": {
+                "field_name": "saveShrunkSNPClassProfilesTitle",
+                "field_title": "Title for profiles column",
+                "field_type": "string",
+                "field_parent": "saveShrunkSNPClassGroup",
+                "field_order": 29,
+                "field_default_value": "profile"
+            },
+            "1.27": {
+                "field_name": "profileLabelTemplate",
+                "field_title": "Custom per-profile label template",
+                "field_type": "string",
+                "field_order": 31,
+                "field_is_optional_fg": true,
+                "field_description": "You can use the following variables: $(profile) = profiler object."
+            },
+            "1.28": {
+                "field_name": "saveShrunkSNPClassCellType",
+                "field_title": "Classification data",
+                "field_type": "string",
+                "field_parent": "saveShrunkSNPClassGroup",
+                "field_order": 27,
+                "field_default_value": "frequency",
+                "field_constraint": "choice",
+                "field_constraint_data": "frequency|coverage"
+            },
+            "1.29": {
+                "field_name": "saveShrunkSNPClassColType",
+                "field_title": "Classification columns",
+                "field_type": "string",
+                "field_parent": "saveShrunkSNPClassGroup",
+                "field_order": 28,
+                "field_default_value": "position",
+                "field_constraint": "choice",
+                "field_constraint_data": "position///positions|atgc///A, T, G, C for each position|atgcindel///A, T, G, C, ins, del for each position"
+            },
+            "1.30": {
+                "field_name": "saveShrunkSNPClassColLabelTemplate",
+                "field_title": "Custom position column titles template",
+                "field_type": "string",
+                "field_parent": "saveShrunkSNPClassGroup",
+                "field_order": 30,
+                "field_is_optional_fg": true,
+                "field_description": "You can use the following variables: $(isub) = index of reference; $(id) = name of reference; $(position) = position in genome; $(letter) = letter (A, T, G, C, ins, del)."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

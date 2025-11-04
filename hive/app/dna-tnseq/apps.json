@@ -1,0 +1,46 @@
+{
+    "109": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Tn-Seq",
+        "base_app_description": "Format alignments into unified Tn-Seq table",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-tnseq",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Post-Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

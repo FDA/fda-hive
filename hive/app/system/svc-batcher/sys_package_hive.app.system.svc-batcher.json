@@ -1,0 +1,27 @@
+{
+    "117": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "svc-batcher",
+                "dir": "$(HIVE.repo)/hive/app/system/svc-batcher",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.system.svc-batcher",
+        "description": "SVC-BATCHER is HIVEs batch mode service multiplication/batching service",
+        "authors": {
+            "24": "V.Simonyan",
+            "39": "A.Rostovtsev"
+        },
+        "contributors": {
+            "28": "A.Golikov"
+        },
+        "synonyms": {
+            "36": "Service batcher"
+        }
+    }
+}

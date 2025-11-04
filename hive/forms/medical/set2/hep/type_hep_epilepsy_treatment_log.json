@@ -1,0 +1,242 @@
+{
+    "486": {
+        "_id": "$type.hep_epilepsy_treatment_log",
+        "_type": "type",
+        "name": "hep_epilepsy_treatment_log",
+        "title": "Pre-HEP Epilepsy Treatment Log",
+        "fields": {
+            "1.1": {
+                "field_name": "AED_parent",
+                "field_title": "Please record all AEDs the subject took before participating in the study.  Enter each dose change on a new line.  All other medications (i.e., non AEDs) should be recorded on the Non Anti-Epileptic Medication Log.",
+                "field_type": "array",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "col-3"
+            },
+            "1.2": {
+                "field_name": "aed_generid_name",
+                "field_title": "Generic Name of AED",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 1,
+                "field_constraint_data": "Carbamazepine|Clonazepam|Divalproex sodium|Eslicarbazepine|Ethosuximide|Ezogabine|Felbamate|Fosphenytoin|Gabapentin|Lacosamide|Lamotrigine|Levetiracetam|Lorazepam|Oxcarbazepine|Perampanel|Phenytoin|Pregabalin|Primidone|Sodium Valproate|Tiagabine|Topiramate|Valproate|Vigabatrin|Zonisamide|Other"
+            },
+            "1.3": {
+                "field_name": "generic_name_other",
+                "field_title": "If other, enter generic drug name below ('Other' generic name of AED only, do not include formulation. (e.g. Levetiracetam not Levetiracetam XR))",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(aed_generid_name)=='Other'"
+            },
+            "1.4": {
+                "field_name": "brand_used",
+                "field_title": "Generic or Brand Used?",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 3,
+                "field_constraint_data": "Generic|Brand|Unknown"
+            },
+            "1.5": {
+                "field_name": "brand_names",
+                "field_title": "Specify Brand",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 4,
+                "field_constraint_data": "Aptiom|Ativan|Carbatrol|Cerebyx|Depakote|Dilantin|Epilim|Felbatol|Fycompa|Gabitril|Keppra|Klonopin|Lamictal|Lyrica|Mysoline|Neurontin|Oxtellar|Potiga|Sabril|Tegretol|Topamax|Trileptal|Vimpat|Zarontin|Zonegran|Other\n>is_shown_fg=$(brand_used)=='Brand'"
+            },
+            "1.6": {
+                "field_name": "brand_name_other",
+                "field_title": "If other, enter brand drug name below ('Other' brand name of AED only, do not include formulation. (e.g. Lamictal not Lamictal XR))",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(brand_names)=='Other'"
+            },
+            "1.7": {
+                "field_name": "formulation",
+                "field_title": "Formulation",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 6,
+                "field_constraint_data": "Blank|Capsule|Controlled Release (CR)|Delayed Release (DR)|Divalproex only|Extended Release (XR)|Immediate Release (IR)|Intravenous (IV)|Tablet|Unknown|Other"
+            },
+            "1.8": {
+                "field_name": "formulation_other",
+                "field_title": "If other or requires additional information, enter details into the formulation details field below",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 7,
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "daily_dose",
+                "field_title": "Total Daily Dose  (mg)",
+                "field_type": "integer",
+                "field_parent": "AED_parent",
+                "field_order": 8
+            },
+            "1.10": {
+                "field_name": "regimen",
+                "field_title": "Regimen (mg) AM, Midday, PM, HS",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 9
+            },
+            "1.11": {
+                "field_name": "route",
+                "field_title": "Route",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 10,
+                "field_constraint_data": "Buccal (BUC)|Inhaled (INH)|Intramuscular (IM)|Intravenous (IV)|Nasal (NAS)|Oral (PO)|Rectal (REC)|Subcutaneous (SQ)|Sublingual (SL)|Transdermal (TD)|Unknown (UNK)|Other (OTH)"
+            },
+            "1.12": {
+                "field_name": "route_other",
+                "field_title": "If other, please specify",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(route)=='Other (OTH)'"
+            },
+            "1.13": {
+                "field_name": "start_date",
+                "field_title": "Start Date",
+                "field_type": "date",
+                "field_parent": "AED_parent",
+                "field_order": 12,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(unknown_start_date)=='false'"
+            },
+            "1.14": {
+                "field_name": "string_start_date",
+                "field_title": "Start Year",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 12.2,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(unknown_start_date)=='true'"
+            },
+            "1.15": {
+                "field_name": "unknown_start_date",
+                "field_title": "Unknown Start Date",
+                "field_type": "bool",
+                "field_parent": "AED_parent",
+                "field_order": 12.3,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.16": {
+                "field_name": "stop_date",
+                "field_title": "Stop Date",
+                "field_type": "date",
+                "field_parent": "AED_parent",
+                "field_order": 13,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}\n>is_shown_fg=$(unknown_stop_date)=='false'"
+            },
+            "1.17": {
+                "field_name": "unknown_stop_date",
+                "field_title": "Unknown Stop Date",
+                "field_type": "bool",
+                "field_parent": "AED_parent",
+                "field_order": 13.2,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.18": {
+                "field_name": "string_stop_date",
+                "field_title": "Stop Year",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 13.1,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(unknown_stop_date)=='true'"
+            },
+            "1.19": {
+                "field_name": "prn_aed",
+                "field_title": "PRN AED?",
+                "field_type": "bool",
+                "field_parent": "AED_parent",
+                "field_order": 14
+            },
+            "1.20": {
+                "field_name": "average_frequency",
+                "field_title": "If PRN, Average Frequency (Times per month)",
+                "field_type": "integer",
+                "field_parent": "AED_parent",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(prn_aed)=='true'"
+            },
+            "1.21": {
+                "field_name": "discontinuation_reasons",
+                "field_title": "If Applicable, Reason for Discontinuation (Check all that apply)",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Idiosyncratic Side Effect(s)|Dose Related Side Effect(s)|Inadequate Seizure Control|Telemetry (VEEG monitoring)|Other"
+            },
+            "1.22": {
+                "field_name": "idiosyncratic_side_effects",
+                "field_title": "Specify Idiosyncratic Side Effect(s)",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(discontinuation_reasons)=='Idiosyncratic Side Effect(s)'"
+            },
+            "1.23": {
+                "field_name": "dose_related_side_effects",
+                "field_title": "Specify Dose Related Side Effect(s)",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 18,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(discontinuation_reasons)=='Dose Related Side Effect(s)'"
+            },
+            "1.24": {
+                "field_name": "discontinuation_reasons_other",
+                "field_title": "Specify Other Reason For Discontinuation:",
+                "field_type": "string",
+                "field_parent": "AED_parent",
+                "field_order": 19,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(discontinuation_reasons)=='Other'"
+            },
+            "1.25": {
+                "field_name": "comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_parent": "AED_parent",
+                "field_order": 20,
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "255": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-parser",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-parser",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-parser",
+        "description": "DNA-PARSER performs NGS sequence access optimization indexing.\n\nThis utility is used by data loaders for ingesting NGS files into HIVE.",
+        "dependencies": {
+            "5": "hive.app.dm.dmAnnot,hive.app.dm.dmDownloader"
+        },
+        "authors": {
+            "22": "V.Simonyan",
+            "35": "A.Golikov",
+            "36": "L.Santana-Quinterro",
+            "37": "C.Lam"
+        }
+    }
+}

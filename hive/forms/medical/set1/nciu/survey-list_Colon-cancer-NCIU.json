@@ -1,0 +1,127 @@
+{
+    "33582": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "Colon-cancer-NCIU",
+        "survey": {
+            "10": {
+                "10.0": {
+                    "name": "$type.nciu_demographics",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "21": {
+                "21.0": {
+                    "name": "$type.nciu_exposures",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "22": {
+                "22.0": {
+                    "name": "$type.nciu_family_history",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "23": {
+                "23.0": {
+                    "name": "$type.nciu_diagnosis",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "24": {
+                "24.0": {
+                    "name": "$type.nciu_treatment",
+                    "order": 5,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "25": {
+                "25.0": {
+                    "name": "$type.nciu_follow_up",
+                    "order": 6,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "26": {
+                "26.0": {
+                    "name": "$type.nciu_molecular_test",
+                    "order": 8,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "27": {
+                "27.0": {
+                    "name": "$type.nciu_pathology_detail",
+                    "order": 9,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            },
+            "38": {
+                "38.0": {
+                    "name": "$type.nciu_adverse_event",
+                    "order": 7,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 1
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

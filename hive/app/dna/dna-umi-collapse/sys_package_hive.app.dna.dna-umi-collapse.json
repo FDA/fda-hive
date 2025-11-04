@@ -1,0 +1,23 @@
+{
+    "286": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-umi-collapse",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-umi-collapse",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-umi-collapse",
+        "description": "UMI collapse collapses NGS sequence collapse based on UMIs. ",
+        "authors": {
+            "7": "V.Simonyan"
+        },
+        "contributors": {
+            "9": "E.Thompson"
+        }
+    }
+}

@@ -1,0 +1,348 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+/* PROJECTs FRIENDLY*/
+
+
+
+#projectsFriendly {
+    font-family: Arial, sans-serif;
+    background-color: white;
+    width: 1020px;
+    margin: 0px auto;
+    padding: 0px 20px;
+    position: relative;
+}
+#projectsFriendly h1{
+    font-weight: 300;
+    display: inline-block;
+}
+#projectsFriendly p{
+    margin:0px;
+}
+/*
+.project-friendly__project {
+    margin-bottom: 70px;
+}
+.project-friendly__project:last-of-type {
+    margin-bottom: 0px;
+}
+
+.project-friendly__banner {
+    width: 100%;
+    display: block;
+    padding: 20px 0px;
+    border-top: 4px solid #dddddd;
+    overflow: auto;
+}
+
+.project-friendly__banner:first-of-type {
+
+    border-top:none;
+}
+
+.project-friendly__project-title {
+    font-size: 30px;
+    font-weight: 600;
+    display: inline-block;
+    width: 75%;
+    margin-bottom: 20px;
+    line-height: 1.3em
+}
+
+.project-friendly__logo {
+    float: right;
+}
+
+.project-friendly__title {
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 1em;
+    line-height: 1em;
+    padding-top: 15px;
+}
+
+.project-friendly__description {
+    font-family: inherit;
+    font-size: 1em;
+}
+
+.project-friendly__title.pf--lvl-0 {
+    font-size: 22px;
+}
+
+.project-friendly__title.pf--lvl-1 {
+    font-size: 18px;
+}
+
+.project-friendly__title.pf--lvl-2 {
+    font-size: 16px;
+}
+
+.project-friendly__wrap {
+    margin-top: 10px;
+    display: block;
+}
+
+.project-friendly__block {
+    display: inline-block;
+    margin-right: 20px;
+    min-width: 150px;
+}
+
+.project-friendly__wrap .project-friendly__title {
+    padding-top: 0px;
+}
+
+p[class*="-initial"] {
+    font-size: 1em;
+}
+
+#hive_default_bottom_section {
+    display: none;
+}
+*/
+
+
+
+.hv-margin-l-25{
+    padding-left: 25px;
+}
+.hv-display-inline{
+    display:inline-block;
+    vertical-align: top;
+    margin-bottom: 15px;
+}
+.hv-project-friendly__project{
+    margin-bottom: 70px;
+}
+.hv-project-friendly__project > div{
+    display: block;
+    margin-bottom: 25px;
+    margin-left: -25px;
+}
+div.hv-project-friendly__title-logo{
+    margin-left: 0px;
+}
+
+.hv-project-friendly__title-logo> h1{
+    max-width: 800px;
+}
+.hv-project-friendly__logo {
+    float: right;
+
+}
+
+#projectsFriendly .hv-project-friendly__title{
+    text-transform: uppercase;
+    font-size: 16px;
+}
+#projectsFriendly .hv-project-friendly__project > div > p.hv-project-friendly__title{
+    margin-top: 15px;
+    font-size: 22px;
+    text-transform: none;
+}
+#projectsFriendly .hv-project-friendly__project > div > p.hv-project-friendly__title > b{
+    font-weight: 300;
+}
+
+#projectsFriendly .hv-project-friendly__last-field>p{
+    font-size: 16;
+     text-transform: none;
+}
+.hv-project-friendly__last-field{
+    margin-bottom: 15px;
+    min-width: 250px;
+    max-width: 350px;
+}
+.hv-fullwidth{
+    width: 100%;
+    max-width: none;
+}
+.hv-halfwidth{
+    width: 50%;
+    max-width: none;
+}
+.hv-project-friendly__visibility{
+    position: relative;
+}
+.hv-visibility__icon{
+    display: none;
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    cursor:pointer;
+}
+.hv-project-friendly__visibility:hover{
+    background-color: rgba(155, 199, 237, 0.3);
+    background-color: rgba(0, 180, 255, 0.1);
+    border-radius: 4px;
+}
+.hv-project-friendly__visibility:hover > .hv-visibility__icon{
+    display: block;
+    cursor:pointer;
+}
+.hv-hidden{
+    opacity: 0.5;
+}
+
+@media print {
+    .hv-hidden{
+        display: none !important;
+    }
+    hr , #header,
+    #hive_default_bottom_section {
+        display: none;
+    }
+    .hv-project-friendly__project {
+        margin-bottom: 0px;
+        page-break-after: always;
+    }
+    .hv-project-friendly__project>*{
+        page-break-after: avoid;
+        page-break-before: avoid;
+    }
+    .hv-visibility__icon ,
+    .hv-project-friendly__visibility:hover > .hv-visibility__icon {
+        display: none;
+    }
+/*
+    .project-friendly__banner {
+        border-bottom: 1px solid #666666;
+        border-top: none;
+    }
+*/
+    #projectsFriendly {
+        font-family: "Times New Roman", Georgia, Times, serif !important;
+        background-color: white;
+        width: 100%;
+        margin: 0px;
+        padding: 0px;
+        box-sizing: border-box;
+    }
+    #projectsFriendly p {
+        font-family: "Times New Roman", Georgia, Times, serif !important;
+        font-size: 14px;
+    }
+    .hv-project-friendly__title-logo> h1{
+        max-width: 565px;
+        font-size: 28px;
+        line-height: 1.2em;
+    }
+    img.hv-project-friendly__logo{
+        max-width: 150px;
+    }
+    
+    .hv-project-friendly__last-field{
+        margin-bottom: 10px;
+        min-width: 200px;
+        max-width: 290px;
+    }
+    .hv-fullwidth{
+        width: 100%;
+        max-width: none;
+    }
+    .hv-halfwidth{
+        width: 50%;
+        max-width: none;
+    }
+    #projectsFriendly .hv-project-friendly__title {
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+    .hv-project-friendly__project > div {
+        margin-bottom: 15px;
+    }
+    #projectsFriendly .hv-project-friendly__project > div > p.hv-project-friendly__title{
+        margin-top: 10px;
+        font-size: 20px;
+        text-transform: none;
+    }
+    .project-friendly__container {
+/*        page-break-inside: avoid;*/
+    }
+    .hv-project-friendly__visibility:hover{
+        background-color: none;
+        background-color: none;
+        border: none;
+    }
+    .hv-margin-l-25 {
+        box-sizing: border-box;
+    }
+    
+    /* .hv-project-friendly__visibility{
+        background-color: none;
+        background-color: none;
+        border: none;
+    } */
+
+/*
+    #projectsFriendly .project-friendly__title {
+        font-family: Arial, sans-serif;
+        font-weight: 600;
+        font-size: 14px !important;
+        line-height: 1em;
+        padding-top: 15px;
+    }
+    #projectsFriendly .project-friendly__project-title {
+        font-family: Arial, sans-serif;
+        font-size: 26px;
+    }
+
+    #projectsFriendly .project-friendly__description {
+        font-family: "Times New Roman", Georgia, Times, serif;
+        font-size: 14px !important;
+        line-height: 1.4em;
+    }
+
+    #projectsFriendly .project-friendly__title.pf--lvl-0 {
+        font-size: 21px !important;
+    }
+
+    #projectsFriendly .project-friendly__title.pf--lvl-1 {
+        font-size: 19px !important;
+    }
+    .project-friendly__title.pf--lvl-2 {
+        font-size: 17px !important;
+    }
+    .project-friendly__wrap {
+        margin-top: 5px !important;
+        display: block;
+    }
+
+    p[class*="-initial"] {
+        font-size: 14px !important;
+    }
+    #projectsFriendly .project-friendly__title[class*="-initial"] {
+        font-size: 12px !important;
+    }
+*/
+
+
+}

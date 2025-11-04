@@ -1,0 +1,178 @@
+{
+    "4085": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HTTP-Downloader",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=pipeline&type=svc-pipeline-download-http",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Downloaders"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "138604": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "FTP-Downloader",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=pipeline&type=svc-pipeline-download-ftp",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Downloaders"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "138958": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HIVE_Network_Downloader",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=pipeline&type=svc-pipeline-download-dropbox",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Downloaders"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "138959": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "NCBI_GenBank_Downloader",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=pipeline&type=svc-pipeline-download-ncbi-genbank",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Downloaders"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

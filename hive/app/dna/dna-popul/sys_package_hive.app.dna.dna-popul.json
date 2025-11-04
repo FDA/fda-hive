@@ -1,0 +1,29 @@
+{
+    "270": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-popul",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-popul",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-popul",
+        "description": "POPUL/HEXAHEDRON is a major HIVE utility for clonal analysis of species subpopulation using NGS sequences and reference frames.",
+        "links": {
+            "6": "https://pubmed.ncbi.nlm.nih.gov/28977510/"
+        },
+        "synonyms": {
+            "16": "HIVE-Heptahedron"
+        },
+        "authors": {
+            "18": "K.Karagiannis"
+        },
+        "contributors": {
+            "20": "V.Simonyan"
+        }
+    }
+}

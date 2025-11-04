@@ -1,0 +1,29 @@
+{
+    "210": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-rnaseq",
+        "description": "HISAT2 RNA-seq",
+        "icon": "?cmd=~dna~svc-align-blast.gif",
+        "title": "HISAT2",
+        "version": "2.0.5",
+        "name": "svc-align-hisat2",
+        "result_files": {
+            "1.0": {
+                "result_assignation": "output"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

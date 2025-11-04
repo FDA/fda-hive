@@ -1,0 +1,82 @@
+{
+    "119": {
+        "_id": "$type.viodb",
+        "_type": "type",
+        "name": "viodb",
+        "title": "Generic VioDB",
+        "description": "//\nlocation: hive.app.dm.dmArchiver",
+        "parent": {
+            "1": "$type.base_user_type",
+            "12": "$type.core-file"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "db_view_type",
+                "field_title": "Databases",
+                "field_type": "string",
+                "field_is_readonly_fg": 2,
+                "field_is_multi_fg": true,
+                "field_description": "Views possible on data stored as record sets."
+            },
+            "1.2": {
+                "field_name": "rec_count",
+                "field_title": "Count",
+                "field_type": "integer",
+                "field_parent": "rec_types",
+                "field_is_readonly_fg": 2,
+                "field_is_multi_fg": true
+            },
+            "1.3": {
+                "field_name": "rec_type",
+                "field_title": "Type",
+                "field_type": "string",
+                "field_parent": "rec_types",
+                "field_is_readonly_fg": 2,
+                "field_is_multi_fg": true
+            },
+            "1.4": {
+                "field_name": "rec_types",
+                "field_title": "Sub sets",
+                "field_type": "array",
+                "field_is_readonly_fg": 2
+            },
+            "1.5": {
+                "field_name": "title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_brief": "$_(v) <b>$_(t)(s)</b>"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,66 @@
+{
+    "384": {
+        "_id": "$type.tasct_search_questionnaire",
+        "_type": "type",
+        "name": "tasct_search_questionnaire",
+        "title": "Online Search Questionnaire",
+        "fields": {
+            "1.1": {
+                "field_name": "how_often_search",
+                "field_title": "How often do you search online for information related to health, symptoms, or treatments?",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "Never|Once a month or less|Once a week|A few times per week|Daily|Several times a day"
+            },
+            "1.2": {
+                "field_name": " visit_social_media ",
+                "field_title": "How often do you visit social media pages/support groups related to Breast implant illness?",
+                "field_type": "string",
+                "field_constraint_data": "Never|Once a month or less|Once a week|A few times per week|Daily|Several times a day"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

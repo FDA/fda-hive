@@ -1,0 +1,281 @@
+{
+    "type.10": {
+        "_id": "type.10",
+        "_type": "type",
+        "name": "webpage",
+        "title": "Web Page",
+        "description": "Web application entries",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "body",
+                "field_title": "Body",
+                "field_type": "text",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.2": {
+                "field_name": "keywords",
+                "field_title": "Keywords",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.3": {
+                "field_name": "link_url",
+                "field_title": "Link Address",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string"
+            },
+            "1.5": {
+                "field_name": "parent",
+                "field_title": "Parent",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "webpage"
+            },
+            "1.6": {
+                "field_name": "portal_description",
+                "field_title": "Portal Description",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "portal_keywords",
+                "field_title": "Portal Keywords",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.8": {
+                "field_name": "reference_list",
+                "field_title": "References",
+                "field_type": "array",
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "reference_title",
+                "field_title": "Reference Title",
+                "field_type": "string",
+                "field_parent": "reference_list",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.10": {
+                "field_name": "reference_url",
+                "field_title": "URL",
+                "field_type": "string",
+                "field_parent": "reference_list",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.11": {
+                "field_name": "related_pages",
+                "field_title": "Related Pages",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "webpage"
+            },
+            "1.12": {
+                "field_name": "sm_descriptive_text",
+                "field_title": "Descriptions",
+                "field_type": "list",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.13": {
+                "field_name": "sm_descriptive_text_html",
+                "field_title": "Descriptive Text",
+                "field_type": "text",
+                "field_parent": "sm_descriptive_text",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "sm_descriptive_text_tag",
+                "field_title": "Descriptive Text Tag",
+                "field_type": "string",
+                "field_parent": "sm_descriptive_text",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.15": {
+                "field_name": "sm_icon",
+                "field_title": "Icon",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "system-image"
+            },
+            "1.16": {
+                "field_name": "sm_images",
+                "field_title": "Images",
+                "field_type": "list",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.17": {
+                "field_name": "sm_image_file",
+                "field_title": "Image File",
+                "field_type": "obj",
+                "field_parent": "sm_images",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "multimedia"
+            },
+            "1.18": {
+                "field_name": "sm_image_tag",
+                "field_title": "Image Tag",
+                "field_type": "string",
+                "field_parent": "sm_images",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.19": {
+                "field_name": "sm_people",
+                "field_title": "People Involved",
+                "field_type": "list",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.20": {
+                "field_name": "sm_people_name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_parent": "sm_people",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.21": {
+                "field_name": "sm_people_title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_parent": "sm_people",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.22": {
+                "field_name": "sm_protocol",
+                "field_title": "Protocols",
+                "field_type": "obj",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.23": {
+                "field_name": "sm_tutorials",
+                "field_title": "Tutorials",
+                "field_type": "list",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.24": {
+                "field_name": "sm_tutorials_pdf",
+                "field_title": "PDF",
+                "field_type": "obj",
+                "field_parent": "sm_tutorials",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "multimedia"
+            },
+            "1.25": {
+                "field_name": "sm_tutorials_tag",
+                "field_title": "Tutorials Tag",
+                "field_type": "string",
+                "field_parent": "sm_tutorials",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.26": {
+                "field_name": "sm_tutorials_word",
+                "field_title": "WORD",
+                "field_type": "obj",
+                "field_parent": "sm_tutorials",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "multimedia"
+            },
+            "1.27": {
+                "field_name": "sm_web_page_help",
+                "field_title": "Webpage Help",
+                "field_type": "list",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.28": {
+                "field_name": "sm_web_page_help_tag",
+                "field_title": "Webpage Help Tag",
+                "field_type": "string",
+                "field_parent": "sm_web_page_help",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.29": {
+                "field_name": "sm_web_page_help_text",
+                "field_title": "Webpage Help HTML",
+                "field_type": "text",
+                "field_parent": "sm_web_page_help",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.30": {
+                "field_name": "title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_order": 0,
+                "field_brief": "$_(v)"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,39 @@
+{
+    "91": {
+        "_id": "$upsert()",
+        "_type": "menuitem",
+        "description": "Hierarchical clustering analysis that classifies related profiling results by comparing their SNP frequencies",
+        "icon": "img-algo/svc-clust.png",
+        "order": 2,
+        "url": "?cmd=dna-clust",
+        "path": "/Portal/Classifications/Sequence_Hierarchical_Clustering",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

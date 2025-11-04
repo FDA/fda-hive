@@ -1,0 +1,39 @@
+{
+    "68045": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-rnaseq",
+        "description": "HISAT2 based RNA-seq workflow",
+        "icon": "img-algo/hisat2-small.png",
+        "name": "hisat2",
+        "version": "2.0.5",
+        "type_name": "svc-align-hisat2",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

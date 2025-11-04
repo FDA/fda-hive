@@ -1,0 +1,29 @@
+{
+    "209": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-rnaseq",
+        "description": "TopHat RNA-Seq",
+        "icon": "?cmd=~dna~svc-align-tophat.gif",
+        "title": "Tophat",
+        "version": "2.7",
+        "name": "svc-align-tophat",
+        "result_files": {
+            "1.0": {
+                "result_assignation": "output"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

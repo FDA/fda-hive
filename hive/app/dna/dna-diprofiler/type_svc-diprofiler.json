@@ -1,0 +1,193 @@
+{
+    "227": {
+        "_id": "$type.svc-diprofiler",
+        "_type": "type",
+        "name": "svc-diprofiler",
+        "title": "DI Profiler",
+        "description": "//Defective Interfering particles Profiling Engine\nlocation: hive.app.dna.dna-diprofiler",
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "overlapScoreFilter",
+                "field_title": "Overlap score threshold(%)",
+                "field_type": "real",
+                "field_order": 0,
+                "field_default_value": "0",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) <= 100"
+            },
+            "1.2": {
+                "field_name": "alignmentID",
+                "field_title": "Alignments",
+                "field_type": "obj",
+                "field_order": 0,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-align+"
+            },
+            "1.3": {
+                "field_name": "overlap",
+                "field_title": "Distance of aligned parts",
+                "field_type": "list",
+                "field_order": 1
+            },
+            "1.4": {
+                "field_name": "maxNonOverlap",
+                "field_title": "Maximum distance",
+                "field_type": "integer",
+                "field_parent": "overlap",
+                "field_order": 2,
+                "field_default_value": "50",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.5": {
+                "field_name": "maxOverlap",
+                "field_title": "Maximum overlap",
+                "field_type": "integer",
+                "field_parent": "overlap",
+                "field_order": 3,
+                "field_default_value": "5",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.6": {
+                "field_name": "minNonOverlappingSubAlignmentLength",
+                "field_title": "Minimum Non Overlaping Alignment",
+                "field_type": "integer",
+                "field_parent": "overlap",
+                "field_order": 3.25,
+                "field_default_value": "20",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "maximumChewback",
+                "field_title": "Maximum Left Window",
+                "field_type": "integer",
+                "field_parent": "overlap",
+                "field_order": 3.3,
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true
+            },
+            "1.8": {
+                "field_name": "maximumChewbackRight",
+                "field_title": "Maximum Right Window",
+                "field_type": "integer",
+                "field_parent": "overlap",
+                "field_order": 3.4,
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true
+            },
+            "1.9": {
+                "field_name": "minPeakCov",
+                "field_title": "Minimum depth of coverage",
+                "field_type": "integer",
+                "field_order": 3.5,
+                "field_default_value": "2",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.10": {
+                "field_name": "minReadCov",
+                "field_title": "Minimum length of aligned read",
+                "field_type": "integer",
+                "field_order": 4,
+                "field_default_value": "70",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.11": {
+                "field_name": "minSubCov",
+                "field_title": "Minimum length of aligned subject",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_default_value": "20",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.12": {
+                "field_name": "peakDetectionWidth",
+                "field_title": "Group width",
+                "field_type": "integer",
+                "field_order": 5.5,
+                "field_default_value": "5",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.13": {
+                "field_name": "multiScore",
+                "field_title": "Treat multiple alignemnt combinations",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Keep all|1///Keep combination with best score|2///Keep combination with highest read coverage",
+                "field_description": "For alignments with overlapping region that exceeds the overlap thresholds. If the combined score is better that individual scores in the overlapping region by the percetage specified then the junction is considered valid"
+            },
+            "1.14": {
+                "field_name": "minSameRefDist",
+                "field_title": "Same Reference Minimal Distance",
+                "field_type": "string",
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "none|0|10"
+            },
+            "1.15": {
+                "field_name": "jumpRangeStart",
+                "field_title": "Jump Range Start",
+                "field_type": "integer",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true
+            },
+            "1.16": {
+                "field_name": "jumpRangeEnd",
+                "field_title": "Jump Range End",
+                "field_type": "integer",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true
+            },
+            "1.17": {
+                "field_name": "jumpRangeRelativeTo",
+                "field_title": "Jump Range Relative To",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "4": "$type.svc-profile"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

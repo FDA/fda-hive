@@ -1,0 +1,41 @@
+{
+    "type.75": {
+        "_id": "type.75",
+        "_type": "type",
+        "name": "svc-censuScope",
+        "title": "CensuScope: Metagenome Analyzer",
+        "description": "Rapid Metagenome Profiler",
+        "parent": {
+            "1": "type.331"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

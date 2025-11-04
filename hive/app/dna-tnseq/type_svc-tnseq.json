@@ -1,0 +1,97 @@
+{
+    "type.245": {
+        "_id": "type.245",
+        "_type": "type",
+        "name": "svc-tnseq",
+        "title": "TNSeq Analyzer",
+        "description": "Algorithm to detect transposon insertion positions",
+        "parent": {
+            "1": "type.331"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "aligners",
+                "field_title": "Alignments to use",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-align-dnaseq+"
+            },
+            "1.2": {
+                "field_name": "coverage_threshold",
+                "field_title": "Detection coverage threshold",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_default_value": "1"
+            },
+            "1.3": {
+                "field_name": "referenceAnnot",
+                "field_title": "Reference Annotation Source",
+                "field_type": "obj",
+                "field_order": 4,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.4": {
+                "field_name": "referenceFeature",
+                "field_title": "Annotation Feature",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "gene///gene|CDS///CDS|mat_peptide///mat_peptide",
+                "field_description": "Feature from Genbank"
+            },
+            "1.5": {
+                "field_name": "referenceType",
+                "field_title": "Annotation types",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "gene|locus_tag|product|db_xref|note"
+            },
+            "1.6": {
+                "field_name": "window",
+                "field_title": "Minimal TN window",
+                "field_type": "integer",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

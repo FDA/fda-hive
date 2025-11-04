@@ -1,0 +1,41 @@
+{
+    "329": {
+        "_id": "$type.svc-AIML",
+        "_type": "type",
+        "name": "svc-AIML",
+        "title": "AI/ML tools",
+        "description": "//\nlocation: hive.app.algo",
+        "parent": {
+            "7": "$type.svc-computations-base"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

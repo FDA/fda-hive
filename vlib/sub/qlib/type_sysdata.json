@@ -1,0 +1,41 @@
+{
+    "76": {
+        "_id": "$type.sysdata",
+        "_type": "type",
+        "name": "sysdata",
+        "title": "Data Dependencies",
+        "description": "// \nlocaltionv lib.qlib",
+        "parent": {
+            "13": "$type.base_system_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

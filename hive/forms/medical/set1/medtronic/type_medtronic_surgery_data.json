@@ -1,0 +1,466 @@
+{
+    "188": {
+        "_id": "$type.medtronic_surgery_data",
+        "_type": "type",
+        "name": "medtronic_surgery_data",
+        "title": "Surgery Data",
+        "fields": {
+            "1.2": {
+                "field_name": "surgery_date",
+                "field_title": "Surgery Date",
+                "field_type": "date",
+                "field_order": "2"
+            },
+            "1.3": {
+                "field_name": "spinal_surgeon_last_name",
+                "field_title": "Spinal Surgeon Last Name",
+                "field_type": "string",
+                "field_order": "3"
+            },
+            "1.4": {
+                "field_name": "procedure_skin_to_skin_start_time",
+                "field_title": "Procedure Skin to Skin Start Time",
+                "field_type": "time",
+                "field_order": "4"
+            },
+            "1.5": {
+                "field_name": "procedure_stop_time",
+                "field_title": "Procedure Stop Time",
+                "field_type": "time",
+                "field_order": "5"
+            },
+            "1.6": {
+                "field_name": "total_anesthesia_time",
+                "field_title": "What was the total anesthesia time?",
+                "field_type": "time",
+                "field_order": "6",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "total_anesthesia_time_unknown",
+                "field_title": "Total anesthesia time unknown",
+                "field_type": "string",
+                "field_order": "7",
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(total_anesthesia_time)==''"
+            },
+            "1.8": {
+                "field_name": "total_fluoroscopic_time",
+                "field_title": "What was the total fluoroscopic time?",
+                "field_type": "time",
+                "field_order": "8",
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "total_fluoroscopic_time_unknown",
+                "field_title": "Total fluoroscopic time unknown",
+                "field_type": "string",
+                "field_order": "9",
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(total_fluoroscopic_time)==''"
+            },
+            "1.10": {
+                "field_name": "treatment_group",
+                "field_title": "Treatment Group",
+                "field_type": "string",
+                "field_order": "10",
+                "field_constraint_data": "2.10 mg INFUSE BONE GRAFT PER INTERBODY DISC SPACE|4.20 mg INFUSE BONE GRAFT PER INTERBODY DISC SPACE|LOCAL BONE AUTOGRAFT WITH ALLOGRAFT BONE AS NEEDED"
+            },
+            "1.12": {
+                "field_name": "treatment_level",
+                "field_title": "Treatment Level(s)",
+                "field_type": "string",
+                "field_order": "11",
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "L2-L3|L3-L4|L4-L5|L5-S1|L5-L6|L6-S1"
+            },
+            "1.13": {
+                "field_name": "procedure_navigated",
+                "field_title": "Was the procedure navigated?",
+                "field_type": "string",
+                "field_order": "13",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.14": {
+                "field_name": "mazor_robot_used_during_the_procedure",
+                "field_title": "Were robotics used during the procedure?",
+                "field_type": "string",
+                "field_order": "12",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.15": {
+                "field_name": "navigation",
+                "field_title": "Navigation",
+                "field_type": "string",
+                "field_order": "14",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "None|O-arm|Stealth|Other\n>is_shown_fg=$(procedure_navigated)=='YES'"
+            },
+            "1.16": {
+                "field_name": "other_specify_navigation",
+                "field_title": "Specify Navigation",
+                "field_type": "string",
+                "field_order": "15",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(procedure_navigated)=='YES'&&$(navigation)=='Other'"
+            },
+            "1.17": {
+                "field_name": "surgical_access",
+                "field_title": "Surgical Access",
+                "field_type": "string",
+                "field_order": "16",
+                "field_constraint_data": "MINIMALLY INVASIVE (I.E. METRX OR QUADRANT)|OPEN OR MINI-OPEN"
+            },
+            "1.19": {
+                "field_name": "capstone_superior_treated_level",
+                "field_title": "Side of CAPSTONE insertion - Superior Treated Level",
+                "field_type": "string",
+                "field_order": "17",
+                "field_constraint_data": "LEFT|RIGHT"
+            },
+            "1.20": {
+                "field_name": "capstone_inferior_treated_level",
+                "field_title": "Side of CAPSTONE insertion - Inferior Treated Level (if applicable)",
+                "field_type": "string",
+                "field_order": "18",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "LEFT|RIGHT\n>is_shown_fg=count($(treatment_level))>1"
+            },
+            "1.21": {
+                "field_name": "soak_time_superior_treated_level",
+                "field_title": "Soak time for the rhBMP-2 onto the ACS prior to implantation - Superior Treated Level(min)",
+                "field_type": "integer",
+                "field_order": "19",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "15-120"
+            },
+            "1.22": {
+                "field_name": "soak_time_inferior_treated_level",
+                "field_title": "Soak time for the rhBMP-2 onto the ACS prior to implantation - Inferior Treated Level (if applicable)(min)",
+                "field_type": "integer",
+                "field_order": "20",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "15-120\n>is_shown_fg=count($(treatment_level))>1"
+            },
+            "1.23": {
+                "field_name": "volume_superior_treated_level",
+                "field_title": "Volume of local bone autograft implanted - Superior Treated Level(cc)",
+                "field_type": "real",
+                "field_order": "21",
+                "field_constraint_data": "0-1000000"
+            },
+            "1.24": {
+                "field_name": "volume_inferior_treated_level",
+                "field_title": "Volume of local bone autograft implanted - Inferior Treated Level (if applicable)(cc)",
+                "field_type": "integer",
+                "field_order": "22",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-1000000\n>is_shown_fg=count($(treatment_level))>1"
+            },
+            "1.25": {
+                "field_name": "volume_of_allograft_superior_treated_level",
+                "field_title": "Volume of allograft bone implanted (if needed to supplement local bone autograft) - Superior Treated Level(cc)",
+                "field_type": "real",
+                "field_order": "23",
+                "field_constraint_data": "0-1000000"
+            },
+            "1.26": {
+                "field_name": "volume_of_allograft_inferior_treated_level",
+                "field_title": "Volume of allograft bone implanted (if needed to supplement local bone autograft) - Inferior Treated Level (if applicable)(cc)",
+                "field_type": "real",
+                "field_order": "24",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0-1000000\n>is_shown_fg=count($(treatment_level))>1"
+            },
+            "1.27": {
+                "field_name": "total_estimated_blood_loss",
+                "field_title": "Total Estimated Blood Loss(mL)",
+                "field_type": "integer",
+                "field_order": "25",
+                "field_constraint_data": "0-5"
+            },
+            "1.28": {
+                "field_name": "intra_wound_antibiotic",
+                "field_title": "Was an intra-wound antibiotic (IWA) used?",
+                "field_type": "string",
+                "field_order": "26",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.30": {
+                "field_name": "surgical_drain_used",
+                "field_title": "Was a surgical drain used?",
+                "field_type": "string",
+                "field_order": "37",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.31": {
+                "field_name": "following_placement_of_graft_materials",
+                "field_title": "Was irrigation used following placement of graft materials (including Infuse, as applicable)?",
+                "field_type": "string",
+                "field_order": "38",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.32": {
+                "field_name": "bone_marrow_aspirate",
+                "field_title": "Was bone marrow aspirate (BMA) used?",
+                "field_type": "string",
+                "field_order": "39",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.33": {
+                "field_name": "amount_of_bone_marrow_aspirate",
+                "field_title": "Amount of bone marrow aspirate (BMA) used(cc)",
+                "field_type": "integer",
+                "field_order": "40",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-1000000\n>is_shown_fg=$(bone_marrow_aspirate)=='YES'"
+            },
+            "1.34": {
+                "field_name": "surgical_checklist",
+                "field_title": "Was the subject's interbody space preparation and graft placement completed as instructed per the Surgical Checklist?",
+                "field_type": "string",
+                "field_order": "41",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.35": {
+                "field_name": "indicate_the_not_followed_steps_",
+                "field_title": "Please indicate the steps that were not followed",
+                "field_type": "string",
+                "field_order": "42",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "REMOVE DISC MATERIAL///REMOVE DISC MATERIAL CREATING ADEQUATE SPACE IN THE ANTERIOR/CONTRALATERAL PORTION OF THE DISC SPACE FOR PLACEMENT OF LOCAL BONE AUTOGRAFT AND/OR INFUSE|REMOVE SUPERIOR/INFERIOR CARTILAGINOUS ENDPLATES///REMOVE SUPERIOR/INFERIOR CARTILAGINOUS ENDPLATES TAKING CARE TO PRESERVE THE CORTICAL BONY ENDPLATES|PLACE 1 cc OF LOCAL BONE AUTOGRAFT///PLACE 1 cc OF LOCAL BONE AUTOGRAFT ANTERIOR/CONTRALATERAL AGAINST ANTERIOR ANNULUS|PLACE INFUSE///PLACE INFUSE ANTERIOR/CONTRALATERAL IN CONTACT WITH PREVIOUSLY PLACED LOCAL BONE AUTOGRAFT, IF INVESTIGATIONAL SUBJECT|PLACE LOCAL BONE AUTOGRAFT MAKING SURE TO SURROUND THE INFUSE///PLACE LOCAL BONE AUTOGRAFT MAKING SURE TO SURROUND THE INFUSE, IF INVESTIGATIONAL SUBJECT|PLACE LOCAL BONE AUTOGRAFT CONTRALATERAL AND IPSILATERAL CREATING A CHANNEL///PLACE LOCAL BONE AUTOGRAFT CONTRALATERAL AND IPSILATERAL CREATING A CHANNEL FOR AN OBLIQUELY PLACED CAPSTONE|INSERT LOCAL BONE AUTOGRAFT-FILLED CAPSTONE SPINAL SYSTEM IMPLANT, ANTERIOR///INSERT LOCAL BONE AUTOGRAFT-FILLED CAPSTONE SPINAL SYSTEM IMPLANT OBLIQUELY ENSURING, ANTERIOR PORTION CROSSES THE MIDLINE OF THE DISC SPACE|INSERT LOCAL BONE AUTOGRAFT-FILLED CAPSTONE SPINAL SYSTEM IMPLANT, COUNTERSINK///INSERT LOCAL BONE AUTOGRAFT-FILLED CAPSTONE SPINAL SYSTEM IMPLANT OBLIQUELY ENSURING, COUNTERSINK THE CAGE >= 3 mm|USE FLUOROSCOPY AND RADIOGRAPHIC MARKERS///USE FLUOROSCOPY AND RADIOGRAPHIC MARKERS TO CONFIRM OBLIQUE PLACEMENT OF CAPSTONE WITHIN THE INTERBODY SPACE|PLACE ADDITIONAL LOCAL BONE AUTOGRAFT///PLACE ADDITIONAL LOCAL BONE AUTOGRAFT IPSILATERAL/CONTRALATERAL TO CAPSTONE SPINAL SYSTEM IMPLANT UNTIL BONE GRAFT IS FLUSH WITH POSTERIOR ASPECT OF THE INTERBODY DEVICE|IRRIGATE AND SUCTION///IRRIGATE AND SUCTION AS NEEDED ENSURING HEMOSTASIS IS ACHIEVED|ENSURE THAT NO HEMOSTATIC AGENTS OR SEALANTS///ENSURE THAT NO HEMOSTATIC AGENTS OR SEALANTS ARE PLACED POSTERIOR TO THE CAPSTONE SPINAL SYSTEM IMPLANT\n>is_shown_fg=$(surgical_checklist)=='NO'"
+            },
+            "1.37": {
+                "field_name": "device_identification",
+                "field_title": "Device Identification",
+                "field_type": "string",
+                "field_order": "43",
+                "field_constraint_description": "subtitle"
+            },
+            "1.38": {
+                "field_name": "device_identification",
+                "field_title": "Device Identification",
+                "field_type": "array",
+                "field_order": "44",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.39": {
+                "field_name": "device_type",
+                "field_title": "Device Type",
+                "field_type": "string",
+                "field_parent": "device_identification",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "ALLOGRAFT BONE CHIPS|BONE GRAFT|PEDICLE OR CORTICAL SCREWS|ROD|SET SCREW|SPINAL SYSTEM"
+            },
+            "1.40": {
+                "field_name": "model_identifier",
+                "field_title": "Model Identifier",
+                "field_type": "string",
+                "field_parent": "device_identification",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "2.10 mg INFUSE BONE GRAFT, EXTRA SMALL|4.20 mg INFUSE BONE GRAFT, SMALL|CAPSTONE PEEK SPINAL SYSTEM|ALLOGRAFT BONE CHIPS|OTHER"
+            },
+            "1.41": {
+                "field_name": "serial_number",
+                "field_title": "Serial Number",
+                "field_type": "string",
+                "field_parent": "device_identification",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.42": {
+                "field_name": "lot_number",
+                "field_title": "Lot Number",
+                "field_type": "string",
+                "field_parent": "device_identification",
+                "field_order": "4",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.43": {
+                "field_name": "indicate_level",
+                "field_title": "Indicate Level",
+                "field_type": "string",
+                "field_parent": "device_identification",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "INFERIOR TREATED LEVEL|SUPERIOR TREATED LEVEL"
+            },
+            "1.45": {
+                "field_name": "superior_treated_level",
+                "field_title": "SUPERIOR TREATED LEVEL",
+                "field_type": "string",
+                "field_order": "27",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(intra_wound_antibiotic)=='YES'"
+            },
+            "1.47": {
+                "field_name": "iwa_mixed_with_tlif_grafting_material",
+                "field_title": "Was IWA mixed with TLIF grafting material?",
+                "field_type": "string",
+                "field_order": "28",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES|UNKNOWN\n>is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(superior_treated_level)=='YES'"
+            },
+            "1.49": {
+                "field_name": "iwa_used_within_the_soft_tissue_or_wound",
+                "field_title": "Was IWA used within the soft tissue or wound?",
+                "field_type": "string",
+                "field_order": "29",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES|UNKNOWN\n>is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(superior_treated_level)=='YES'"
+            },
+            "1.50": {
+                "field_name": "which_antibiotic_was_used",
+                "field_title": "Which antibiotic was used?",
+                "field_type": "string",
+                "field_order": "30",
+                "field_constraint_data": "is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(superior_treated_level)=='YES'"
+            },
+            "1.52": {
+                "field_name": "dose",
+                "field_title": "Dose",
+                "field_type": "string",
+                "field_order": "31",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(superior_treated_level)=='YES'",
+                "field_constraint_description": "unit"
+            },
+            "1.53": {
+                "field_name": "dose_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "dose",
+                "field_order": "1",
+                "field_is_optional_fg": true
+            },
+            "1.55": {
+                "field_name": "dose_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "dose",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///ug|0.001///mg"
+            },
+            "1.57": {
+                "field_name": "inferior_treated_level",
+                "field_title": "INFERIOR TREATED LEVEL (IF APPLICABLE)",
+                "field_type": "string",
+                "field_order": "32",
+                "field_is_optional_fg": false,
+                "field_constraint_data": "NO|YES\n>is_shown_fg=$(intra_wound_antibiotic)=='YES'"
+            },
+            "1.59": {
+                "field_name": "i_iwa_mixed_with_TLIF_grafting_material",
+                "field_title": "Was IWA mixed with TLIF grafting material?",
+                "field_type": "string",
+                "field_order": "33",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES|UNKNOWN\n>is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(inferior_treated_level)=='YES'"
+            },
+            "1.61": {
+                "field_name": "i_iwa_used_within_the_soft_tissue_or_wound",
+                "field_title": "Was IWA used within the soft tissue or wound?",
+                "field_type": "string",
+                "field_order": "34",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES|UNKNOWN\n>is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(inferior_treated_level)=='YES'"
+            },
+            "1.63": {
+                "field_name": "i_which_antibiotic_was_used",
+                "field_title": "Which antibiotic was used?",
+                "field_type": "string",
+                "field_order": "35",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(inferior_treated_level)=='YES'"
+            },
+            "1.65": {
+                "field_name": "i_dose",
+                "field_title": "Dose",
+                "field_type": "string",
+                "field_order": "36",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(intra_wound_antibiotic)=='YES'&&$(inferior_treated_level)=='YES'",
+                "field_constraint_description": "unit"
+            },
+            "1.67": {
+                "field_name": "i_dose_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "i_dose",
+                "field_order": "1",
+                "field_is_optional_fg": true
+            },
+            "1.68": {
+                "field_name": "i_dose_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "i_dose",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///ug|0.001///mg"
+            },
+            "1.70": {
+                "field_name": "s_procedures_and_radiographic_image_review_payments",
+                "field_title": "Radiology Fee per X Ray Procedures and Radiographic Image Review Payments Derivation",
+                "field_type": "string",
+                "field_order": "45",
+                "field_is_hidden_fg": true
+            },
+            "1.72": {
+                "field_name": "device_identifier",
+                "field_title": "Device Identifier",
+                "field_type": "string",
+                "field_parent": "device_identification",
+                "field_order": "2.5",
+                "field_constraint_data": "is_shown_fg=$(model_identifier)=='OTHER'",
+                "field_is_optional_fg": true
+            },
+            "1.74": {
+                "field_name": "mazor_robot_used_during_the_procedure_type",
+                "field_title": "What type?",
+                "field_type": "string",
+                "field_order": "12.5",
+                "field_constraint_data": "is_shown_fg=$(mazor_robot_used_during_the_procedure)=='YES'"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

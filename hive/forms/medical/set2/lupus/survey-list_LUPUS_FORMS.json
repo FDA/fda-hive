@@ -1,0 +1,404 @@
+{
+    "576": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "LUPUS_FORMS",
+        "readable_name": "Lupus Nexus C3 Project",
+        "sl_order": 1,
+        "survey": {
+            "12": {
+                "12.0": {
+                    "name": "$type.lup_sledai_2k",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "25": {
+                "25.0": {
+                    "name": "$type.lup_pga_vas",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "38": {
+                "38.0": {
+                    "name": "$type.lup_nexus_neuropsychiatric_events_outline",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "51": {
+                "51.0": {
+                    "name": "$type.lup_slicc_acr_damage_index",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "64": {
+                "64.0": {
+                    "name": "$type.lup_flare_components",
+                    "order": 5,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "77": {
+                "77.0": {
+                    "name": "$type.lup_rsfi",
+                    "order": 6,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "90": {
+                "90.0": {
+                    "name": "$type.lup_informed_consent",
+                    "order": 7,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "91": {
+                "91.0": {
+                    "name": "$type.lup_inclusion_exclusion",
+                    "order": 8,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "92": {
+                "92.0": {
+                    "name": "$type.lup_eligibility_criteria",
+                    "order": 9,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "93": {
+                "93.0": {
+                    "name": "$type.lup_contact_information",
+                    "order": 10,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "106": {
+                "106.0": {
+                    "name": "$type.lup_demographics",
+                    "order": 11,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "119": {
+                "119.0": {
+                    "name": "$type.lup_social_history",
+                    "order": 12,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "132": {
+                "132.0": {
+                    "name": "$type.lup_environmental_exposures",
+                    "order": 13,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "145": {
+                "145.0": {
+                    "name": "$type.lup_health_habits",
+                    "order": 14,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "158": {
+                "158.0": {
+                    "name": "$type.lup_full_medical_history",
+                    "order": 15,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "171": {
+                "171.0": {
+                    "name": "$type.lup_medications_dosages",
+                    "order": 16,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "184": {
+                "184.0": {
+                    "name": "$type.lup_vaccinations",
+                    "order": 17,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "197": {
+                "197.0": {
+                    "name": "$type.lup_family_autoimmune_history",
+                    "order": 18,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "198": {
+                "198.0": {
+                    "name": "$type.lup_end_of_study",
+                    "order": 19,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "211": {
+                "211.0": {
+                    "name": "$type.lup_sc_wb_paxdna",
+                    "order": 20,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "224": {
+                "224.0": {
+                    "name": "$type.lup_sc_wb_paxrna",
+                    "order": 21,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "237": {
+                "237.0": {
+                    "name": "$type.lup_sc_plasma_EDTA",
+                    "order": 22,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "238": {
+                "238.0": {
+                    "name": "$type.lup_sc_serum",
+                    "order": 23,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "239": {
+                "239.0": {
+                    "name": "$type.lup_sc_wb_ACDA",
+                    "order": 24,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "240": {
+                "240.0": {
+                    "name": "$type.lup_sc_ur",
+                    "order": 25,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "253": {
+                "253.0": {
+                    "name": "$type.lup_sc_saliva",
+                    "order": 26,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "266": {
+                "266.0": {
+                    "name": "$type.lup_sc_stool",
+                    "order": 27,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "267": {
+                "267.0": {
+                    "name": "$type.lup_sc_tissue_bx",
+                    "order": 28,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "268": {
+                "268.0": {
+                    "name": "$type.lup_sc_dxterity_finger_prick",
+                    "order": 29,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "281": {
+                "281.0": {
+                    "name": "$type.lup_renal_biopsy",
+                    "order": 30,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "294": {
+                "294.0": {
+                    "name": "$type.lup_cumulative_organ_system",
+                    "order": 31,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "295": {
+                "295.0": {
+                    "name": "$type.lup_serologic_history",
+                    "order": 32,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "296": {
+                "296.0": {
+                    "name": "$type.lup_clinical_laboratory_values",
+                    "order": 33,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            },
+            "297": {
+                "297.0": {
+                    "name": "$type.lup_physical_exam",
+                    "order": 34,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true,
+                    "optional_fields": 0
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

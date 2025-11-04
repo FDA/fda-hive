@@ -1,0 +1,46 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+ <script type="application/javascript">
+
+    setLocationTitle("Generic Launcher Backend Engine: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "glauncher", "svc-glauncher-base");
+    algoProcess.visibleParameters=["name", "widgetID"];
+    algoProcess.submitButtonName="Run GLauncher";
+    
+    algoProcess.inputLoaded = function (viewer, elem){
+        
+        algoProcess.inputChanged(viewer, elem);
+    }
+    algoProcess.inputChanged= function (viewer, elem){
+        algoProcess.activateSubmitButton(true);
+    }
+    
+    
+    gInitList += "GLauncherInit();";
+    function GLauncherInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-glauncher-base',
+            algoTitle: "GLauncher Engine"
+        });
+        
+    };
+</script>
+

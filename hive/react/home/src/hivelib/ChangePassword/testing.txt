@@ -1,0 +1,28 @@
+hivelib/src/index.js
+Add code, comment exports
+
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
+import { ChangePasswordComponent }  from "./ChangePassword/index.js";  // eslint-disable-next-line
+class App extends Component {
+    render(){
+        return(
+        <>
+            <ChangePasswordComponent />
+        </>
+       )
+    }
+}
+
+ReactDOM.render(<App />, document.querySelector("#root"));
+
+------------------------------------------------------------------------------------------------------
+
+hivelib/public/index.html
+Add code to <body> after root div
+Replace [user.name] with your username
+
+<script src="/nodejs/[user.name]/static/js/bundle.js"></script>
+<script src="/nodejs/[user.name]/static/js/0.chunk.js"></script>
+<script src="/nodejs/[user.name]/static/js/1.chunk.js"></script>
+<script src="/nodejs/[user.name]/static/js/main.chunk.js"></script>

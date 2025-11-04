@@ -1,0 +1,24 @@
+{
+    "80": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "vlib.qlib",
+                "dir": "$(HIVE.repo)/vlib/qlib",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "vlib.qlib",
+        "description": "VLIB/QLIB package provides functionality for queueing and execution of jobs",
+        "dependencies": {
+            "18": "57652"
+        },
+        "authors": {
+            "20": "V.Simonyan",
+            "33": "A.Golikov"
+        }
+    }
+}

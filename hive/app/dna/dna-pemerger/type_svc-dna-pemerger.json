@@ -1,0 +1,102 @@
+{
+    "264": {
+        "_id": "$type.svc-dna-pemerger",
+        "_type": "type",
+        "name": "svc-dna-pemerger",
+        "title": "Paired end read merging utility",
+        "description": "//\nlocation: hive.app.dna.dna-pemerger",
+        "fields": {
+            "1.1": {
+                "field_name": "fwd",
+                "field_title": "Forward read file",
+                "field_type": "obj",
+                "field_order": 0,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read,u-file"
+            },
+            "1.2": {
+                "field_name": "rev",
+                "field_title": "Reverse read file",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read,u-file"
+            },
+            "1.3": {
+                "field_name": "algo",
+                "field_title": "Algorithm",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_default_value": "2",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Pear|1///FLASH|2///FastP"
+            },
+            "1.4": {
+                "field_name": "minLength",
+                "field_title": "Minimum Length",
+                "field_type": "integer",
+                "field_default_value": "75"
+            },
+            "1.5": {
+                "field_name": "trimPolyG",
+                "field_title": "Trim Poly-G terminus",
+                "field_type": "bool",
+                "field_default_value": "1"
+            },
+            "1.6": {
+                "field_name": "autoArchive",
+                "field_title": "Automaticall archive the merge result",
+                "field_type": "bool",
+                "field_default_value": "1"
+            },
+            "1.7": {
+                "field_name": "adapter_r1",
+                "field_title": "Adapter FWD",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "adapter_r2",
+                "field_title": "Adapter REV",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "4": "$type.svc-ngs"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

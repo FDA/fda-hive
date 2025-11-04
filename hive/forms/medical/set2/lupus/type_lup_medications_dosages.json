@@ -1,0 +1,235 @@
+{
+    "554": {
+        "_id": "$type.lup_medications_dosages",
+        "_type": "type",
+        "name": "lup_medications_dosages",
+        "title": "Past/Current Medications and Dosages",
+        "description": "<h5>Please record all current and past medications the participant took before participating in the study. Enter each dose change on a new line.</h5>",
+        "fields": {
+            "1.1": {
+                "field_name": "sle_medications",
+                "field_title": "SLE Medications",
+                "field_type": "array",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "col-3"
+            },
+            "1.2": {
+                "field_name": "sle_medication_name",
+                "field_title": "Generic Name of SLE Medication",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.01,
+                "field_constraint_data": "abatacept [Orencia]|anifrolumab-fnia [Saphnelo]|azathioprine [Imuran]|belimumab [Benlysta]|chloroquine [Aralen]|cyclosporine|cyclophosphamide [Cytoxan]|dapsone [Aczone]|hydroxychloroquine [Plaquenil]|leflunomide [Arava]|methotrexate [Trexall, Rasuvo, Rheumatrex, Otrexup]|methylprednisolone [Medrol, Solumedrol]|mycophenolate mofetil [Cellcept]|mycophenolic acid [Myfortic]|prednisone [Deltasone, Predone, others]|rituximab [Rituxan]|tacrolimus [Prograf, Protopic, Astagraf]|voclosporine [Lupkyys]|triamcinolone [Kenalog, Aristocort, Aristo-Pak, others]|other"
+            },
+            "1.3": {
+                "field_name": "sle_generic_brand",
+                "field_title": "Generic or Brand Used?",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.03,
+                "field_constraint_data": "Generic|Brand|Unknown"
+            },
+            "1.4": {
+                "field_name": "sle_dosage",
+                "field_title": "Dosage",
+                "field_type": "real",
+                "field_parent": "sle_medications",
+                "field_order": 1.04
+            },
+            "1.5": {
+                "field_name": "sle_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.05,
+                "field_constraint_data": "1///ug|2///mg|3///g|4///mEq|5///IU|6///Capsule/Tablet|7///mg/kg|8///Other"
+            },
+            "1.6": {
+                "field_name": "sle_unit_other",
+                "field_title": "Please specify unit",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.06,
+                "field_constraint_data": "{'maxlength':'20'}\r\n>is_shown_fg=$(sle_unit)=='8'"
+            },
+            "1.7": {
+                "field_name": "sle_frequency",
+                "field_title": "Frequency",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.09,
+                "field_constraint_data": "1///PRN|2///QD|3///QHS|4///BID|5///TID|6///QID|7///Weekly|8///Monthly|9///Other"
+            },
+            "1.8": {
+                "field_name": "sle_frequency_other",
+                "field_title": "Please specify frequency",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.1,
+                "field_constraint_data": "{'maxlength':'50'}\r\n>is_shown_fg=$(sle_frequency)=='9'"
+            },
+            "1.9": {
+                "field_name": "sle_start_date",
+                "field_title": "Start Date",
+                "field_type": "date",
+                "field_parent": "sle_medications",
+                "field_order": 1.11,
+                "field_is_optional_fg": true,
+                "field_description": "Please fill date of visit if unknown"
+            },
+            "1.10": {
+                "field_name": "sle_stop_date",
+                "field_title": "Stop Date",
+                "field_type": "date",
+                "field_parent": "sle_medications",
+                "field_order": 1.12,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{'maxlength':'200'}"
+            },
+            "1.11": {
+                "field_name": "sle_reason_of_discontinuation",
+                "field_title": "If applicable, reason(s) of discontinuation (check all that apply)",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.13,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Idiosyncratic side effect|Dose related side effect|Inadequate flare control|Other"
+            },
+            "1.12": {
+                "field_name": "sle_comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_parent": "sle_medications",
+                "field_order": 1.14,
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "sle_medication_name_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_parent": "sle_medications",
+                "field_order": 1.02,
+                "field_constraint_data": "is_shown_fg=$(sle_medication_name)=='other'"
+            },
+            "1.14": {
+                "field_name": "non_sle_medications",
+                "field_title": "Non-SLE Medications",
+                "field_type": "array",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "col-3",
+                "field_description": "Record all medications the subject was taking at the time of study enrollment and/or the 6 months before enrollment in the study. These can include prescription medications, over the counter drugs, vitamins, supplements, minerals, complementary/alternative medications, etc."
+            },
+            "1.15": {
+                "field_name": "non_sle_medication_name",
+                "field_title": "Generic Name of Medication",
+                "field_type": "string",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.01,
+                "field_constraint_data": "acetaminophen [Tylenol, Paracetamol]|acetaminophen-codeine [Tylenol #3, Tylenol #4]|adalimumab [Humira]|albuterol [ProAir, Ventolin, Proventil]|alendronate sodium [Fosamax, Binosto]|allopurinol [Zyloprim]|alprazolam [Xanax]|amlodipine [Norvasc]|amoxicillin [Amoxil, Larotid]|amoxicillin/clavulanate [Augmentin]|amphetamine salts [Adderal]|anakinra [Kineret]|apixaban [Eliquis]|aspirin [Bayer, Ecotrin, others]|atenolol [Tenormin]|atorvastatin [Lipitor]|azilsartan medoxomil [Edarbi]|azithromycin [Zithromax]|baclofen [Lioresal]|baricitinib [Olumiant]|beclomethasone [Qvar, Qnasl]|benazepril hydrochloride [Lotensin]|benzatropine mesylate [Cogentin]|bismuth subsalicylate [Kapoectate, Pepto-Bismol]|budesonide [Pulmicort]|budesonide/formoterol [Symbicort]|bumetanide [Bumex]|buprenorphine [Buprenex, Belbulca, Butrans]|buprenorphine/naloxone [Suboxone]|bupropion xl [Wellbutrin]|candesartan cilexetil [Atacand]|captopril [Capoten]|carvedilol [Coreg]|celecoxib [Celebrex]|cephalexin [Keflex]|certolizumab [Cimzia]|cetirizine [Zyrtec]|chlorothiazide [Diuril]|chlorthalidone [Hygroton]|ciclesonide [Alvesco, Zetonna]|cimetidine [Tagamet]|ciprofloxacin [Cetraxal, Cipro XR, Otiprio]|citalopram [Celexa]|clindamycin [Clindacin, Cleocin]|clobetasol [Dermovate, ClobaDerm, Etrivex]|clonazepam [Klonopin]|clonidine [Kapvay, Catapres, Duraclon, Jenloga]|clopridogel [Plavix]|colchicine [Mitigare]|conjugated estrogens [Premarine]|cyclobenzaprine [Flexeril, Amrix, Flexmid]|dabigatran [Pradaxa]|desloratidine [Clarinex]|dessicated thyroid [Armour Thyroid, NP Thyroid]|dexamethasone [Decadron]|dexlansoprazole [Dexilant]|diazepam [Valium]|diclofenac [Voltaren, Cambia, Zipsor]|diphenhydramine [Benadryl]|dipyridamole [Persantine]|divalproex sodium [Depakote]|donepezil [Aricept]|doxycycline [Vibramycin, Doryx, others]|dulaglutide [Trulicity]|duloxetine [Cymbalta]|empagliflozin [Jardiance]|enalapril maleate [Epaned, Vasotec]|eprosartan [Teveten]|escitalopram oxalate [Lexapro]|esomeprazole [Nexium]|estradiol [EstroGel, Vagifem, Estrace, others]|etanercept [Enbrel]|ethacrynic acid [Edercrin]|famotidine [Pepcid]|fenofibrate [Tricor, Lofibra, Lipofin]|ferrous sulfate [Feosol]|fexofenadine [Allegra]|finasteride [Procar]|flucatisone [Flovent]|fluoxetine [Prozac]|fluticasone/salmetorol [Advair, Advair Diskus]|fluticasone/umeclidinium/vilanterol [Trelegy Ellipta]|fluticasone/vilanterol [Breo]|fluvastatin [Lescol]|folic acid [FA-8]|fosinopril sodium [Monopril]|furosemide [Lasix]|gabapentin [Neurontin, Gralise, Horizant]|glimepiride [Amaryl]|glipizide [Glucotrol, Metaglip]|golimumab [Simponi]|hydralazine hcl [Apresoline]|hydrochlorothiazide [Hydrodiuril]|hydrocodone/acetaminophen [Norco]|ibuprofen [Advil, Motrin]|indapamide [Lozol]|infliximab [Remicade]|insulin glargine [Lantus, Basaglar]|irbesartan [Avapro]|isosorbide mononitrate [ISMO, Monoket, Imdur]|lamotrigine [Lamictal]|lansoprazole [Prevacid]|latanoprost [Xalatan]|latanoprost/netarsudil [Rocklatan]|levetiracetam [Elepsia, Keppra, Spirtam]|levocetirizine [Xyzal]|levofloxacin [Levaquin]|levothyroxine [Synthroid, Tirosint, Levoxyl]|liothyronine [Cytomel]|lisdexamfetamine dimesylate [Vyvanse]|lisinopril [Prinivil, Zestril]|lisonopril/hydrochlorothiazide [Zestoretic]|loparamide [Immodium A-D]|lorazepam [Ativan]|lorsartan/hydrochlorothiazide [Hyzaar]|losartan potassium [Cozaar]|lovastatin [Altoprev, Mevacor]|meloxicam [Vivlodex, Mobic]|metformin [Glucophage, Fortamet, Glumetza, Riomet]|methyclothiazide [Enduron]|methylphenidate [Ritalin, Concerta]|metolazone [Diulo, Depo-Medrol, Mykrox, Zaroxolyn]|metoprolol [Toprol XL, Lopressor]|metronidazole [Flagyl, Metrogel]|mirabegron [Myrbetriq]|moexipril hydrochloride [Univasc]|mometasone [Asmanax Twisthaler]|monteleukast [Singulair]|morphine er [Avinza, Kadian, others]|nabumetone [Relafen]|naproxen [Aleve, Naprosyn]|nebivolol [Bystolic]|neurontin [Gabapentin]|nifedipine [Procardia. Adalat CC]|nizatidine [Axid]|other NSAID|odansetron [Zofran]|olanzapine [Zyprexa]|olmesartan medoxomil [Benicar]|olopatadine [Pataday, Patanase]|omeprazole [Prilosec, Zegrid]|oxycodone [Oxycontin]|oxycodone/acetominophen [Percocet, Endocet]|oxymetazilone [Afrin, Dristan, Vicks Sinex]|pantoprazole [Protonix]|paroxetine [Paxil]|perindopril erbumine [Aceon]|pheniramine [Visine]|phentermine [Adipex-P]|phenylephrine [Sudafed PE, Suphedrine PE]|pitavastatin [Livalo]|potassium chloride [Klor-Con, K-Tab]|prasugrel [Effient]|pravastatin sodium [Pravachol]|pregabalin [Lyrica]|prinivil [Lisinopril]|pseudoephedrine [Sudafed, Silfedrine, Suphedrin]|quietapine fumarate [Seroquel]|quinapril [Accupril]|rabeprazole [Aciphex]|ramipril [Altace]|ranitidine [Zantac]|risperdone [Risperdal]|rivaroxaban [Xarelto]|rosuvastatin calcium [Crestor]|sacubitril/valsartan [Entresto]|sarilumab [Kevzara]|semaglutide [Ozempic]|sertraline [Zoloft]|sildenafil [Viagra]|simvastatin [Zocor]|sitagliptin [Januvia]|spironolactone [Aldactone]|sulfamethoxazole/trimethoprim [Bactrim]|sulfasalazine [Azulfidine]|tadalafil [Cialis]|tamsulosin [Flormax]|tcagrelor [Brilinta]|telmisartan [Micardis]|testosterone [Aveed, Delatestryl, Testopel]|tocilizumab [Actemra]|tofacitinib [Xeljanz]|torsemide [Demadex]|tramadol [Ultram]|trandolapril [Mavik]|trazodone [Desyrel]|triamterene [Dyrenium]|triamterene/hydrochlorothiazide [Dyazide, Maxzide]|valacyclovir [Valtrex]|valsartan [Diovan]|valsartan/hydrochlorothiazide [Diovan HCT]|venlafaxine [Effexor]|vitamin D [Cholecalciferol, Ergocalciferol]|warfarin sodium [Coumadin, Jantoven]|zolpidem tartrate [Ambien]|other"
+            },
+            "1.16": {
+                "field_name": "non_sle_dosage",
+                "field_title": "Dosage",
+                "field_type": "real",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.03,
+                "field_is_optional_fg": true
+            },
+            "1.17": {
+                "field_name": "non_sle_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.04,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///ug|2///mg|3///g|4///mEq|5///IU|6///Capsule/Tablet|7///mg/kg|8///Other"
+            },
+            "1.18": {
+                "field_name": "non_sle_unit_other",
+                "field_title": "Please specify unit",
+                "field_type": "string",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.05,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{'maxlength':'20'}\r\n>is_shown_fg=$(non_sle_unit)=='8'"
+            },
+            "1.19": {
+                "field_name": "non_sle_frequency",
+                "field_title": "Frequency",
+                "field_type": "string",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.08,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///PRN|2///QD|3///QHS|4///BID|5///TID|6///QID|7///Weekly|8///Monthly|9///Other"
+            },
+            "1.20": {
+                "field_name": "non_sle_frequency_other",
+                "field_title": "Please specify frequency",
+                "field_type": "string",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.09,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{'maxlength':'50'}\r\n>is_shown_fg=$(non_sle_frequency)=='9'"
+            },
+            "1.21": {
+                "field_name": "non_sle_start_date",
+                "field_title": "Start Date",
+                "field_type": "date",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.1,
+                "field_is_optional_fg": true,
+                "field_description": "Please fill date of visit if unknown"
+            },
+            "1.22": {
+                "field_name": "non_sle_stop_date",
+                "field_title": "Stop Date",
+                "field_type": "date",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.11,
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "non_sle_reason_of_discontinuation",
+                "field_title": "If applicable, reason(s) of discontinuation (check all that apply)",
+                "field_type": "string",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.12,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Idiosyncratic side effect|Dose related side effect|Inadequate flare control|Other"
+            },
+            "1.24": {
+                "field_name": "non_sle_medication_name_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_parent": "non_sle_medications",
+                "field_order": 2.02,
+                "field_constraint_data": "is_shown_fg=$(non_sle_medication_name)=='other'"
+            }
+        },
+        "parent": {
+            "4": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,93 @@
+{
+    "264548": {
+        "_id": "$type.svc-hive-assembly-clfow",
+        "_type": "type",
+        "name": "svc-hive-assembly-clfow",
+        "title": "HIVE Assembly Workflow",
+        "fields": {
+            "1.0": {
+                "field_name": "reads",
+                "field_title": "Reads",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read"
+            },
+            "1.2": {
+                "field_name": "reference_genome",
+                "field_title": "Reference Genome",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_constraint": "type",
+                "field_constraint_data": "genome",
+                "field_is_multi_fg": true
+            },
+            "1.4": {
+                "field_name": "clone_params",
+                "field_title": "Clonal Discovery Parameters",
+                "field_type": "list"
+            },
+            "1.5": {
+                "field_name": "clone_cov",
+                "field_title": "Coverage Threshold",
+                "field_type": "integer",
+                "field_parent": "clone_params",
+                "field_order": 1,
+                "field_default_value": "10"
+            },
+            "1.6": {
+                "field_name": "clone_length",
+                "field_title": "Length Threshold",
+                "field_type": "integer",
+                "field_parent": "clone_params",
+                "field_order": 2,
+                "field_default_value": "6"
+            },
+            "1.7": {
+                "field_name": "clone_support",
+                "field_title": "Support Mutattion Threshold",
+                "field_type": "integer",
+                "field_parent": "clone_params",
+                "field_order": 3,
+                "field_default_value": "4"
+            }
+        },
+        "parent": {
+            "7": "$type.project-base",
+            "19": "$type.svc-wflo-base"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

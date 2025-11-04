@@ -1,0 +1,346 @@
+{
+    "33569": {
+        "_id": "$type.nciu_pathology_detail",
+        "_type": "type",
+        "name": "nciu_pathology_detail",
+        "title": "Pathology Detail",
+        "fields": {
+            "1.0": {
+                "field_name": "anaplasia_present",
+                "field_title": "Anaplasia Present in Tumor",
+                "field_type": "string",
+                "field_order": "14",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "Yes/no/unknown/not reported indicator used to describe whether anaplasia was present at the time of diagnosis."
+            },
+            "1.2": {
+                "field_name": "anaplasia_present_type",
+                "field_title": "Anaplasia",
+                "field_type": "string",
+                "field_order": "15",
+                "field_constraint_data": "Absent|Diffuse|Equivocal|Focal|Present|Sclerosis|Unknown|Not Reported\n>is_shown_fg=$(anaplasia_present)=='Yes'",
+                "field_description": "The text term used to describe the morphologic findings indicating the presence of a malignant cellular infiltrate characterized by the presence of large pleomorphic cells, necrosis, and high mitotic activity in a tissue sample."
+            },
+            "1.4": {
+                "field_name": "bone_marrow_malignant_cells",
+                "field_title": "bone_marrow_malignant_cells",
+                "field_type": "string",
+                "field_order": "3",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The text term used to indicate whether there are malignant cells in the bone marrow."
+            },
+            "1.6": {
+                "field_name": "breslow_thickness",
+                "field_title": "Breslow Thickness (mm)",
+                "field_type": "real",
+                "field_order": "4",
+                "field_is_hidden_fg": true,
+                "field_description": "The number that describes the distance, in millimeters, between the upper layer of the epidermis and the deepest point of tumor penetration."
+            },
+            "1.8": {
+                "field_name": "circumferential_resection_margin",
+                "field_title": "Circumferential resection margin",
+                "field_type": "real",
+                "field_order": "28",
+                "field_description": "Numeric value used to describe the non-peritonealised bare area of rectum, comprising anterior and posterior segments, when submitted as a surgical specimen resulting from excision of cancer of the rectum."
+            },
+            "1.10": {
+                "field_name": "columnar_mucosa_present",
+                "field_title": "columnar_mucosa_present",
+                "field_type": "string",
+                "field_order": "27",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported"
+            },
+            "1.12": {
+                "field_name": "dysplasia_degree",
+                "field_title": "dysplasia_degree",
+                "field_type": "string",
+                "field_order": "17",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "High Grade|Indefinite|Low Grade|Mild|Moderate|No Dysplasia|Severe|Unknown|Not Reported"
+            },
+            "1.14": {
+                "field_name": "dysplasia_type",
+                "field_title": "dysplasia_type",
+                "field_type": "string",
+                "field_order": "16",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Epithelial|Esophageal Columnar Dysplasia|Keratinizing|Nonkeratinizing|Other|Unknown|Not Reported",
+                "field_constraint_description": "Epithelial|Esophageal Columnar Dysplasia|Keratinizing|Nonkeratinizing|Other|Unknown|Not Reported"
+            },
+            "1.16": {
+                "field_name": "greatest_tumor_dimension",
+                "field_title": "Greatest Dimension Tumor (mm)",
+                "field_type": "string",
+                "field_order": "1",
+                "field_description": "Numeric value that represents the measurement of the widest portion of the tumor in centimeters."
+            },
+            "1.18": {
+                "field_name": "gross_tumor_weight",
+                "field_title": "Gross pathologic tumor weight (gr)",
+                "field_type": "string",
+                "field_order": "3",
+                "field_description": "Numeric value used to describe the gross pathologic tumor weight, measured in grams."
+            },
+            "1.20": {
+                "field_name": "largest_extrapelvic_peritoneal_focus",
+                "field_title": "Largest extrapelvic peritoneal focus",
+                "field_type": "string",
+                "field_order": "11",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Macroscopic (2cm or less)|Macroscopic (greater than 2cm)|Microscopic|Unknown|Not Reported",
+                "field_description": "The text term used to describe the diameter of the largest focus originating outside of the pelvic peritoneal region."
+            },
+            "1.22": {
+                "field_name": "lymph_node_involved_site",
+                "field_title": "Lymph Node by Anatomic Site",
+                "field_type": "string",
+                "field_order": "8",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Axillary|Cervical|Epitrochlear|Femoral|Hilar|Iliac-common|Iliac-external|Iliac, NOS|Inguinal|Mediastinal|Mesenteric|None|Occipital|Paraaortic|Parotid|Popliteal|Retroperitoneal|Splenic|Submandibular|Supraclavicular|Unknown|Not Reported\n>is_shown_fg=$(percent_tumor_invasion)>'0'",
+                "field_description": "The text term used to describe the anatomic site of lymph node involvement."
+            },
+            "1.24": {
+                "field_name": "lymph_node_involvement",
+                "field_title": "lymph_node_involvement",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Indeterminant|Negative|Positive|Unknown|Not Reported\n>is_shown_fg=$(percent_tumor_invasion)>'0'"
+            },
+            "1.26": {
+                "field_name": "lymph_nodes_positive",
+                "field_title": "Number of Positive Lymph Nodes",
+                "field_type": "integer",
+                "field_order": "10",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "is_shown_fg=$(percent_tumor_invasion)>'0'"
+            },
+            "1.28": {
+                "field_name": "lymph_nodes_tested",
+                "field_title": "Number of lymph nodes examined",
+                "field_type": "integer",
+                "field_order": "9",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "is_shown_fg=$(percent_tumor_invasion)>'0'",
+                "field_description": "The number of lymph nodes tested to determine whether lymph nodes were involved with disease as determined by a pathologic examination."
+            },
+            "1.30": {
+                "field_name": "lymphatic_invasion_present",
+                "field_title": "Small thin-walled vessel invasion (probably lymphatic)",
+                "field_type": "string",
+                "field_order": "6",
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported\n>is_shown_fg=$(percent_tumor_invasion)>'0'",
+                "field_description": "A yes/no indicator to ask if small or thin-walled vessel invasion is present, indicating lymphatic involvement"
+            },
+            "1.32": {
+                "field_name": "margin_status",
+                "field_title": "margin_status",
+                "field_type": "string",
+                "field_order": "29",
+                "field_constraint_data": "Involved|Uninvolved|Indeterminant|Unknown|Not Reported"
+            },
+            "1.34": {
+                "field_name": "metaplasia_present",
+                "field_title": "metaplasia_present",
+                "field_type": "string",
+                "field_order": "18",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported"
+            },
+            "1.36": {
+                "field_name": "morphologic_architectural_pattern",
+                "field_title": "morphologic_architectural_pattern",
+                "field_type": "string",
+                "field_order": "31",
+                "field_constraint_data": "Cohesive|Cribiform|Micropapillary|Non-cohesive|Papillary Renal Cell|Papillary, NOS|Solid|Tubular"
+            },
+            "1.38": {
+                "field_name": "non_nodal_regional_disease",
+                "field_title": "non_nodal_regional_disease",
+                "field_type": "string",
+                "field_order": "25",
+                "field_constraint_data": "Absent|Indeterminate|Present|Unknown|Not Reported",
+                "field_description": "The text term used to describe whether the patient had non-nodal regional disease."
+            },
+            "1.40": {
+                "field_name": "non_nodal_tumor_deposits",
+                "field_title": "Non-nodal Tumor Deposits (TD) in Resected Specimen",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The yes/no/unknown indicator used to describe the presence of tumor deposits in the pericolic or perirectal fat or in adjacent mesentery away from the leading edge of the tumor."
+            },
+            "1.42": {
+                "field_name": "number_proliferating_cells",
+                "field_title": "Number Proliferating Cells",
+                "field_type": "string",
+                "field_order": "30",
+                "field_description": "Numeric value that represents the count of proliferating cells determined during pathologic review of the sample slide(s)."
+            },
+            "1.44": {
+                "field_name": "percent_tumor_invasion",
+                "field_title": "percent_tumor_invasion",
+                "field_type": "string",
+                "field_order": "5",
+                "field_description": "The percentage of tumor cells spread locally in a malignant neoplasm through infiltration or destruction of adjacent tissue."
+            },
+            "1.46": {
+                "field_name": "perineural_invasion_present",
+                "field_title": "Perineural tumor infiltration or invasion",
+                "field_type": "string",
+                "field_order": "11",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported\n>is_shown_fg=$(percent_tumor_invasion)>'0'",
+                "field_description": "A yes/no indicator to ask if perineural invasion or infiltration of tumor or cancer is present."
+            },
+            "1.48": {
+                "field_name": "peripancreatic_lymph_nodes_positive",
+                "field_title": "Number of positive peripancreatic lymph nodes",
+                "field_type": "string",
+                "field_order": "25",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "0|1-3|4 or More|Unknown|Not Reported",
+                "field_description": "Enumerated numeric value or range of values used to describe the number of peripancreatic lymph nodes determined to be positive."
+            },
+            "1.50": {
+                "field_name": "peripancreatic_lymph_nodes_tested",
+                "field_title": "Number of peripancreatic lymph nodes tested at surgery",
+                "field_type": "integer",
+                "field_order": "26",
+                "field_is_hidden_fg": true,
+                "field_description": "The total number of peripancreatic lymph nodes tested for the presence of pancreatic cancer cells."
+            },
+            "1.52": {
+                "field_name": "prostatic_chips_positive_count",
+                "field_title": "prostatic_chips_positive_count",
+                "field_type": "real",
+                "field_order": "27",
+                "field_is_hidden_fg": true,
+                "field_description": "The text term used to describe the number of positive prostatic chips, which are generated from transurethral resection of the prostate (TURP) procedures and are generally used for relieving urinary obstruction due to nodular hyperplasia of the prostate (benign prostatic hyperplasia)."
+            },
+            "1.54": {
+                "field_name": "prostatic_chips_total_count",
+                "field_title": "prostatic_chips_total_count",
+                "field_type": "real",
+                "field_order": "28",
+                "field_is_hidden_fg": true,
+                "field_description": "The text term used to describe the total number of prostatic chips, which are generated from transurethral resection of the prostate (TURP) procedures and are generally used for relieving urinary obstruction due to nodular hyperplasia of the prostate (benign prostatic hyperplasia)."
+            },
+            "1.56": {
+                "field_name": "prostatic_involvement_percent",
+                "field_title": "prostatic_involvement_percent",
+                "field_type": "real",
+                "field_order": "29",
+                "field_is_hidden_fg": true,
+                "field_description": "Numeric value that represents the percentage of prostatic involvement found in a specific tissue sample."
+            },
+            "1.58": {
+                "field_name": "transglottic_extension",
+                "field_title": "Transglottic Extension of Laryngeal Tumor",
+                "field_type": "string",
+                "field_order": "30",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Absent|Present|Unknown|Not Reported",
+                "field_description": "The text term used to describe an extension of the tumor beyond the opening into the ventricles and vocal cords."
+            },
+            "1.60": {
+                "field_name": "tumor_largest_dimension_diameter",
+                "field_title": "Dimension 1",
+                "field_type": "real",
+                "field_order": "2",
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "0-100",
+                "field_description": "Numeric value used to describe the maximum diameter or dimension of the primary tumor, measured in centimeters."
+            },
+            "1.62": {
+                "field_name": "vascular_invasion_present",
+                "field_title": "Is there vascular invasion?",
+                "field_type": "string",
+                "field_order": "12",
+                "field_constraint_data": "Yes|No|Unknown|Not Reported\n>is_shown_fg=$(percent_tumor_invasion)>'0'",
+                "field_description": "The yes/no indicator to ask if large vessel or venous invasion was detected by surgery or presence in a tumor specimen."
+            },
+            "1.64": {
+                "field_name": "vascular_invasion_type",
+                "field_title": "Vascular invasion type",
+                "field_type": "string",
+                "field_order": "13",
+                "field_constraint_data": "Extramural|Intramural|Macro|Micro|No Vascular Invasion|Unknown|Not Reported\n>is_shown_fg=$(percent_tumor_invasion)>'0'",
+                "field_description": "Text term that represents the type of vascular tumor invasion."
+            },
+            "1.66": {
+                "field_name": "necrosis_present",
+                "field_title": "Necrosis present",
+                "field_type": "string",
+                "field_order": "19",
+                "field_constraint_data": "Yes|No|Not Reported"
+            },
+            "1.67": {
+                "field_name": "necrosis_percent",
+                "field_title": "Necrosis percent",
+                "field_type": "real",
+                "field_order": "20",
+                "field_constraint_data": "is_shown_fg=$(necrosis_present)=='Yes'",
+                "field_description": "A quantitative measurement of the percent of cells undergoing necrosis compared to the number of total cells present in a sample."
+            },
+            "1.69": {
+                "field_name": "sarcomatoid_present",
+                "field_title": "Sarcomatoid present",
+                "field_type": "string",
+                "field_order": "21",
+                "field_constraint_data": "Yes|No|Not Reported"
+            },
+            "1.70": {
+                "field_name": "sarcomatoid_percent",
+                "field_title": "Sarcomatoid percent",
+                "field_type": "real",
+                "field_order": "22",
+                "field_constraint_data": "is_shown_fg=$(sarcomatoid_present)=='Yes'"
+            },
+            "1.71": {
+                "field_name": "rhabdoid_present",
+                "field_title": "Rhabdoid present",
+                "field_type": "string",
+                "field_order": "23",
+                "field_constraint_data": "Yes|No|Not Reported"
+            },
+            "1.72": {
+                "field_name": "rhabdoid_percent",
+                "field_title": "Rhabdoid percent",
+                "field_type": "real",
+                "field_order": "24",
+                "field_constraint_data": "is_shown_fg=$(rhabdoid_present)=='Yes'"
+            },
+            "1.74": {
+                "field_name": "additional_pathology_findings",
+                "field_title": "Additional pathology findings",
+                "field_type": "text",
+                "field_order": "26",
+                "field_description": "A section header that includes additional pathologic findings."
+            }
+        },
+        "parent": {
+            "8": "$type.nciu"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

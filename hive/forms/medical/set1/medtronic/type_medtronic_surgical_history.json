@@ -1,0 +1,93 @@
+{
+    "189": {
+        "_id": "$type.medtronic_surgical_history",
+        "_type": "type",
+        "name": "medtronic_surgical_history",
+        "title": "Surgical History",
+        "fields": {
+            "1.2": {
+                "field_name": "subject_previous_lumbar_spinal_surgery",
+                "field_title": "Has the subject had previous lumbar spinal surgery?",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "NO|YES|NOT AVAILABLE"
+            },
+            "1.3": {
+                "field_name": "surgical_history_term",
+                "field_title": "Surgical History Term",
+                "field_type": "array",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "is_shown_fg=$(subject_previous_lumbar_spinal_surgery)=='YES'"
+            },
+            "1.4": {
+                "field_name": "surgical_history_term_opt",
+                "field_title": "Surgical History Term",
+                "field_type": "string",
+                "field_parent": "surgical_history_term",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "ARTHROPLASTY|DISCECTOMY|FENESTRATION|FORAMINOTOMY|FUSION|INTERLAMINAR SPACER|INTERSPINOUS SPACER|LAMINECTOMY|OTHER"
+            },
+            "1.5": {
+                "field_name": "other_specify",
+                "field_title": "Specify",
+                "field_type": "text",
+                "field_parent": "surgical_history_term",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(surgical_history_term_opt)=='OTHER'"
+            },
+            "1.6": {
+                "field_name": "start _date",
+                "field_title": "Start Date",
+                "field_type": "date",
+                "field_parent": "surgical_history_term",
+                "field_order": "3",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "spinal_level",
+                "field_title": "Spinal Level",
+                "field_type": "string",
+                "field_parent": "surgical_history_term",
+                "field_order": "4",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "L1-L2|L2-L3|L3-L4|L4-L5|L5-S1|L5-L6|L6-S1"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

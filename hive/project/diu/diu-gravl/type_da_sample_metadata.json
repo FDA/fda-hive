@@ -1,0 +1,92 @@
+{
+    "198497": {
+        "_id": "$type.da_sample_metadata",
+        "_type": "type",
+        "name": "da_sample_metadata",
+        "title": "Sample Metadata",
+        "description": "Metadata associated with a wastewater sample.",
+        "parent": {
+            "7": "$type.wastewater_collection"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "sample_id",
+                "field_title": "Sample ID",
+                "field_type": "string",
+                "field_order": 1,
+                "field_description": "GRAVL (or other LMS) sample ID."
+            },
+            "11.3": {
+                "field_name": "carrier_name",
+                "field_title": "Carrier",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint": "choice+",
+                "field_constraint_data": "UPS|FedEx|DHL",
+                "field_description": "Shipping carrier."
+            },
+            "11.4": {
+                "field_name": "sample_collection",
+                "field_title": "Sample Collection Metadata",
+                "field_type": "obj",
+                "field_order": 4,
+                "field_constraint": "type",
+                "field_constraint_data": "sample_collection",
+                "field_is_readonly_fg": -1,
+                "field_description": "Information about the sample collection."
+            },
+            "11.5": {
+                "field_name": "laboratory_processing",
+                "field_title": "Processing",
+                "field_type": "obj",
+                "field_order": 5,
+                "field_constraint": "type",
+                "field_constraint_data": "laboratory_processing",
+                "field_description": "Information related to the laboratory processing and results.",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_readonly_fg": -1
+            },
+            "11.7": {
+                "field_name": "carrier_tracking",
+                "field_title": "Tracking Number(s)",
+                "field_order": 3,
+                "field_type": "string",
+                "field_description": "Tracking number(s) for the shipment.",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

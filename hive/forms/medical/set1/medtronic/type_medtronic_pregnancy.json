@@ -1,0 +1,92 @@
+{
+    "180": {
+        "_id": "$type.medtronic_pregnancy",
+        "_type": "type",
+        "name": "medtronic_pregnancy",
+        "title": "Pregnancy",
+        "fields": {
+            "1.2": {
+                "field_name": "date_of_conception",
+                "field_title": "Date of Conception",
+                "field_type": "date",
+                "field_order": "2"
+            },
+            "1.3": {
+                "field_name": "expected_date_of_delivery",
+                "field_title": "Expected date of delivery",
+                "field_type": "date",
+                "field_order": "3"
+            },
+            "1.4": {
+                "field_name": "actual_delivery_date",
+                "field_title": "Actual delivery date",
+                "field_type": "date",
+                "field_order": "4"
+            },
+            "1.5": {
+                "field_name": "health_of_mother",
+                "field_title": "Health of Mother",
+                "field_type": "string",
+                "field_order": "5"
+            },
+            "1.6": {
+                "field_name": "health_of_baby",
+                "field_title": "Health of Baby",
+                "field_type": "string",
+                "field_order": "6"
+            },
+            "1.7": {
+                "field_name": "lactation_history",
+                "field_title": "Lactation History",
+                "field_type": "string",
+                "field_order": "7"
+            },
+            "1.8": {
+                "field_name": "mother_experience_medical_problems",
+                "field_title": "Did the mother experience any medical problems?",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.10": {
+                "field_name": "mother_experience_medical_problems_yes",
+                "field_title": "Describe the medical problems experienced",
+                "field_type": "string",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(mother_experience_medical_problems)=='YES'"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

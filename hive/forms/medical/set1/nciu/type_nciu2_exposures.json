@@ -1,0 +1,286 @@
+{
+    "33574": {
+        "_id": "$type.nciu2_exposures",
+        "_type": "type",
+        "name": "nciu2_exposures",
+        "title": "Exposures",
+        "fields": {
+            "1.0": {
+                "field_name": "age_at_diagnosis",
+                "field_title": "Age at diagnosis?",
+                "field_type": "integer",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_description": "Numeric value used to represent the age of the patient when exposure to a specific environmental factor began."
+            },
+            "1.2": {
+                "field_name": "alcohol_days_per_week",
+                "field_title": "Frequency of Alcohol Consumption",
+                "field_type": "integer",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcohol_intensity)!='Lifelong Non-Drinker'&&$(alcohol_intensity)!='Non-Drinker'&&$(alcohol_intensity)!='Unknown'&&$(alcohol_intensity)!='Not Reported'",
+                "field_description": "Numeric value used to describe the average number of days each week that a person consumes an alcoholic beverage."
+            },
+            "1.3": {
+                "field_name": "alcohol_drinks_per_day",
+                "field_title": "Amount of Alcohol Consumption per day?",
+                "field_type": "integer",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcohol_intensity)!='Lifelong Non-Drinker'&&$(alcohol_intensity)!='Non-Drinker'&&$(alcohol_intensity)!='Unknown'&&$(alcohol_intensity)!='Not Reported'",
+                "field_description": "Numeric value used to describe the average number of alcoholic beverages a person consumes per day."
+            },
+            "1.4": {
+                "field_name": "alcohol_history",
+                "field_title": "Alcohol History Documented",
+                "field_type": "string",
+                "field_order": "4",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported\n>is_shown_fg=$(alcohol_intensity)!='Lifelong Non-Drinker'&&$(alcohol_intensity)!='Non-Drinker'&&$(alcohol_intensity)!='Unknown'&&$(alcohol_intensity)!='Not Reported'",
+                "field_description": "A response to a question that asks whether the participant has consumed at least 12 drinks of any kind of alcoholic beverage in their lifetime."
+            },
+            "1.5": {
+                "field_name": "alcohol_intensity",
+                "field_title": "Alcohol Exposure Intensity",
+                "field_type": "string",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Drinker|Heavy Drinker|Lifelong Non-Drinker|Non-Drinker|Occasional Drinker|Unknown|Not Reported",
+                "field_constraint_description": "Description:",
+                "field_description": "Category to describe the patient's current level of alcohol use as self-reported by the patient."
+            },
+            "1.6": {
+                "field_name": "alcohol_type",
+                "field_title": "Alcohol type",
+                "field_type": "string",
+                "field_order": "6",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Beer|Liquor|Other|Wine|Unknown|Not Reported\n>is_shown_fg=$(alcohol_intensity)!='Lifelong Non-Drinker'&&$(alcohol_intensity)!='Non-Drinker'&&$(alcohol_intensity)!='Unknown'&&$(alcohol_intensity)!='Not Reported'"
+            },
+            "1.7": {
+                "field_name": "asbestos_exposure",
+                "field_title": "Asbestos Exposure?",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The yes/no/unknown indicator used to describe whether the patient was exposed to asbestos."
+            },
+            "1.8": {
+                "field_name": "cigarettes_per_day",
+                "field_title": "Average number of cigarettes smoked per day",
+                "field_type": "integer",
+                "field_order": "8",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(type_of_tobacco_used)=='Cigarette'&&($(tobacco_smoking_quit_year)=='0'||$(tobacco_smoking_quit_year)=='')",
+                "field_description": "The average number of cigarettes smoked per day."
+            },
+            "1.9": {
+                "field_name": "coal_dust_exposure",
+                "field_title": "coal_dust_exposure",
+                "field_type": "string",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown",
+                "field_description": "The yes/no/unknown indicator used to describe whether a patient was exposed to fine powder derived by the crushing of coal."
+            },
+            "1.10": {
+                "field_name": "environmental_tobacco_smoke_exposure",
+                "field_title": "Environmental Tobacco Smoke Exposure Indicator",
+                "field_type": "string",
+                "field_order": "10",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown",
+                "field_description": "The yes/no/unknown indicator used to describe whether a patient was exposed to smoke that is emitted from burning tobacco, including cigarettes, pipes, and cigars. This includes tobacco smoke exhaled by smokers."
+            },
+            "1.11": {
+                "field_name": "exposure_duration",
+                "field_title": "Exposure duration",
+                "field_type": "string",
+                "field_order": "11",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Six Weeks or More|Unknown|Not Reported\n>is_shown_fg=$(exposure_type)!=''",
+                "field_description": "Text term used to describe the length of time the patient was exposed to an environmental factor."
+            },
+            "1.12": {
+                "field_name": "exposure_type",
+                "field_title": "Exposure Type",
+                "field_type": "string",
+                "field_order": "12",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Marijuana|Smoke|Tobacco|Wood Dust",
+                "field_description": "The text term used to describe the type of environmental exposure."
+            },
+            "1.13": {
+                "field_name": "marijuana_use_per_week",
+                "field_title": "Marijuana Use Per Week",
+                "field_type": "integer",
+                "field_order": "13",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(exposure_type)=='Marijuana'",
+                "field_description": "Numeric value that represents the number of times the patient uses marijuana each day."
+            },
+            "1.14": {
+                "field_name": "pack_years_smoked",
+                "field_title": "Number pack years smoked",
+                "field_type": "integer",
+                "field_order": "14",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(type_of_tobacco_used)=='Cigarette'&&($(tobacco_smoking_quit_year)=='0'||$(tobacco_smoking_quit_year)=='')",
+                "field_description": "Numeric computed value to represent lifetime tobacco exposure defined as number of cigarettes smoked per day x number of years smoked divided by 20."
+            },
+            "1.15": {
+                "field_name": "radon_exposure",
+                "field_title": "Lifetime Radon Exposure",
+                "field_type": "string",
+                "field_order": "15",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The yes/no/unknown indicator used to describe whether the patient was exposed to radon."
+            },
+            "1.16": {
+                "field_name": "respirable_crystalline_silica_exposure",
+                "field_title": "respirable_crystalline_silica_exposure",
+                "field_type": "string",
+                "field_order": "16",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown",
+                "field_description": "The yes/no/unknown indicator used to describe whether a patient was exposured to respirable crystalline silica, a widespread, naturally occurring, crystalline metal oxide that consists of different forms including quartz, cristobalite, tridymite, tripoli, ganister, chert and novaculite."
+            },
+            "1.17": {
+                "field_name": "secondhand_smoke_as_child",
+                "field_title": "Was the Participant exposed to secondhand smoke as a child?",
+                "field_type": "string",
+                "field_order": "17",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The text term used to indicate whether the patient was exposed to secondhand smoke as a child."
+            },
+            "1.18": {
+                "field_name": "smokeless_tobacco_quit_age",
+                "field_title": "smokeless_tobacco_quit_age",
+                "field_type": "integer",
+                "field_order": "18",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(type_of_tobacco_used)=='Smokeless Tobacco'"
+            },
+            "1.19": {
+                "field_name": "smoking_frequency",
+                "field_title": "Smoking Frequency",
+                "field_type": "string",
+                "field_order": "19",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Every day|Some days|Unknown\n>is_shown_fg=$(tobacco_smoking_quit_year)=='0'||$(tobacco_smoking_quit_year)==''",
+                "field_description": "The text term used to generally decribe how often the patient smokes."
+            },
+            "1.20": {
+                "field_name": "time_between_waking_and_first_smoke",
+                "field_title": "How soon after the patient wakes/woke up does/did the patient smoke?",
+                "field_type": "string",
+                "field_order": "20",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Within 5 Minutes|6-30 Minutes|31-60 Minutes|After 60 Minutes|Unknown\n>is_shown_fg=$(tobacco_smoking_quit_year)=='0'||$(tobacco_smoking_quit_year)==''",
+                "field_description": "The text term used to describe the approximate amount of time elapsed between the time the patient wakes up in the morning to the time they smoke their first cigarette."
+            },
+            "1.21": {
+                "field_name": "tobacco_smoking_onset_year",
+                "field_title": "Year of onset of tobacco smoking",
+                "field_type": "integer",
+                "field_order": "21",
+                "field_is_optional_fg": true,
+                "field_description": "The year in which the participant began smoking."
+            },
+            "1.22": {
+                "field_name": "tobacco_smoking_quit_year",
+                "field_title": "Year of Quitting Tobacco Smoking",
+                "field_type": "integer",
+                "field_order": "22",
+                "field_is_optional_fg": true,
+                "field_description": "The year in which the participant quit smoking."
+            },
+            "1.23": {
+                "field_name": "tobacco_smoking_status",
+                "field_title": "tobacco_smoking_status",
+                "field_type": "string",
+                "field_order": "23",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1///Lifelong Non-Smoker|2///Current Smoker|3///Current Reformed Smoker for > 15 yrs|4///Current Reformed Smoker for < or = 15 yrs|5///Current Reformed Smoker, Duration Not Specified|6///Smoker at Diagnosis|7///Smoking history not documented|Unknown|Not Reported\n>is_shown_fg=$(tobacco_smoking_quit_year)=='0'||$(tobacco_smoking_quit_year)==''",
+                "field_description": "Category describing current smoking status and smoking history as self-reported by a patient."
+            },
+            "1.24": {
+                "field_name": "tobacco_use_per_day",
+                "field_title": "tobacco_use_per_day",
+                "field_type": "integer",
+                "field_order": "24",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(smokeless_tobacco_quit_age)=='0'||$(smokeless_tobacco_quit_age)==''",
+                "field_description": "Numeric value that represents the number of times the patient uses tobacco each day."
+            },
+            "1.25": {
+                "field_name": "type_of_smoke_exposure",
+                "field_title": "type_of_smoke_exposure",
+                "field_type": "string",
+                "field_order": "25",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Accidental building fire smoke|Accidental fire smoke, grass|Accidental fire smoke, NOS|Accidental forest fire smoke|Accidental vehicle fire smoke|Aircraft smoke|Burning tree smoke|Coal smoke, NOS|Cooking-related smoke, NOS|Electrical fire smoke|Electronic cigarette smoke, NOS|Environmental tobacco smoke|Factory smokestack smoke|Field burning smoke|Fire smoke, NOS|Furnace or boiler smoke|Gas burning smoke, propane|Grease fire smoke|Grilling smoke|Hashish smoke|Indoor stove or fireplace smoke, coal burning|Indoor stove or fireplace smoke, NOS|Indoor stove or fireplace smoke, wood burning|Machine smoke|Marijuana smoke|No Smoke Exposure|Oil burning smoke, Kerosene|Oil burning smoke, NOS|Recreational fire smoke|Smoke exposure, NOS|Smokehouse smoke|Tobacco smoke, cigar|Tobacco smoke, cigarettes|Tobacco smoke, NOS|Tobacco smoke, pipe|Volcanic smoke|Waste burning smoke|Wood burning smoke, factory|Wood burning smoke, NOS|Work-related smoke, artificial smoke machines|Work-related smoke, fire fighting|Work-related smoke, foundry|Work-related smoke, generators|Work-related smoke, military|Work-related smoke, NOS|Work-related smoke, paint baking|Work-related smoke, plastics factory|Work-related smoke, plumbing|Work-related smoke, soldering/welding|Unknown\n>is_shown_fg=$(exposure_type)=='Smoke'",
+                "field_description": "The text term used to describe the patient's specific type of smoke exposure."
+            },
+            "1.26": {
+                "field_name": "type_of_tobacco_used",
+                "field_title": "type_of_tobacco_used",
+                "field_type": "string",
+                "field_order": "26",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Cigar|Cigarette|Electronic Cigarette|Other|Pipe|Smokeless Tobacco",
+                "field_description": "The text term used to describe the specific type of tobacco used by the patient."
+            },
+            "1.27": {
+                "field_name": "years_smoked",
+                "field_title": "Years used",
+                "field_type": "integer",
+                "field_order": "27",
+                "field_is_optional_fg": true,
+                "field_description": "Numeric value (or unknown) to represent the number of years a person has been smoking."
+            },
+            "1.29": {
+                "field_name": "accident_cnpp",
+                "field_title": "Accident CNPP",
+                "field_type": "string",
+                "field_order": "28",
+                "field_constraint_data": "Yes|No|N/A"
+            },
+            "1.30": {
+                "field_name": "accident_cnpp_type",
+                "field_title": "Accident CNPP type",
+                "field_type": "string",
+                "field_order": "29",
+                "field_constraint_data": "Liquidator|Evacuated|Lives in the zone|Born of victims of accident CNPP|N/A\n>is_shown_fg=$(accident_cnpp)=='Yes'"
+            }
+        },
+        "parent": {
+            "8": "$type.nciu"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

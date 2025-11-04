@@ -1,0 +1,2138 @@
+{
+    "481": {
+        "_id": "$type.hep_discover_form",
+        "_type": "type",
+        "name": "hep_discover_form",
+        "title": "DISCOVER FORM",
+        "fields": {
+            "1.1": {
+                "field_name": "discover_form",
+                "field_title": "Please fill out a separate DISCOVER item in this form for each each seizure type",
+                "field_type": "array",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.2": {
+                "field_name": "visit",
+                "field_title": "Which visit is this form associated with?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 0.5,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Visit 1|Visit 2|Visit 3",
+                "field_description": "(If visit 2-3, only complete for new or change in\r\nseizure type)"
+            },
+            "1.3": {
+                "field_name": "first_sz_type",
+                "field_title": "Interview start time: (complete for first SZ type only)",
+                "field_type": "time",
+                "field_parent": "discover_form",
+                "field_order": 0.6,
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "unique_sz_letter_code",
+                "field_title": "Unique seizure letter code: SZ____",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 0.8,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "subtitle_2",
+                "field_title": "PART I: Questions for the patient",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.6": {
+                "field_name": "subtitle_3",
+                "field_title": "Ask patient to report most severe seizure first",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "sz_type_name",
+                "field_title": "Seizure type name (if given)",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "sz_count_lifetime",
+                "field_title": "How many seizures of this type in your lifetime?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1|2-5|6-9|10-29|30-49|50-99|100+"
+            },
+            "1.9": {
+                "field_name": "is_this_event_sz",
+                "field_title": "How certain are you that this event is a seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "No Confidence|Low|Moderate|High|Near Certainty"
+            },
+            "1.10": {
+                "field_name": "warning_before_sz",
+                "field_title": "1. Do you have a warning (such as a funny feeling, staring or body jerking, etc) before this seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.11": {
+                "field_name": "sz_code",
+                "field_title": "Input the Seizure Code (Sz Code)",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(warning_before_sz)=='Sometimes'"
+            },
+            "1.12": {
+                "field_name": "describe _warning",
+                "field_title": "a. Please describe this warning:",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(warning_before_sz)!='Never'&&$(warning_before_sz)!='Not Sure/Unknown'"
+            },
+            "1.13": {
+                "field_name": "warning_duration",
+                "field_title": "b. How long is the warning?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(warning_before_sz)!='Never'&&$(warning_before_sz)!='Not Sure/Unknown'"
+            },
+            "1.14": {
+                "field_name": "warning_without_full_sz_type",
+                "field_title": "c. Do you ever only have the warning without having this full seizure type?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(warning_before_sz)!='Never'&&$(warning_before_sz)!='Not Sure/Unknown'"
+            },
+            "1.15": {
+                "field_name": "subtitle_4",
+                "field_title": "If YES, designate this as the next seizure type (SZ code _____) and answer the following questions",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(warning_without_full_sz_type)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.16": {
+                "field_name": "input_sz_code",
+                "field_title": "Input the Seizure Code (Sz Code)",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(warning_without_full_sz_type)=='true'"
+            },
+            "1.17": {
+                "field_name": "description_2",
+                "field_title": "Ask ONLY when patient answers Yes to question 1c:",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 12.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(warning_without_full_sz_type)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "c'. When this warning happens, can you:"
+            },
+            "1.18": {
+                "field_name": "people_speaking",
+                "field_title": "i. still hear when people are speaking to you?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 13,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown\r\n>is_shown_fg=$(warning_without_full_sz_type)=='true'"
+            },
+            "1.19": {
+                "field_name": "understand_speaking",
+                "field_title": "ii. still understand what is going on and/or what people are saying?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown\r\n>is_shown_fg=$(warning_without_full_sz_type)=='true'"
+            },
+            "1.20": {
+                "field_name": "remember_happens",
+                "field_title": "iii. remember what happens during this warning?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown\r\n>is_shown_fg=$(warning_without_full_sz_type)=='true'"
+            },
+            "1.21": {
+                "field_name": "stronger_forms",
+                "field_title": "c''. Are there milder and stronger forms of this warning?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(warning_without_full_sz_type)=='true'"
+            },
+            "1.22": {
+                "field_name": "stronger_forms_describe",
+                "field_title": "If so, please describe",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(warning_without_full_sz_type)=='true'&&$(stronger_forms)=='true'"
+            },
+            "1.23": {
+                "field_name": "body_jerks_before_sz",
+                "field_title": "2. Do you ever have body jerks just before the seizure while you are still aware? (please skip this question if body jerks are described as warning, above)",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 18,
+                "field_is_optional_fg": true
+            },
+            "1.24": {
+                "field_name": "body_jerks_type",
+                "field_title": "If so are they on",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 19,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "One side (Right)|One side (Left)|One side (Either)|One side (Not Sure/Unknown)|Both sides\r\n>is_shown_fg=$(body_jerks_before_sz)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.25": {
+                "field_name": "very_first_thing",
+                "field_title": "3. What is the very first thing that happens to you during this seizure type?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 20
+            },
+            "1.26": {
+                "field_name": "describe_next",
+                "field_title": "4. Describe what happens next and then, in order, the rest of the events that occur with this seizure type: If awareness is lost during this seizure, patient may describe what he/she is told by others.",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 21
+            },
+            "1.27": {
+                "field_name": "sz_last",
+                "field_title": "5. How long does the seizure last?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 22,
+                "field_constraint_data": "1-30s|30s-1min|1-5min|>5min|variable (write time below)|unknown"
+            },
+            "1.28": {
+                "field_name": "p1_variable",
+                "field_title": "write time",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sz_last)=='variable (write time below)'"
+            },
+            "1.29": {
+                "field_name": "subtitle_5",
+                "field_title": "6. When this seizure is at its strongest, can you",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 24,
+                "field_constraint_description": "description"
+            },
+            "1.30": {
+                "field_name": "strongest_sz_people _speaking",
+                "field_title": "a. still hear when people are speaking to you?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 24.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.31": {
+                "field_name": "strongest_sz_understand",
+                "field_title": "b. still understand what is going on and/or what people are saying?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 25,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.32": {
+                "field_name": "strongest_sz_remember_happens",
+                "field_title": "c. remember what happens during this seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 26,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.33": {
+                "field_name": "subtitle_6",
+                "field_title": "7. With this seizure type, do you ever",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 27,
+                "field_constraint_description": "description"
+            },
+            "1.34": {
+                "field_name": "bite_tongue",
+                "field_title": "a. bite your tongue?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 28,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.35": {
+                "field_name": "lose_bowel_control",
+                "field_title": "b. lose bowel control?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 29,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.36": {
+                "field_name": "lose_bladder_control",
+                "field_title": "c. lose bladder control?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 30,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.37": {
+                "field_name": "subtitle_people_observe",
+                "field_title": "8. Do people observe you doing any of the following during this seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 31,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "description"
+            },
+            "1.38": {
+                "field_name": "altered_awareness",
+                "field_title": "Altered awareness",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 32,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.39": {
+                "field_name": "altered_awareness_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 33,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(altered_awareness)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.40": {
+                "field_name": "decreased_ability_respond",
+                "field_title": "Decreased ability to respond",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 34,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.41": {
+                "field_name": "decreased_ability_respond_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 35,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(decreased_ability_respond)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.42": {
+                "field_name": "mouth_movement",
+                "field_title": "Mouth movement (e.g. lip smacking)",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 36,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.43": {
+                "field_name": "mouth_movement_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 37,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(mouth_movement)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.44": {
+                "field_name": "drolling",
+                "field_title": "Drooling",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 38,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.45": {
+                "field_name": "drolling_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 39,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(drolling)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.46": {
+                "field_name": "eye_blinking",
+                "field_title": "Eye blinking",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 40,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.47": {
+                "field_name": "eye_blinking_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 41,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eye_blinking)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.48": {
+                "field_name": "glassy_stare",
+                "field_title": "Glassy stare",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 42,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.49": {
+                "field_name": "glassy_stare_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 43,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(glassy_stare)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.50": {
+                "field_name": "eyes_closed_throughout",
+                "field_title": "Eyes closed throughout",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 44,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.51": {
+                "field_name": "eyes_closed_throughout_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 45,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eyes_closed_throughout)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.52": {
+                "field_name": "aimless_hand_movements",
+                "field_title": "Purposeless/aimless hand movements",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 46,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.53": {
+                "field_name": "aimless_hand_movements_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 47,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(aimless_hand_movements)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.54": {
+                "field_name": "one_hand_abnormal_posture",
+                "field_title": "One hand/arm stiff or in an abnormal posture",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 48,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.55": {
+                "field_name": "one_hand_abnormal_posture_options",
+                "field_title": "Side",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 49,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Right|Left|Either|Not Sure\r\n>is_shown_fg=$(one_hand_abnormal_posture)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.56": {
+                "field_name": "one_side_body_stiff",
+                "field_title": "One side of the body stiff",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 50,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.57": {
+                "field_name": "one_side_body_stiff_options",
+                "field_title": "Side",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 51,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Right|Left|Either|Not Sure\r\n>is_shown_fg=$(one_side_body_stiff)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.58": {
+                "field_name": "both_side",
+                "field_title": "Both sides of the body stiff",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 52,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.59": {
+                "field_name": "both_side_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 53,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(both_side)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.60": {
+                "field_name": "losing_posture",
+                "field_title": "Falling to the ground/losing posture",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 54,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.61": {
+                "field_name": "losing_posture_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 55,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(losing_posture)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.62": {
+                "field_name": "talking_nonsense",
+                "field_title": "Talking nonsense",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 56,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.63": {
+                "field_name": "talking_nonsense_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 57,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(talking_nonsense)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.64": {
+                "field_name": "speaking_repetitive_phrases",
+                "field_title": "Speaking repetitive phrases",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 58,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.65": {
+                "field_name": "speaking_repetitive_phrases_notes",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 59,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(speaking_repetitive_phrases)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.66": {
+                "field_name": "other_noises",
+                "field_title": "Other noises",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 60,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.67": {
+                "field_name": "other_noises_field",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 61,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other_noises)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.68": {
+                "field_name": "none_above",
+                "field_title": "None of the above",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 62,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.69": {
+                "field_name": "unknown",
+                "field_title": "Unknown/not sure",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 63,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.70": {
+                "field_name": "people_reaction",
+                "field_title": "9. With this seizure, do people tell you that you stiffen and shake all over?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 64,
+                "field_constraint_data": "Yes|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.71": {
+                "field_name": "description_people_reaction",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 65,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "description",
+                "field_description": "  If \"Sometimes\" is checked, make sure seizures with and without stiffening and shaking are recorded on two separate forms. If \"Never\" or \"Not sure/Unknown\" is checked, please skip."
+            },
+            "1.72": {
+                "field_name": "shaking_duration",
+                "field_title": "a. If so, how long does the shaking last?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 67,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'"
+            },
+            "1.73": {
+                "field_name": "subtitle_shaking_report",
+                "field_title": "b. And report any of the following:",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 67.5,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "description"
+            },
+            "1.74": {
+                "field_name": "back_arching_9b",
+                "field_title": "Back arching",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 68,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.75": {
+                "field_name": "back_arching_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 69,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(back_arching_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.76": {
+                "field_name": "eyes_closed_9b",
+                "field_title": "Eyes closed",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 70,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.77": {
+                "field_name": "eyes_closed_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 71,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eyes_closed_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.78": {
+                "field_name": "eyes_rolled_up_9b",
+                "field_title": "Eyes rolled up",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 72,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.79": {
+                "field_name": "eyes_rolled_up_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 73,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eyes_rolled_up_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.80": {
+                "field_name": "turns_blue_9b",
+                "field_title": "Turns blue",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 74,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.81": {
+                "field_name": "turns_blue_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 75,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(turns_blue_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.82": {
+                "field_name": "drooling_9b",
+                "field_title": "Drooling",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 76,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.83": {
+                "field_name": "drooling_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 77,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(drooling_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.84": {
+                "field_name": "bloody_drool_9b",
+                "field_title": "Bloody drool",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 78,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.85": {
+                "field_name": "bloody_drool_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 79,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(bloody_drool_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.86": {
+                "field_name": "prolonged_groan_9b",
+                "field_title": "Prolonged groan or scream",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 80,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.87": {
+                "field_name": "prolonged_groan_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 81,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(prolonged_groan_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.88": {
+                "field_name": "grunting_9b",
+                "field_title": "Grunting",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 82,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.89": {
+                "field_name": "grunting_notes_9b",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 83,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(grunting_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.90": {
+                "field_name": "other_noise_9b",
+                "field_title": "Other noise",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 84,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.91": {
+                "field_name": "other_noise_field_9b",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 85,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other_noise_9b)=='true'&&($(people_reaction)=='Yes'||$(people_reaction)=='Sometimes')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.92": {
+                "field_name": "none_above_9b",
+                "field_title": "None of the above",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 86,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.93": {
+                "field_name": "unknown_9b",
+                "field_title": "Unknown/not sure",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 87,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(people_reaction)=='Yes'||$(people_reaction)=='Sometimes'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.94": {
+                "field_name": "description_10",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 88,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(none_above)=='true'&&($(people_reaction)=='Never'||$(people_reaction)=='Not Sure/Unknown')",
+                "field_constraint_description": "description",
+                "field_description": "Ask ONLY if the patient answered \"None\" to question 8 and either \"Never\" or \"Not sure/Unknown\" to question 9:"
+            },
+            "1.95": {
+                "field_name": "having_this_sz",
+                "field_title": "10. Can people tell when you are having this seizure?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 89,
+                "field_constraint_data": "is_shown_fg=$(none_above)=='true'&&($(people_reaction)=='Never'||$(people_reaction)=='Not Sure/Unknown')"
+            },
+            "1.96": {
+                "field_name": "p1q10_describe",
+                "field_title": "a. If so, how?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 89.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(none_above)=='true'&&($(people_reaction)=='Never'||$(people_reaction)=='Not Sure/Unknown'))&&$(having_this_sz)=='true' ",
+                "field_constraint_description": "subquestion"
+            },
+            "1.97": {
+                "field_name": "sz_type_lost_track",
+                "field_title": "11. With this seizure type, have you ever felt you might have lost track of time?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 91,
+                "field_constraint_data": "is_shown_fg=$(none_above)=='true'&&($(people_reaction)=='Never'||$(people_reaction)=='Not Sure/Unknown')"
+            },
+            "1.98": {
+                "field_name": "part1q11_describe",
+                "field_title": "a. If so, please describe",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 92,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sz_type_lost_track)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.99": {
+                "field_name": "find_yourself_different_position",
+                "field_title": "12. When this seizure has ended, do you often find yourself in a different position or location than when this seizure started?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 94
+            },
+            "1.100": {
+                "field_name": "lost_track_describe",
+                "field_title": "a. If so, please describe",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 94.5,
+                "field_constraint_data": "is_shown_fg=$(find_yourself_different_position)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.101": {
+                "field_name": "sz_occur",
+                "field_title": "13. Do the seizures or warnings occur with certain triggers or do they occur “out of the blue?”",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 96,
+                "field_constraint_data": "With Triggers|Out of the blue"
+            },
+            "1.102": {
+                "field_name": "describe_triggers",
+                "field_title": "a. Please describe the triggers",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 97,
+                "field_constraint_data": "is_shown_fg=$(sz_occur)=='With Triggers'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.103": {
+                "field_name": "sz_occur_day",
+                "field_title": "14. Does this seizure type occur at a certain time of the day?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 98
+            },
+            "1.104": {
+                "field_name": "sz_occur_day_description",
+                "field_title": "a. If so, when?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 99,
+                "field_constraint_data": "is_shown_fg=$(sz_occur_day)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.105": {
+                "field_name": "subtitle_7",
+                "field_title": "15. Is there anything you or anyone else can do to",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 100,
+                "field_constraint_description": "description"
+            },
+            "1.106": {
+                "field_name": "prevent_sz",
+                "field_title": "a. Prevent the seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 101,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.107": {
+                "field_name": "stop_sz_abruptly",
+                "field_title": "b. Stop the seizure abruptly?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 102,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.108": {
+                "field_name": "shorten_duration_sz",
+                "field_title": "c. Shorten the duration of the seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 103,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.109": {
+                "field_name": "notes_above",
+                "field_title": "Notes on above:",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 104,
+                "field_is_optional_fg": true
+            },
+            "1.110": {
+                "field_name": "subtite_feeling_after_sz",
+                "field_title": "16. How do you feel after this seizure type? For how long?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 105,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "description"
+            },
+            "1.111": {
+                "field_name": "tired_16",
+                "field_title": "Tired",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 106,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.112": {
+                "field_name": "tired_duretion_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 107,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(tired_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.113": {
+                "field_name": "confused_16",
+                "field_title": "Confused ",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 108,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.114": {
+                "field_name": "confused_duretion_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 109,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(confused_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.115": {
+                "field_name": "weak_one_side_16",
+                "field_title": "Weak on one side",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 110,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.116": {
+                "field_name": "weak_one_side_side_16",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 111,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "R|L|Either\r\n>is_shown_fg=$(weak_one_side_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.117": {
+                "field_name": "weak_one_side_duretion_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 112,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(weak_one_side_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.118": {
+                "field_name": "Unabl_speak_clearly_16",
+                "field_title": "Unable to speak clearly",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 113,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.119": {
+                "field_name": "Unabl_speak_clearly_duretion_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 114,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(Unabl_speak_clearly_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.120": {
+                "field_name": "sore_muscles_16",
+                "field_title": "Sore in your muscles",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 115,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.121": {
+                "field_name": "sore_muscles_duration_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 116,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sore_muscles_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.122": {
+                "field_name": "breathing_abnormally_16",
+                "field_title": "Breathing abnormally (deep, shallow, irregularly)",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 117,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.123": {
+                "field_name": "breathing_abnormally_duration_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 118,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(breathing_abnormally_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.124": {
+                "field_name": "other1_16",
+                "field_title": "Other 1",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 119,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.125": {
+                "field_name": "other1_field_16",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 120,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other1_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.126": {
+                "field_name": "other1_duration_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 121,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other1_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.127": {
+                "field_name": "other2_16",
+                "field_title": "Other 2",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 122,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.128": {
+                "field_name": "other2_field_16",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 123,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other2_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.129": {
+                "field_name": "other2_duration_16",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 124,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other2_16)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.130": {
+                "field_name": "Immediately_returns_normal_16",
+                "field_title": "Immediately returns to normal",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 125,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.131": {
+                "field_name": "unknown_16",
+                "field_title": "Unknown/not sure",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 126,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.132": {
+                "field_name": "over_sz",
+                "field_title": "17. After the seizure/warning is over, do you",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 127,
+                "field_constraint_data": "Pick up right where you left off|Feel confused or tired, take some time to resume what you were doing"
+            },
+            "1.133": {
+                "field_name": "shaking_not_sz",
+                "field_title": "18. Have you noticed hand shaking when not having a seizure?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 127.5,
+                "field_is_optional_fg": true
+            },
+            "1.134": {
+                "field_name": "shaking_not_sz_describe",
+                "field_title": "a. How would you describe it:",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 127.6,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Random|When using hands|Resting Hands|Not Sure/Unknown\r\n>is_shown_fg=$(shaking_not_sz)=='true'"
+            },
+            "1.135": {
+                "field_name": "shaking_not_sz_related",
+                "field_title": "b. Do you believe it is related to medication?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 127.7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(shaking_not_sz)=='true'"
+            },
+            "1.136": {
+                "field_name": "shaking_not_sz_related_why",
+                "field_title": "c. If so, why?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 127.8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(shaking_not_sz)=='true'&&$(shaking_not_sz_related)=='true'"
+            },
+            "1.137": {
+                "field_name": "description_sz_type_cluster",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 128,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "description",
+                "field_description": "Ask ONLY if seizure type the patient is describing is myoclonus and/or absence:\r\n<br>\r\nWhen seizures happen more than one time a minute we call that a cluster."
+            },
+            "1.138": {
+                "field_name": "sz_type_cluster",
+                "field_title": "19. Have you ever had this seizure type as a cluster?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 129,
+                "field_is_optional_fg": true
+            },
+            "1.139": {
+                "field_name": "typical_duration",
+                "field_title": "What is the typical duration?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 130,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "< 5 min|5-15 min|15-30 min|30 min-1 hour|> 1 hour\r\n>is_shown_fg=$(sz_type_cluster)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.140": {
+                "field_name": "designate_separate_seizure_type",
+                "field_title": "Designate this as a separate seizure type (SZ code ____)",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 131,
+                "field_is_optional_fg": true
+            },
+            "1.141": {
+                "field_name": "description_other_feelings",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 132,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "description",
+                "field_description": "Ask ONLY if this is the final seizure type the patient is describing:"
+            },
+            "1.142": {
+                "field_name": "other_feelings",
+                "field_title": "20. Do you ever have any other feelings (such as fear or anxiety) that come out of context or symptoms that start and stop abruptly with no apparent cause?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 133.5,
+                "field_constraint_data": "Yes|No|Not applicable"
+            },
+            "1.143": {
+                "field_name": "interview_end_time",
+                "field_title": "Interview end time",
+                "field_type": "time",
+                "field_parent": "discover_form",
+                "field_order": 135.5,
+                "field_is_optional_fg": false
+            },
+            "1.144": {
+                "field_name": "other_feelings_yes",
+                "field_title": "If YES, please record this as a separate seizure type and fill out a new form. ",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 135,
+                "field_constraint_data": "is_shown_fg=$(other_feelings)=='Yes'",
+                "field_constraint_description": "description"
+            },
+            "1.145": {
+                "field_name": "subtitle_8",
+                "field_title": "Please indicate the seizure codes (up to 3) that have been described on this form",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 136,
+                "field_constraint_description": "subtitle"
+            },
+            "1.146": {
+                "field_name": "sz_code1",
+                "field_title": "SZ code 1",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 137,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "value_fg=$(unique_sz_letter_code);"
+            },
+            "1.147": {
+                "field_name": "sz_code2",
+                "field_title": "SZ code 2",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 138,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "value_fg=$(sz_code);"
+            },
+            "1.148": {
+                "field_name": "sz_code3",
+                "field_title": "SZ code 3",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 139,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "value_fg=$(input_sz_code);"
+            },
+            "1.149": {
+                "field_name": "subtitle_9",
+                "field_title": "PART II: Questions for the observer (Please attach this form to Part I for each seizure type)",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 140,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.150": {
+                "field_name": "sz_type_name_part2",
+                "field_title": "Seizure type name (if given)",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 144,
+                "field_is_optional_fg": true
+            },
+            "1.151": {
+                "field_name": "patients_sz_part2",
+                "field_title": "How many of the patient’s seizures of this type have you witnessed?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 145,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0|1|2-5|6-9|10+"
+            },
+            "1.152": {
+                "field_name": "noticed_sz_part2",
+                "field_title": "1. What is the very first thing that you notice when the patient has this seizure?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 146,
+                "field_is_optional_fg": true
+            },
+            "1.153": {
+                "field_name": "describe_next_sz1",
+                "field_title": "2. Describe what happens next and then, in order, the rest of the events that happen with this seizure:  (Write description verbatim, then check off symptoms in Qs 3 & 4)",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 147,
+                "field_is_optional_fg": true
+            },
+            "1.154": {
+                "field_name": "observe_beginning_sz",
+                "field_title": "3. Do you observe any of the following at the beginning of the seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 148,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Staring|Eye blinking|Body/Limb jerking"
+            },
+            "1.155": {
+                "field_name": "if_body_jerking",
+                "field_title": "Jerking is",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 148.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always Right|Always Left|Either|Both\r\n>is_shown_fg=$(observe_beginning_sz)=='Body/Limb jerking'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.156": {
+                "field_name": "observe_following_during_sz",
+                "field_title": "4. Do you observe any of the following during this seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 149,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_description": "description"
+            },
+            "1.157": {
+                "field_name": "mouth_movement2_4",
+                "field_title": "Mouth movement (e.g. lip smacking)",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 150,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.158": {
+                "field_name": "mouth_movement_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 151,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(mouth_movement2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.159": {
+                "field_name": "drooling2_4",
+                "field_title": "Drooling",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 152,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.160": {
+                "field_name": "drooling_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 153,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(drooling2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.161": {
+                "field_name": "eye_blinking2_4",
+                "field_title": "Eye blinking",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 154,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.162": {
+                "field_name": "eye_blinking_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 155,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eye_blinking2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.163": {
+                "field_name": "glassy_stare2_4",
+                "field_title": "Glassy stare",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 156,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.164": {
+                "field_name": "glassy_stare_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 157,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(glassy_stare2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.165": {
+                "field_name": "eyes_closed_throughout2_4",
+                "field_title": "Eyes closed throughout",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 158,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.166": {
+                "field_name": "eyes_closed_throughout_notes2_4",
+                "field_title": "Notes",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 159,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eyes_closed_throughout2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.167": {
+                "field_name": "aimless_hand_movements2_4",
+                "field_title": "Purposeless/aimless hand movements",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 160,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.168": {
+                "field_name": "aimless_hand_movements_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 161,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(aimless_hand_movements2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.169": {
+                "field_name": "one_hand2_4",
+                "field_title": "One hand/arm stiff or in an abnormal posture",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 162,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.170": {
+                "field_name": "one_hand_options2_4",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 163,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Right|Left|Either|Not Sure\r\n>is_shown_fg=$(one_hand2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.171": {
+                "field_name": "one_side2_4",
+                "field_title": "One side of the body stiff",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 164,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.172": {
+                "field_name": "one_side_options2_4",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 165,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Right|Left|Either|Not Sure\r\n>is_shown_fg=$(one_side2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.173": {
+                "field_name": "both_side2_4",
+                "field_title": "Both sides of the body stiff",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 166,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.174": {
+                "field_name": "both_side_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 167,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(both_side2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.175": {
+                "field_name": "losing_posture2_4",
+                "field_title": "Falling to the ground/losing posture",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 168,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.176": {
+                "field_name": "losing_posture_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 169,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(losing_posture2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.177": {
+                "field_name": "talking_nonsense2_4",
+                "field_title": "Talking nonsense",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 170,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.178": {
+                "field_name": "talking_nonsense_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 171,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(talking_nonsense2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.179": {
+                "field_name": "speaking_repetitive_phrases2_4",
+                "field_title": "Speaking repetitive phrases",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 172,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.180": {
+                "field_name": "speaking_repetitive_phrases_notes2_4",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 173,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(speaking_repetitive_phrases2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.181": {
+                "field_name": "other_noises2_4",
+                "field_title": "Other noises",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 174,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.182": {
+                "field_name": "other_noises_field2_4",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 175,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other_noises2_4)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.183": {
+                "field_name": "none_above2_4",
+                "field_title": "None of the above",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 176,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.184": {
+                "field_name": "unknown2_4",
+                "field_title": "Unknown/not sure",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 177,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.185": {
+                "field_name": "sz_type_shake_all_over",
+                "field_title": "5. With this seizure type do you observe the patient stiffen and shake all over?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 178,
+                "field_is_optional_fg": true
+            },
+            "1.186": {
+                "field_name": "shaking_duration_2",
+                "field_title": "a. If so, how long does the shaking last?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 179,
+                "field_is_optional_fg": true
+            },
+            "1.187": {
+                "field_name": "subtitle_shaking_report_2",
+                "field_title": "b. And report any of the following:",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 180,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "description"
+            },
+            "1.188": {
+                "field_name": "back_arching2_5",
+                "field_title": "Back arching",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 181,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.189": {
+                "field_name": "back_arching_notes2_5",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 182,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(back_arching2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.190": {
+                "field_name": "eyes_closed2_5",
+                "field_title": "Eyes closed",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 183,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.191": {
+                "field_name": "eyes_closed_notes2_5",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 184,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eyes_closed2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.192": {
+                "field_name": "eyes_rolled_up2_5",
+                "field_title": "Eyes rolled up",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 186,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.193": {
+                "field_name": "eyes_rolled_up_notes2_5",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 187,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(eyes_rolled_up2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.194": {
+                "field_name": "turns_blue2_5",
+                "field_title": "Turns blue",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 188,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.195": {
+                "field_name": "turns_blue_notes2_5",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 189,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(turns_blue2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.196": {
+                "field_name": "drooling2_5",
+                "field_title": "Drooling",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 190,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.197": {
+                "field_name": "drooling_notes2_5",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 191,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(drooling2_5)=='true'"
+            },
+            "1.198": {
+                "field_name": "bloody_drool2_5",
+                "field_title": "Bloody drool",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 192,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.199": {
+                "field_name": "bloody_drool_notes2_5",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 193,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(bloody_drool2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.200": {
+                "field_name": "prolonged_scream2_5",
+                "field_title": "Prolonged groan or scream",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 194,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.201": {
+                "field_name": "prolonged_scream_notes2_5",
+                "field_title": "Notes",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 195,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(prolonged_scream2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.202": {
+                "field_name": "grunting2_5",
+                "field_title": "Grunting",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 196,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.203": {
+                "field_name": "grunting_notes2_5",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 197,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(grunting2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.204": {
+                "field_name": "other_noise2_5",
+                "field_title": "Other noise",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 198,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.205": {
+                "field_name": "other_noise_field2_5",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 199,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other_noise2_5)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.206": {
+                "field_name": "none_above2_5",
+                "field_title": "None of the above",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 200,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.207": {
+                "field_name": "unknown2_5",
+                "field_title": "Unknown/not sure",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 201,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.208": {
+                "field_name": "patient_respond_while_they_having_sz",
+                "field_title": "6. Can the patient respond to you while they are having the seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 203,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.209": {
+                "field_name": "description_patient_respond",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 203.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_respond_while_they_having_sz)=='Sometimes'||$(patient_respond_while_they_having_sz)=='Never'",
+                "field_constraint_description": "description",
+                "field_description": "If sometimes or never:"
+            },
+            "1.210": {
+                "field_name": "first_thing_patient_becomes_unresponsive",
+                "field_title": "a. What is the first thing you observe after the patient becomes unresponsive?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 204,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_respond_while_they_having_sz)=='Sometimes'||$(patient_respond_while_they_having_sz)=='Never'"
+            },
+            "1.211": {
+                "field_name": "patient_unresponsive_duretion",
+                "field_title": "b. How long is the patient unresponsive during this seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 205,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1-30s|30s-1min|1-5min|>5min|variable (write time below)|unknown\r\n>is_shown_fg=$(patient_respond_while_they_having_sz)=='Sometimes'||$(patient_respond_while_they_having_sz)=='Never'"
+            },
+            "1.212": {
+                "field_name": "p2_variable",
+                "field_title": "write time",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 205.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_unresponsive_duretion)=='variable (write time below)'&&($(patient_respond_while_they_having_sz)=='Sometimes'||$(patient_respond_while_they_having_sz)=='Never')"
+            },
+            "1.213": {
+                "field_name": "patient_know_about_sz",
+                "field_title": "7. Does the patient know he/she had this seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 206,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.214": {
+                "field_name": "p2q7_how",
+                "field_title": "If so, how?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 206.5,
+                "field_is_optional_fg": true
+            },
+            "1.215": {
+                "field_name": "this_sz_describe",
+                "field_title": "If so, how?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 207,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(having_this_sz)=='true'&&$(subtitle_people_observe)=='None of the above' && $(people_reaction)=='Never'||$(people_reaction)=='Not Sure/Unknown'"
+            },
+            "1.216": {
+                "field_name": "remember_sz",
+                "field_title": "8. Can the patient remember what happens during the seizure?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 208,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Always|Sometimes|Never|Not Sure/Unknown"
+            },
+            "1.217": {
+                "field_name": "when_sz_coming_to_end",
+                "field_title": "9. How can you tell when this seizure is coming to an end? When the seizure is coming to an end, does the patient return to normal slowly over many seconds or minutes, or is the ending abrupt with instantaneous return to normal consciousness?",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 209,
+                "field_is_optional_fg": true
+            },
+            "1.218": {
+                "field_name": "observe_different",
+                "field_title": "10. When this seizure has ended, do you observe that the patient is often in a different position or location than when this seizure started?",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 210,
+                "field_is_optional_fg": true
+            },
+            "1.219": {
+                "field_name": "p2q10_descripe",
+                "field_title": "a. If so, please describe",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 211,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(observe_different)=='true'"
+            },
+            "1.220": {
+                "field_is_hidden_fg": true
+            },
+            "1.221": {
+                "field_name": "subtitle_q13",
+                "field_title": "11. After the seizure, do you observe any of the following?",
+                "field_type": "string",
+                "field_parent": "discover_form",
+                "field_order": 212,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "description"
+            },
+            "1.222": {
+                "field_name": "return_previous_activities2_11",
+                "field_title": "Wakes up immediately and returns to previous activities",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 213,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.223": {
+                "field_name": "return_previous_activities_notes2_11",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 214,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(return_previous_activities2_11)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.224": {
+                "field_name": "looks_deep_sleep2_11",
+                "field_title": "Looks as if in coma or deep sleep",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 215,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.225": {
+                "field_name": "looks_deep_sleep_notes2_11",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 216,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(looks_deep_sleep2_11)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.226": {
+                "field_name": "loud _reathing2_11",
+                "field_title": "Snoring or deep/irregular/loud breathing",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 217,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.227": {
+                "field_name": "loud _reathing_notes2_11",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 218,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(loud _reathing2_11)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.228": {
+                "field_name": "decreased_ability2_11",
+                "field_title": "Decreased ability to respond",
+                "field_type": "bool",
+                "field_parent": "discover_form",
+                "field_order": 219,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.229": {
+                "field_name": "decreased_ability_notes2_11",
+                "field_title": "Notes",
+                "field_type": "text",
+                "field_parent": "discover_form",
+                "field_order": 220,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(decreased_ability2_11)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.230": {
+                "field_name": "Interview_end_date",
+                "field_title": "Interview end time: (complete for final form only)",
+                "field_type": "time",
+                "field_parent": "discover_form",
+                "field_order": 222,
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

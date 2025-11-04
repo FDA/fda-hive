@@ -1,0 +1,41 @@
+{
+    "type.154": {
+        "_id": "type.154",
+        "_type": "type",
+        "name": "excel-file",
+        "title": "Microsoft Excel file",
+        "parent": {
+            "1": "type.19",
+            "2": "type.298"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,579 @@
+{
+    "226": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "export_hivepack",
+        "order": 10,
+        "path": "/Export/export_hivepack",
+        "required_permission": 128,
+        "response": "qpProcSubmit",
+        "target": "ajax",
+        "type_name": "base+",
+        "url": "?cmdr=-qpProcSubmit&svc=dmCompressor&prop.x._type=svc-compressor&prop.x.name=Objects%20HIVEPack&prop.x.function=objHivePack&prop.x.withDependencies=true&prop.x.objs=$(ids)",
+        "title": "as HIVEPack",
+        "description": "Export the object as HIVEPack with dependencies",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "225": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "exportEx",
+        "order": 1000,
+        "path": "/Export/exportEx",
+        "required_permission": 128,
+        "target": "true",
+        "type_name": "base+",
+        "url": "?cmd=fileCompressor&objs=$(ids)",
+        "title": "more...",
+        "description": "More export options",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "224": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "upload",
+        "name": "upload",
+        "order": 13,
+        "required_permission": 0,
+        "type_name": "u-file+",
+        "title": "Upload a new file",
+        "description": "Upload a file",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "223": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAsAuto",
+        "order": 1,
+        "path": "/Convert/Reprocess/TreatAsAuto",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)",
+        "title": "Auto detect",
+        "description": "Reprocess recognizing file type by its extension",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "222": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAsbz2",
+        "order": 5,
+        "path": "/Convert/Reprocess/TreatAsbz2",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)&ext=bz2",
+        "title": "Treat as bzip2 file (.bz2)",
+        "description": "Process file compressed as bzip2",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "221": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAstbz2",
+        "order": 6,
+        "path": "/Convert/Reprocess/TreatAstbz2",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)&ext=tbz2",
+        "title": "Treat as tar bzip2 file (.tbz2)",
+        "description": "Process file compressed as tar bzip2",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "220": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAsgz",
+        "order": 3,
+        "path": "/Convert/Reprocess/TreatAsgz",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)&ext=gz",
+        "title": "Treat as gzip file (.gz)",
+        "description": "Process file compressed as gzip",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "219": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAstgz",
+        "order": 4,
+        "path": "/Convert/Reprocess/TreatAstgz",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)&ext=tgz",
+        "title": "Treat as tar gzip file (.tgz)",
+        "description": "Process file compressed as tar gzip",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "218": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAstar",
+        "order": 2,
+        "path": "/Convert/Reprocess/TreatAstar",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)&ext=tar",
+        "title": "Treat as tar file (.tar)",
+        "description": "Process file compressed as tar",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "217": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAsbam",
+        "order": 8,
+        "path": "/Convert/Reprocess/TreatAsbam",
+        "required_permission": 4,
+        "single_obj_only": true,
+        "type_name": "u-file",
+        "url": "javascript:vjRefArchive(\"qpbg_http://?cmd=objFile&ids=\"+ encodeURIComponent(\"$(ids)\") +  \"&arch=1&backend=1&filename=\" + encodeURIComponent(\"$(names)\")+ \"&cgi_dstname=\" + encodeURIComponent(\"$(names)\") + \"&ext=bam\" , \"$(names)\")",
+        "title": "Treat as bam file (.bam)",
+        "description": "Process file compressed as bam",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "216": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "TreatAszip",
+        "order": 9,
+        "path": "/Convert/Reprocess/TreatAszip",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&ids=$(ids)&ext=zip",
+        "title": "Treat as zip file (.zip)",
+        "description": "Process file compressed as zip",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "215": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "convert2protein",
+        "order": 12,
+        "path": "/Convert/convert2protein",
+        "required_permission": 4,
+        "response": "json",
+        "single_obj_only": true,
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=archive&dissect=1000&objtype=prot-seq&ids=$(ids)&datatype=fasta",
+        "title": "To Protein Sequence as FastA file",
+        "description": "Convert file formatted as fastA to Protein Sequence object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

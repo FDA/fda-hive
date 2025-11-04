@@ -1,0 +1,29 @@
+{
+    "527": {
+        "_id": "$type.hep_whole_life_module_v2",
+        "_type": "type",
+        "name": "hep_whole_life_module_v2",
+        "title": "DISC Parent",
+        "parent": {
+            "3": "$type.hep_whole_life_module"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

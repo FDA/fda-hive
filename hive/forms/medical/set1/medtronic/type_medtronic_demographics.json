@@ -1,0 +1,226 @@
+{
+    "168": {
+        "_id": "$type.medtronic_demographics",
+        "_type": "type",
+        "name": "medtronic_demographics",
+        "title": "Demographics",
+        "fields": {
+            "1.0": {
+                "field_name": "demographics_title",
+                "field_title": "Demographics Tile",
+                "field_type": "string",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "subject's_date_of_birth",
+                "field_title": "What is the subject's date of birth?",
+                "field_type": "date",
+                "field_order": "2"
+            },
+            "1.3": {
+                "field_name": "sex _of_the_subject",
+                "field_title": "What is the sex of the subject?",
+                "field_type": "string",
+                "field_order": "3",
+                "field_constraint_data": "MALE|FEMALE"
+            },
+            "1.4": {
+                "field_name": "ethnicity_of_the_subject",
+                "field_title": "What is the ethnicity of the subject?",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_data": "HISPANIC OR LATINO|NOT HISPANIC OR LATINO|NOT REPORTED|UNKNOWN"
+            },
+            "1.5": {
+                "field_name": "race_of_the_subject",
+                "field_title": "What is the race of the subject?",
+                "field_type": "string",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "American Indian or Alaska Native|Asian|Black or African American|Native Hawaiian or Other Pacific Islander|White|Other"
+            },
+            "1.6": {
+                "field_name": "other_specify_race",
+                "field_title": "Specify race",
+                "field_type": "string",
+                "field_order": "6",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(race_of_the_subject)=='Other'"
+            },
+            "1.7": {
+                "field_name": "highest_level_of_education_attained",
+                "field_title": "Highest Level of Education Attained",
+                "field_type": "string",
+                "field_order": "7",
+                "field_constraint_data": "< HIGH SCHOOL|HIGH SCHOOL|> HIGH SCHOOL"
+            },
+            "1.8": {
+                "field_name": "primary_payer_source",
+                "field_title": "Primary Payer Source",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_data": "MEDICAID|MEDICARE|SELF PAY|OTHER"
+            },
+            "1.9": {
+                "field_name": "other_primary_payer_source",
+                "field_title": "Other Primary Payer Source",
+                "field_type": "string",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(primary_payer_source)=='OTHER'"
+            },
+            "1.11": {
+                "field_name": "vital_signs",
+                "field_title": "Vital Signs",
+                "field_type": "string",
+                "field_order": "10",
+                "field_constraint_description": "subtitle"
+            },
+            "1.12": {
+                "field_name": "date_of_the_vital_signs_measurement",
+                "field_title": "What was the date of the vital signs measurement?",
+                "field_type": "date",
+                "field_order": "11"
+            },
+            "1.13": {
+                "field_name": "weight",
+                "field_title": "Weight",
+                "field_type": "string",
+                "field_order": "12",
+                "field_constraint_description": "unit"
+            },
+            "1.14": {
+                "field_name": "weight_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "weight",
+                "field_order": "2",
+                "field_constraint_data": "1///kg|2.205///LB"
+            },
+            "1.15": {
+                "field_name": "height",
+                "field_title": "Height",
+                "field_type": "string",
+                "field_order": "14",
+                "field_constraint_description": "unit"
+            },
+            "1.16": {
+                "field_name": "height_unit",
+                "field_title": "Unit",
+                "field_type": "string",
+                "field_parent": "height",
+                "field_order": "2",
+                "field_constraint_data": "1///cm|0.393701///in"
+            },
+            "1.17": {
+                "field_name": "body_mass_index",
+                "field_title": "Body Mass Index (BMI)",
+                "field_type": "integer",
+                "field_order": "16",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "if($(weight_unit)=='1'&&$(height_unit)=='1'){value_fg=($(weight_value)*10000)/($(height_value)*$(height_value))}else if($(weight_unit)=='2.205'&&$(height_unit)=='0.393701'){value_fg=($(weight_value)/($(height_value)*$(height_value)))*703}else if($(weight_unit)=='1'&&$(height_unit)=='0.393701'){value_fg=$(weight_value)/($(height_value)*$(height_value)*0.00064516)}else{value_fg=$(weight_value)*4535.92/($(height_value)*$(height_value))}"
+            },
+            "1.19": {
+                "field_name": "spine_work_status",
+                "field_title": "Spine Work Status",
+                "field_type": "string",
+                "field_order": "17",
+                "field_constraint_description": "subtitle"
+            },
+            "1.20": {
+                "field_name": "subject_currently_working",
+                "field_title": "Is the subject currently working?",
+                "field_type": "string",
+                "field_order": "18",
+                "field_constraint_data": "NO|YES"
+            },
+            "1.21": {
+                "field_name": "subject_currently_working_no",
+                "field_title": "Mark all that apply below",
+                "field_type": "string",
+                "field_order": "19",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Not working due to problems with treatment area|Not currently employed|On medical leave|Disabled|Retired|Student|Homemaker|Other\n>is_shown_fg=$(subject_currently_working)=='NO'"
+            },
+            "1.22": {
+                "field_name": "other_specify",
+                "field_title": "Specify",
+                "field_type": "string",
+                "field_order": "20",
+                "field_is_optional_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(subject_currently_working_no)=='Other'&&$(subject_currently_working)=='NO'"
+            },
+            "1.23": {
+                "field_name": "derived_protocol_version",
+                "field_title": "Derived Protocol Version",
+                "field_type": "string",
+                "field_order": "21",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "2.0|3.0"
+            },
+            "1.25": {
+                "field_name": "weight_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "weight",
+                "field_order": "1"
+            },
+            "1.27": {
+                "field_name": "height_value",
+                "field_title": "Value",
+                "field_type": "real",
+                "field_parent": "height",
+                "field_order": "1"
+            },
+            "1.29": {
+                "field_name": "radiology_fee_per_image_review_payments_derivation",
+                "field_title": "Radiology Fee per X RProcedures and Radiographic Image Review Payments Derivation",
+                "field_type": "string",
+                "field_order": "22",
+                "field_is_hidden_fg": true
+            },
+            "1.30": {
+                "field_name": "xray_procedures_payments_derivation",
+                "field_title": "XRAY 4 View Procedures Payments Derivation",
+                "field_type": "string",
+                "field_order": "23",
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

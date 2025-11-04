@@ -1,0 +1,72 @@
+{
+    "388": {
+        "_id": "$type.tasct_michigan_body_map",
+        "_type": "type",
+        "name": "tasct_michigan_body_map",
+        "title": "Michigan Body Map",
+        "description": "On the image below, <b>CHECK ALL</b> all areas of your body where you have felt <b><u><i>persistent or recurrent pain</i></u></b> present for the last <b><u><i>3 months or longer (chronic pain)</i>",
+        "fields": {
+            "1.1": {
+                "field_name": "body_map1",
+                "field_title": "Michigan Body Map",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "{\r\n\"url\": \"assets/images/michigan1.jpg\",\r\n\"shape\": \"rect\",\r\n\"section\": \"Face///236,27,315,57|Rt jaw///154,62,239,95|Lt jaw///250,67,338,94|Rt chest breast///167,115,238,175|Lt chest breast///252,115,327,178|Rt upper arm///58,176,190,206|Lt upper arm///296,181,423,211|Rt elbow///59,210,172,237|Lt elbow///316,216,427,244|Rt lower arm///23,244,162,271|Rt wrist/hand///0,275,142,305|Lt lower arm///334,247,469,275|Lt wrist/hand///361,278,494,306|Abdomen///173,228,287,269|Pelvis///195,273,291,305\"\r\n}",
+                "field_constraint_description": "imagemap"
+            },
+            "1.2": {
+                "field_name": "body_map2",
+                "field_title": "Michigan Body Map",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "{\r\n\"url\": \"assets/images/michigan2.jpg\",\r\n\"shape\": \"poly\",\r\n\"section\": \"Face///236,27,315,57|Rt jaw///154,62,239,95|Lt jaw///250,67,338,94|Rt chest breast///167,115,238,175|Lt chest breast///252,115,327,178\"\r\n}",
+                "field_constraint_description": "imagemap"
+            }
+        },
+        "parent": {
+            "4": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

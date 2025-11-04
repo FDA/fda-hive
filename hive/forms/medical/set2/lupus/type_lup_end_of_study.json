@@ -1,0 +1,82 @@
+{
+    "544": {
+        "_id": "$type.lup_end_of_study",
+        "_type": "type",
+        "name": "lup_end_of_study",
+        "title": "End of Study",
+        "fields": {
+            "1.1": {
+                "field_name": "still_within_study",
+                "field_title": "Is the patient still participating in the study?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "reason",
+                "field_title": "Reason participant is no longer within the study:",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "Completed study|Consent withdrawn|Discontinued participation|Lost to follow-up|Participant deceased|Screen failure|Withdrawn from study by PI\r\n>is_shown_fg=$(still_within_study)=='false'"
+            },
+            "1.3": {
+                "field_name": "specify_reason",
+                "field_title": "Please specify why participant was withdrawn from study",
+                "field_type": "text",
+                "field_order": 2.1,
+                "field_constraint_data": "is_shown_fg=$(reason)=='Withdrawn from study by PI'&&$(still_within_study)=='false'"
+            },
+            "1.4": {
+                "field_name": "died_on",
+                "field_title": "Participant died on",
+                "field_type": "date",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(reason)=='Participant deceased'&&$(still_within_study)=='false'"
+            },
+            "1.5": {
+                "field_name": "primary_disease",
+                "field_title": "Primary cause of death",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "A00-B99  Certain infectious and parasitic diseases|C00-D49  Neoplasms|D50-D89  Diseases of the blood and blood-forming organs and certain disorders involving the immune mechanism|E00-E89  Endocrine, nutritional and metabolic diseases|F01-F99  Mental, behavioral and neurodevelopmental disorders|G00-G99  Diseases of the nervous system|H00-H59  Diseases of the eye and adnexa|H60-H95  Diseases of the ear and mastoid process|I00-I99  Diseases of the circulatory system|J00-J99  Diseases of the respiratory system|K00-K95  Diseases of the digestive system|L00-L99  Diseases of the skin and subcutaneous tissue|M00-M99  Diseases of the musculoskeletal system and connective tissue|N00-N99  Diseases of the genitourinary system|O00-O9A  Pregnancy, childbirth and the puerperium|P00-P96  Certain conditions originating in the perinatal period|Q00-Q99  Congenital malformations, deformations and chromosomal abnormalities|R00-R99  Symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified|S00-T88  Injury, poisoning and certain other consequences of external causes\r\n>is_shown_fg=$(reason)=='Participant deceased'&&$(still_within_study)=='false'"
+            },
+            "1.6": {
+                "field_name": "secondary_disease",
+                "field_title": "Secondary cause of death",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "A00-B99  Certain infectious and parasitic diseases|C00-D49  Neoplasms|D50-D89  Diseases of the blood and blood-forming organs and certain disorders involving the immune mechanism|E00-E89  Endocrine, nutritional and metabolic diseases|F01-F99  Mental, Behavioral and Neurodevelopmental disorders|G00-G99  Diseases of the nervous system|H00-H59  Diseases of the eye and adnexa|H60-H95  Diseases of the ear and mastoid process|I00-I99  Diseases of the circulatory system|J00-J99  Diseases of the respiratory system|K00-K95  Diseases of the digestive system|L00-L99  Diseases of the skin and subcutaneous tissue|M00-M99  Diseases of the musculoskeletal system and connective tissue|N00-N99  Diseases of the genitourinary system|O00-O9A  Pregnancy, childbirth and the puerperium|P00-P96  Certain conditions originating in the perinatal period|Q00-Q99  Congenital malformations, deformations and chromosomal abnormalities|R00-R99  Symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified|S00-T88  Injury, poisoning and certain other consequences of external causes\r\n>is_shown_fg=$(reason)=='Participant deceased'&&$(still_within_study)=='false'"
+            },
+            "1.7": {
+                "field_name": "date_of_study_completion",
+                "field_title": "Date of study completion, discontinuation or withdrawal:",
+                "field_type": "date",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(still_within_study)=='false'"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

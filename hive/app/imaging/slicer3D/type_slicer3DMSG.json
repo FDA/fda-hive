@@ -1,0 +1,82 @@
+{
+    "269": {
+        "_id": "$type.slicer3DMSG",
+        "_type": "type",
+        "name": "slicer3DMSG",
+        "title": "Slicer Messaging Packet",
+        "description": "//\nlocation: hive.app.imaging.slicer3D",
+        "fields": {
+            "1.0": {
+                "field_name": "messages",
+                "field_title": "Messages",
+                "field_type": "list",
+                "field_order": 0,
+                "field_is_multi_fg": true
+            },
+            "1.2": {
+                "field_name": "widgetID",
+                "field_title": "Widget Variable",
+                "field_type": "string",
+                "field_parent": "messages",
+                "field_order": 0,
+                "field_is_multi_fg": false
+            },
+            "1.3": {
+                "field_name": "APICall",
+                "field_title": "Message",
+                "field_type": "array",
+                "field_parent": "messages",
+                "field_order": 1,
+                "field_is_multi_fg": true
+            },
+            "1.4": {
+                "field_name": "URL",
+                "field_title": "URL",
+                "field_type": "url",
+                "field_parent": "APICall",
+                "field_order": 0,
+                "field_is_multi_fg": true
+            },
+            "1.5": {
+                "field_name": "stopOnErrors",
+                "field_title": "Stop On Erros",
+                "field_type": "bool",
+                "field_parent": "APICall",
+                "field_order": 1,
+                "field_is_multi_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.sysqry"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

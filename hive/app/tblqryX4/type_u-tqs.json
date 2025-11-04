@@ -1,0 +1,41 @@
+{
+    "type.236": {
+        "_id": "type.236",
+        "_type": "type",
+        "name": "u-tqs",
+        "title": "TQS File Type",
+        "description": "TQS File Type",
+        "parent": {
+            "1": "type.19"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

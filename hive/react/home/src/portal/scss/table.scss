@@ -1,0 +1,23 @@
+$breakpoint-tablet: 950px;
+
+@media (max-width: $breakpoint-tablet) {
+    .portal__list{
+        &-title{
+
+            & p {
+                border-bottom-left-radius: 0px;
+                border-bottom-right-radius: 0px;
+                display: block;
+                border-radius: 16px;
+            }
+            &--path{
+                display: block;
+                padding-left: 14px;
+            }
+        }
+    }
+    .portal__table__description{
+        display: none;
+    }
+
+}

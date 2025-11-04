@@ -1,0 +1,86 @@
+{
+    "200": {
+        "_id": "$type.svc-align-tophat",
+        "_type": "type",
+        "name": "svc-align-tophat",
+        "title": "TopHat aligment",
+        "description": "//TopHat based workflow\nlocation: hive.app.dna.dna-alignx",
+        "parent": {
+            "1": "$type.svc-align-rnaseq"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "cmdLine",
+                "field_title": "Engine Arguments",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_description": "Additional Command Line arguments for bwa engine"
+            },
+            "1.2": {
+                "field_name": "GTFfile",
+                "field_title": "GTF file",
+                "field_type": "obj",
+                "field_constraint": "type",
+                "field_constraint_data": "u-file",
+                "field_description": "path to GTF file"
+            },
+            "1.3": {
+                "field_name": "hiveseqMode",
+                "field_title": "hiveseqMode",
+                "field_type": "integer",
+                "field_default_value": "1",
+                "field_is_readonly_fg": 1,
+                "field_is_hidden_fg": true,
+                "field_description": "hidden flag which sets heveseq mode 1 is redundant mode"
+            },
+            "1.4": {
+                "field_name": "phredQualBase",
+                "field_title": "qualityBase",
+                "field_type": "integer",
+                "field_default_value": "64",
+                "field_is_readonly_fg": 1,
+                "field_is_hidden_fg": true
+            },
+            "1.5": {
+                "field_name": "splitSingle",
+                "field_title": "splitSingle",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "1",
+                "field_is_readonly_fg": 1,
+                "field_is_hidden_fg": true,
+                "field_description": "hidden flag which tells to compile indexes separate for each query, if flag is set to one"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

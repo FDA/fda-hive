@@ -1,0 +1,23 @@
+{
+    "4532": {
+        "_id": "$upsert()",
+        "_type": "sysappdep",
+        "name": "slicer3D",
+        "executable": {
+            "2": "${sysapp._dir}/slicervncserver.sh --behavior run --imageType ${.imageType} --slicerScreenSize ${.screenSize} --xServerScreenSize ${.screenSize} --user ${.user} --uniqueIdPath ${.uniqueIDPath} --slicerPort ${.slicerPort} --vncPort ${.VNCPort} --novncPort ${.noVNCPort} --igtLinkPort ${.igtLinkPort} --currentHostname ${.hostName} --processId ${.PID} --patientMRN ${.mrn} --dicomImportFolder ${.importFolder} --detached --dockerContainerName ${.dockerContainerName} --userID 52502 --groupID 100  --closeTimeoutSeconds ${.maxInactivitySec} --totalSegmentatorApiKey 87654321TS --totalSegmentatorPort 48000 --totalSegmentatorFolder /home/qpride/TotalSegmentatorApp/store/data"
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

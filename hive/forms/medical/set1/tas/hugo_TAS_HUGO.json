@@ -1,0 +1,88 @@
+{
+    "391": {
+        "_id": "$upsert()",
+        "_type": "hugo",
+        "unique-name": "TAS_HUGO",
+        "groups": {
+            "4": {
+                "4.5": {
+                    "group_name": "regex:/Projects/.*/Patients/",
+                    "forms": {
+                        "4.5.0": {
+                            "form_name": "med_user",
+                            "var_groups": {
+                                "4.5.0.0": {
+                                    "var_from": "$groupID",
+                                    "var_to": "sys_uid"
+                                },
+                                "4.5.0.2": {
+                                    "var_from": "$mrn",
+                                    "var_to": "sys_mrn"
+                                },
+                                "4.5.0.3": {
+                                    "var_from": "$firstName",
+                                    "var_to": "sys_firstname"
+                                },
+                                "4.5.0.4": {
+                                    "var_from": "$lastName",
+                                    "var_to": "sys_lastname"
+                                },
+                                "4.5.0.5": {
+                                    "var_from": "$login",
+                                    "var_to": "sys_username"
+                                },
+                                "4.5.0.6": {
+                                    "var_from": "TAS",
+                                    "var_to": "sys_project"
+                                },
+                                "4.5.0.7": {
+                                    "var_from": "Patient",
+                                    "var_to": "sys_role"
+                                },
+                                "4.5.0.8": {
+                                    "var_from": "$signature",
+                                    "var_to": "sys_consent_signature"
+                                }
+                            }
+                        }
+                    }
+                },
+                "4.8": {
+                    "group_name": "regex:/Projects/.*/Patients/",
+                    "forms": {
+                        "4.8.0": {
+                            "form_name": "med_user_study",
+                            "var_groups": {
+                                "4.8.0.0": {
+                                    "var_from": "$groupID",
+                                    "var_to": "uID"
+                                },
+                                "4.8.0.2": {
+                                    "var_from": "$studyID",
+                                    "var_to": "studyID"
+                                },
+                                "4.8.0.3": {
+                                    "var_from": "$signature",
+                                    "var_to": "consent_signature"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

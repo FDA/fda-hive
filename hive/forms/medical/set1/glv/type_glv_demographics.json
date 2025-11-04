@@ -1,0 +1,99 @@
+{
+    "8889": {
+        "_id": "$type.glv_demographics",
+        "_type": "type",
+        "name": "glv_demographics",
+        "title": "Demographics",
+        "parent": {
+            "3": "$type.glv_forms"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "subject_id",
+                "field_title": "Subject ID",
+                "field_type": "string",
+                "field_order": "1",
+                "field_is_optional_fg": true
+            },
+            "3.2": {
+                "field_name": "dob",
+                "field_title": "Date of birth",
+                "field_type": "date",
+                "field_order": "2",
+                "field_is_optional_fg": true
+            },
+            "3.3": {
+                "field_name": "gender",
+                "field_title": " Gender",
+                "field_type": "string",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Female|Male"
+            },
+            "3.4": {
+                "field_name": "weight",
+                "field_title": "Weight",
+                "field_type": "real",
+                "field_order": "4",
+                "field_is_optional_fg": true
+            },
+            "3.5": {
+                "field_name": "height",
+                "field_title": "Height",
+                "field_type": "real",
+                "field_order": "5",
+                "field_is_optional_fg": true
+            },
+            "3.6": {
+                "field_name": "bmi",
+                "field_title": "BMI",
+                "field_type": "real",
+                "field_order": "6",
+                "field_is_optional_fg": true
+            },
+            "3.7": {
+                "field_name": "ecog_score",
+                "field_title": "ECOG score",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0|1|2|3|4"
+            },
+            "3.8": {
+                "field_name": "ins_type",
+                "field_title": "Type of insurance",
+                "field_type": "string",
+                "field_order": "8",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Private|Medicare|Medicare Advantage|Other"
+            },
+            "3.9": {
+                "field_name": "ins_type_other",
+                "field_title": "Please specfiy",
+                "field_type": "text",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(ins_type)=='Other'",
+                "field_constraint_description": "subquestion"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

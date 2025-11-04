@@ -1,0 +1,70 @@
+
+<script type="application/javascript">
+
+function escapeText() {
+    var text = gObject("inputQuery").value;
+    text = text.replace(/%/mg, "%25");
+    text = text.replace(/\r?\n/mg, "%0A");
+    text = text.replace(/ /mg, "%20");
+    text = text.replace(/[\r\n]/mg, "");
+    text = text.replace(/#/mg, "%23");
+    text = text.replace(/\+/mg, "%2B");
+    text = text.replace(/=/mg, "%3D");
+    text = text.replace(/&/mg, "%26");
+    gObject("escapedQuery").value = text;
+}
+
+function submitQuery() {
+    var text = gObject("escapedQuery").value;
+    var ds = vjDS["dsObjQryResult"];
+    ds.url = "http:
+    if (gObject("underscore_id_check").checked) {
+        ds.url += "&_id=true";
+    }
+    if (gObject("mode_json_check").checked) {
+        ds.url += "&mode=json";
+    }
+    ds.load();
+}
+
+function test_objqry_init() {
+    vjDS.add("Object query result", "dsObjQryResult", "static:
+    vjDS["dsObjQryResult"].parser = function(ds, data) {
+        return "<pre>" + data + "</pre>";
+    };
+
+    var viewerObjQryResult = new vjHTMLView({
+        data: "dsObjQryResult"
+    });
+
+    vjDV.add("dvObjQryResult", 1000, 500);
+    vjDV["dvObjQryResult"].add("Result", "table", "tab", [viewerObjQryResult]);
+    vjDV["dvObjQryResult"].render();
+    vjDV["dvObjQryResult"].load();
+}
+
+gInitList += "test_objqry_init();";
+
+</script>
+<form name="formTestQuery" method="GET" action="dna.cgi" enctype="multipart/form-data">
+<table>
+    <tr><th>Input query</th><th>Escaped query text</th></tr>
+    <tr>
+        <td><textarea rows="10" cols="80" id="inputQuery" oninput="escapeText()"></textarea></td>
+        <td><textarea rows="10" cols="80" id="escapedQuery" readonly="true"></textarea></td>
+    </tr>
+<tr>
+    <td colspan="2">
+    <center>
+        <label>Use <code>"_id"</code> instead of <code>"id"</code>: <input type="checkbox" value=0 id="underscore_id_check"></label><br/>
+        <label>Output in strict JSON format (instead of query language syntax): <input type="checkbox" value=0 id="mode_json_check"></label><br/>
+        <input type="button" onclick="submitQuery()" value="Submit query">
+    </center>
+    </td>
+</tr>
+<tr>
+    <td colspan="2"><center><div id="dvObjQryResult"></div></center></td>
+</tr>
+</table>
+
+</form>

@@ -1,0 +1,410 @@
+test:{
+    "types" : {
+    	"hc_t0" : {
+    		"_type" : "type",
+    		"_id" : "$newid()",
+    		
+    		"_field" : {
+    			"tf3" : {
+    				"_type" : "int",
+    				"_default" : 54 ,
+    				"_limit" : {
+                        "choice" : [
+                            33,
+                            54
+                        ]
+                    }
+    			}
+    		},
+    		"name" : "hc_t0",
+    		"title" : "hc_t0"
+    	},
+    	"hc_t1" : {
+    		"_type" : "type",
+    		"_id" : "$newid()",
+    		"_inherit" :  "hc_t0",
+    		"_field" : {
+    			"tf1" : {
+    				"_type" : "string",
+    				"_default" : "s1",
+    				"_limit" : {
+                        "choice" : [
+                            "s33",
+                            "s88"
+                        ]
+                    } 
+    			},
+    			"tf2" : {
+    				"_type" : "real" 
+    			}
+    		},
+    		"name" : "hc_t1",
+    		"title" : "hc_t1"
+    	},
+    	"hc_t2" : {
+    		"_type" : "type",
+    		"_id" : "$newid()",
+    		"_field" : {
+    			"tf3" : {
+    				"_type" : "real",
+    				"_default" : 345.3,
+    				"_limit" : {
+                        "choice" : [
+                            11.2,
+                            22.3
+                        ]
+                    } 
+    			}
+    		},
+    		"name" : "hc_t2",
+    		"title" : "hc_t2"
+    	},	
+    	"hc_test" : {
+    		
+    		"_type" : "type",
+    		"_id" : "$newid()",
+    		
+    		"_field" : {
+    			"tf1" : {
+    				"_type" : "real",
+    				"_default" : 123.4,
+    				"_limit" : {
+                        "eval-js" : "val==5"
+                    } 
+    			},
+    			"name" : {
+    				"_type" : "string",
+    				"_vital" : true,
+    				"_limit" : { 
+    					"search+" : {
+    						"url" : "http://10.107.2.14/usr/alexp/dna.cgi?cmd=objList&mode=csv&actions=1&parIds=14847&parP=child&prop=_brief,created,submitter,status,_type&info=1&cnt=50&start=0&raw=1&bust=1464377502199",
+    						"value" : "value",
+    						"title" : "eval-js:$id+':'+$name",
+    						"show" : ["name","value"]
+    					} 
+    				}
+    			},
+    			"os" : {
+    				"_type" : "string",
+    				"_vital" : true
+    			},
+    			"ip4" : {
+    				"_type" : "string",
+    				"_default" : "nslookup comb | grep Server  | awk '{print $2}'" 
+    			},
+    			"category" : {
+    				"_type" : "string",
+    				"_plural" : "eval-js:$os.indexOf('Linux')!=-1" 
+    			},
+    			"active" : {
+    				"_type" : "bool",
+    				"_hidden" : "eval-js: $memory>12"  
+    			},
+    			"cores" : {
+    				"_type" : "string",
+    				"_limit": { 
+    					"choice" : ["user", {"value":"system", "title": "System Value"} , "service"] 
+    				}    
+    			},
+    			"memory" : {
+    				"_type" : "memory",
+    				"_limit" : {
+    					"eval-js" : "($memory>=0 && $capacity<12)" 
+    				}
+    				
+    			},
+    			"storage" : {
+    				"_type" : "memory"
+    			},
+    			"capacity" : {
+    				"_type" : "uint",
+    				"_limit" : {
+    					"choice+" : [ 3 ,  8 ]
+    				}				
+    			},
+    			"aaaa" : {
+    				"_type" : "string" ,
+    				
+    				"_dic" : {
+    				"choice" : [ // strictly constrained list of elements 
+				 		"element1" , 
+				 		"element2" , 
+				 		{ 
+				 			"title" : "element3 title here",
+				 			"value" : "element3 value here" 
+				 		}
+					 ],
+					 "collect" : "$.value",
+					 "url" : "http://173.48.65.121/usr/vsim/dna.cgi?cmd=file&filename=voc/CTCAE_v5.0.csv&raw=1&cnt=20"
+    				}
+    			},
+    			
+    			"aaaconfig" : {
+    					
+					"version" : { 
+						"_type" : "string"
+					},
+					"pars" : { 
+						"_type" : "keyval",
+						"_plural" : true
+					},
+					
+					"_plural" : true,
+					"_layout" : "array"
+    			},
+    			"app" : {
+                    "_type" : "hc_app"
+                },
+                "ab":{
+                    "_type" : "devel",
+                    "_plural" : true
+                },
+                "ac":{
+                   "_type": "ref"
+                 }, 
+    			"aa1" : {
+    				"a" : { 
+                    	"_type": "ref"
+                 	}, 
+                 	"b": {
+                    	"_type" : "static"
+					},
+                    "_dic" : {
+                     	/* "_field" : { 
+		                     "a" : { 
+		                        "_type": "ref"
+		                     }, 
+		                     "b": {
+		                        "_type" : "static"
+		                     } 
+		                }, */
+						choice : [                   
+	                	    {"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"},
+	            			{"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"}
+	            		]
+                	},
+                	"_title" : "RORORORORO"
+    			},
+    			"zz":{
+                    "a" : { 
+                        "_type": "ref"
+                     }, 
+                     "b": {
+                        "_type" : "static"
+                     } ,
+                     "_title": "AA2 type",
+                     "_dic" : [
+                	    {"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            			{"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            			{"a":{"source" : "$randstr()","db" : "$randint()","id" : "a$newid()","url" : "$randstr()"},"b":"$randstr()"}
+					]
+                } 			
+    		},
+    		"_inherit" : [ "hc_t1", "hc_t2"],
+    		
+    		"name" : "hc_test",
+    		"title" : "test type"
+    	},
+    	
+    	"developer_test1" : {
+    		"_id" : "$newid()",
+    		"_type" : "hc_devel_test",
+    	
+    		"name": "koko"
+    	}	
+    },
+    "data_test" : { 
+    
+        "_type" : "hc_test",
+        "_id" : "$newid()",
+        
+        
+        "tf1" : 23.55,
+        "name" : "Armenia",
+        "os" : "CentOS-7",
+        "ip4" : "12.23.34.45",
+        "category" : "Linux",
+        "active" : true,
+        "cores" : "system",
+        "memory" : 2323343,
+        "storage" : "45GB",
+        "capacity" : 8,               
+        "aaaconfig" : {
+            "version" : "12.34",
+            "pars" : [
+                {
+                    "key" : "baseSvcUDPPort",
+                    "value" : [
+                        "13667"
+                    ]
+                },
+                {
+                    "key" : "dbLogMinLevel",
+                    "value" : "4"
+                },
+                {
+                    "key" : "domains",
+                    "value" : [
+                        "Pride1",
+                        "Pride2"
+                    ]
+                },
+                {
+                    "key" : "Pride1",
+                    "value" : [
+                        "qpridesrv"
+                    ]
+                }
+            ]
+        },
+        "ac" : [
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"}
+        ],
+        "ab" : {
+            "t-bool" :true,
+            "t-int" : "$randint(32)",
+            "t-real" : "$randreal(2)",       
+            "t-uint" :"$randint(4)",
+            "t-color" :"#0047AB",
+            "t-uint-range" :"$randint(12)",
+            "t-string" :"$randstr()",
+            "t-static" :"$randstr()",
+            "t-text" : "$randstr()",
+            "t-memory" : "2048KB",
+            "t-cmdline" : "Siliconm wekl;fm w fflknwef nwef nb4uif bnwkjebnf kwjf wnbf \nkwjlenf wjefnb kjwefn \nwjkenbf kjwnef wjehkf wjkenf$randstr()",
+            "t-url" : "http://google.com",
+            "t-tel" : "1-240-888-3570",
+            "t-file" : "$randstr()",
+            "t-date" : "$timenow()",
+            "t-time" : "$timenow()",
+            "t-datetime" : "$timenow()",
+            "t-timespan" : {start: "$timenow()", finish: "$timenow()"},
+            "t-ref" : {"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},
+            "t-password" : "$randstr()",
+            "t-email" : "$randstr()",
+            "t-keyval" : { key:"$randstr()", value:["$randstr()","$randstr()"] }
+        }, 
+		"aa1" : {
+			"a": { 
+				"source" : "DRandulet idet po doroge domoi, k sebe konechno",
+				"db" : "$randint()",
+				"id" : "$newid()",
+				"url" : "$randstr()"
+			}, 
+			"b": "121"
+		},        
+        "zz" : [
+	        {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+	        {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"},
+            {"a":{"source" : "$randstr()","db" : "$randint()","id" : "$newid()","url" : "$randstr()"},"b":"$randstr()"}
+        ], 
+        "app" : "12"
+    }
+}
+

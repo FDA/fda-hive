@@ -1,0 +1,91 @@
+{
+    "8891": {
+        "_id": "$type.glv_medications",
+        "_type": "type",
+        "name": "glv_medications",
+        "title": "Concomitant Medications",
+        "parent": {
+            "3": "$type.glv_forms"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "add_med",
+                "field_title": "Add medications",
+                "field_type": "array",
+                "field_order": "1",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "{\"addButtonText\":\"Add medication\"}"
+            },
+            "3.2": {
+                "field_name": "med_name",
+                "field_title": "Medication (Generic name)",
+                "field_type": "text",
+                "field_parent": "add_med",
+                "field_order": "1.1",
+                "field_is_optional_fg": true
+            },
+            "3.3": {
+                "field_name": "med_route",
+                "field_title": "Route",
+                "field_type": "string",
+                "field_parent": "add_med",
+                "field_order": "1.2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Intralesional|Intramuscular|Intravenous|Nasal|Oral|Rectal|Respiratory (inhalation)|Subcutaneous|Topical|Transdermal|Unknown|Other"
+            },
+            "3.4": {
+                "field_name": "med_route_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_parent": "add_med",
+                "field_order": "1.3",
+                "field_is_optional_fg": true,
+                "field_is_summary_fg": false,
+                "field_constraint_data": "is_shown_fg=$(med_route)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "3.5": {
+                "field_name": "med_indication",
+                "field_title": "Indication",
+                "field_type": "text",
+                "field_parent": "add_med",
+                "field_order": "1.4",
+                "field_is_optional_fg": true
+            },
+            "3.6": {
+                "field_name": "med_exist_at_bl",
+                "field_title": "Existing medication at baseline?",
+                "field_type": "bool",
+                "field_parent": "add_med",
+                "field_order": "1.5",
+                "field_is_optional_fg": true
+            },
+            "3.7": {
+                "field_name": "med_ongoing",
+                "field_title": "Is medication ongoing",
+                "field_type": "bool",
+                "field_parent": "add_med",
+                "field_order": "1.6",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

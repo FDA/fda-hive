@@ -1,0 +1,287 @@
+{
+    "277434": {
+        "_id": "$type.argos_Assm_Metrics",
+        "_type": "type",
+        "name": "argos_Assm_Metrics",
+        "title": "Assembly Metrics",
+        "parent": {
+            "7": "$type.argos_Base_Data"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "analysis_platform_object_id",
+                "field_title": "analysis platform object id",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.2": {
+                "field_name": "assembled_genome_acc",
+                "field_title": "assembled genome acc",
+                "field_parent": "refseq",
+                "field_type": "string"
+            },
+            "11.3": {
+                "field_name": "analysis_platform",
+                "field_title": "analysis platform",
+                "field_parent": "refseq",
+                "field_type": "string"
+            },
+            "11.4": {
+                "field_name": "id",
+                "field_title": "ID",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.5": {
+                "field_name": "length",
+                "field_title": "Length",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.6": {
+                "field_name": "size_gaps",
+                "field_title": "size gaps",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.7": {
+                "field_name": "size_contigs",
+                "field_title": "size contigs",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.8": {
+                "field_name": "genome_coverage",
+                "field_title": "genome coverage",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.9": {
+                "field_name": "coverage_contigs",
+                "field_title": "coverage contigs",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.10": {
+                "field_name": "coverage_gaps",
+                "field_title": "coverage gaps",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.11": {
+                "field_name": "cnt_contigs",
+                "field_title": "count contigs",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.12": {
+                "field_name": "cnt_gaps",
+                "field_title": "count gaps",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.13": {
+                "field_name": "contig_percentile",
+                "field_title": "contig percentile",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.14": {
+                "field_name": "gap_percentile",
+                "field_title": "gap percentile",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.15": {
+                "field_name": "contig_momentum",
+                "field_title": "contig momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.16": {
+                "field_name": "n50",
+                "field_title": "N50",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.17": {
+                "field_name": "l50",
+                "field_title": "L50",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.18": {
+                "field_name": "n75",
+                "field_title": "N75",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.19": {
+                "field_name": "l75",
+                "field_title": "L75",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.20": {
+                "field_name": "n90",
+                "field_title": "N90",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.21": {
+                "field_name": "l90",
+                "field_title": "L90",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.22": {
+                "field_name": "n95",
+                "field_title": "N95",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.23": {
+                "field_name": "l95",
+                "field_title": "L95",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.24": {
+                "field_name": "assembly_gc_content",
+                "field_title": "assembly gc content",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.25": {
+                "field_name": "phred_average",
+                "field_title": "phred average",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.26": {
+                "field_name": "count_major_mutations",
+                "field_title": "count major mutations",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.27": {
+                "field_name": "count_major_indels",
+                "field_title": "count major indels",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.28": {
+                "field_name": "mutation_momentum",
+                "field_title": "mutation momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.29": {
+                "field_name": "indels_momentum",
+                "field_title": "indels momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.30": {
+                "field_name": "major_mutation_momentum",
+                "field_title": "major mutation momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.31": {
+                "field_name": "major_indels_momentum",
+                "field_title": "major indels momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.32": {
+                "field_name": "alignment_anisotropy",
+                "field_title": "alignment anisotropy",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.33": {
+                "field_name": "overhang_momentum",
+                "field_title": "overhang momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.34": {
+                "field_name": "aligned_momentum",
+                "field_title": "aligned momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.35": {
+                "field_name": "entropic_momentum",
+                "field_title": "entropic momentum",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.36": {
+                "field_name": "reads_unaligned",
+                "field_title": "reads unaligned",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.37": {
+                "field_name": "reads_aligned",
+                "field_title": "reads aligned",
+                "field_type": "integer",
+                "field_parent": "refseq"
+            },
+            "11.38": {
+                "field_name": "percent_reads_aligned",
+                "field_title": "percent reads aligned",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.39": {
+                "field_name": "percent_reads_unaligned",
+                "field_title": "percent reads unaligned",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.40": {
+                "field_name": "rpkm",
+                "field_title": "RPKM",
+                "field_type": "real",
+                "field_parent": "refseq"
+            },
+            "11.41": {
+                "field_name": "refseq",
+                "field_title": "per reference metrics",
+                "field_type": "array",
+                "field_is_multi_fg": true
+            },
+            "11.42": {
+                "field_name": "biosample",
+                "field_title": "biosample",
+                "field_type": "string"
+            },
+            "11.43": {
+                "field_name": "shortReads",
+                "field_title": "srr id",
+                "field_type": "string"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

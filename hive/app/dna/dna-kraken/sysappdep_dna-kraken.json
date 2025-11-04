@@ -1,0 +1,23 @@
+{
+    "292": {
+        "_id": "$upsert()",
+        "_type": "sysappdep",
+        "name": "dna-kraken",
+        "executable": {
+            "2": "docker run --detach --rm --quiet -it --network host -v ${DB._dir}:/kraken/kdb -v ${input1._dir}:/kraken/data/input1 -v ${input2._dir}:/kraken/data/input2 -v ${._dir}:/kraken/data/output -w /kraken kraken-metaphlan-image -c \"kraken2 --use-names --db /kraken/kdb --threads 24 --report /kraken/data/output/out.txt /kraken/data/input1/_.fastq.gz /kraken/data/input2/_.fastq.gz >> /kraken/data/output/kraken.log && [ -f /kraken/data/output/out.txt ] && python /opt/kreport2krona.py -r /kraken/data/output/out.txt -o /kraken/data/output/krona.input && ktImportText /kraken/data/output/krona.input -o /kraken/data/output/krona_report.html\""
+        },
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

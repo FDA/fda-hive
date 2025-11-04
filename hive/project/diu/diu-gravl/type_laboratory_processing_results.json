@@ -1,0 +1,74 @@
+{
+    "198378": {
+        "_id": "$type.laboratory_processing_results",
+        "_type": "type",
+        "name": "laboratory_processing_results",
+        "title": "Processing Results",
+        "description": "Results from the processing of the laboratory results.",
+        "parent": {
+            "7": "$type.wastewater_collection"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "results_date_time",
+                "field_title": "Timestamp",
+                "field_type": "datetime",
+                "field_order": 1,
+                "field_description": "Date/time of the results."
+            },
+            "11.2": {
+                "field_name": "wastewater_ngs_results",
+                "field_title": "NGS Results",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_constraint": "type",
+                "field_constraint_data": "wastewater_ngs_results",
+                "field_description": "NGS specific wastewater results.",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "11.3": {
+                "field_name": "wastewater_pcr_results",
+                "field_title": "PCR Results",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_constraint": "type",
+                "field_constraint_data": "wastewater_pcr_results",
+                "field_description": "PCR specific wastewater results.",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

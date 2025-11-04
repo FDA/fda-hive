@@ -1,0 +1,312 @@
+{
+    "269": {
+        "_id": "$type.svc-popul",
+        "_type": "type",
+        "name": "svc-popul",
+        "title": "Clone discovery analysis",
+        "description": "//Clone discovery tool\nlocation: hive.app.dna.dna-popul",
+        "parent": {
+            "1": "$type.svc-profile"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "bayes",
+                "field_title": "Bayesion statistics",
+                "field_type": "list",
+                "field_order": 9.5,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.2": {
+                "field_name": "bifMinCov",
+                "field_title": "Minimum bifurcation coverage",
+                "field_type": "integer",
+                "field_order": 2.1,
+                "field_default_value": "0",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val)>=0"
+            },
+            "1.3": {
+                "field_name": "bifThreshold",
+                "field_title": "Threshold for bifurcation call (percentage)",
+                "field_type": "real",
+                "field_default_value": "5",
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) <= 50",
+                "field_description": "Bifurcate on mutation above this frequency"
+            },
+            "1.4": {
+                "field_name": "bifurcationDecisionFlag",
+                "field_title": "Bifurcate based on",
+                "field_type": "integer",
+                "field_order": -10,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///frequency|1///pvalue|2///bayes"
+            },
+            "1.5": {
+                "field_name": "cloneContinuity",
+                "field_title": "Force continuity",
+                "field_type": "bool",
+                "field_order": 2.5,
+                "field_default_value": "true"
+            },
+            "1.6": {
+                "field_name": "distance_measure",
+                "field_title": "Distance",
+                "field_type": "integer",
+                "field_order": 8,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Hamming|1///Euclidean"
+            },
+            "1.7": {
+                "field_name": "fuzzy_threshold",
+                "field_title": "Threshold of fuzzy regions (percentage)",
+                "field_type": "real",
+                "field_order": -0.5,
+                "field_default_value": "50",
+                "field_is_optional_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) <= 100",
+                "field_constraint_description": "Please provide a number in range [0-100]",
+                "field_description": "Percentage given as [0-100] number of the average coverage of the window."
+            },
+            "1.8": {
+                "field_name": "gap_thr",
+                "field_title": "Ignored gap threshold (percentage)",
+                "field_type": "real",
+                "field_order": 2.1,
+                "field_default_value": "50",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) <= 50",
+                "field_description": "Percentage of gaps versus depth of coverage below which position are excluded from consensus"
+            },
+            "1.9": {
+                "field_name": "generateTrees",
+                "field_title": "Generate trees",
+                "field_type": "bool",
+                "field_parent": "treelist",
+                "field_order": 6,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "getBifurcationBayes",
+                "field_title": "Bayesian inference",
+                "field_type": "bool",
+                "field_parent": "bayes",
+                "field_order": 20,
+                "field_default_value": "false",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_description": "calculate bayesiob probability of bifurcation event"
+            },
+            "1.11": {
+                "field_name": "getBifurcationBayesThrshld",
+                "field_title": "Bayes inference threshold (percentage)",
+                "field_type": "real",
+                "field_parent": "bayes",
+                "field_order": 21,
+                "field_default_value": "90",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) > 0 && $_(val) <= 100",
+                "field_description": "ignore bifurcations below this value (0-100]"
+            },
+            "1.12": {
+                "field_name": "getBifurcationPvalue",
+                "field_title": "Calculate p value",
+                "field_type": "bool",
+                "field_parent": "pvalue",
+                "field_order": 10,
+                "field_default_value": "true",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_description": "calculate statistical significance of bifurcation event based on chi square"
+            },
+            "1.13": {
+                "field_name": "getBifurcationPvalueThrshld",
+                "field_title": "p value threshold",
+                "field_type": "real",
+                "field_parent": "pvalue",
+                "field_order": 11,
+                "field_default_value": "0.01",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) < 1",
+                "field_description": "ignore bifurcations above this p value"
+            },
+            "1.14": {
+                "field_name": "InPopulationFrameTrees",
+                "field_title": "Trees from population frames",
+                "field_type": "bool",
+                "field_parent": "treelist",
+                "field_order": 5,
+                "field_default_value": "false",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.15": {
+                "field_name": "minOverlap",
+                "field_title": "Minimum overlap of sliding window",
+                "field_type": "integer",
+                "field_order": 1.5,
+                "field_default_value": "100",
+                "field_is_optional_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0"
+            },
+            "1.16": {
+                "field_name": "mutualAligmentID",
+                "field_title": "Reference Genome Alignment File",
+                "field_type": "obj",
+                "field_order": 0,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{\"explorer\":true,\"fetch\":\"id\",\"url\":\"mylist=union(([$(::alignID)] as objlist).map({.subject}));return (($(explorer_folder) as objlist).filter({(._type=='svc-align-multiple'||._type=='svc-align-mafft'||._type=='svc-align-clustal')}) as objlist).filter({intersect([(objlist)(.subject)],mylist) as int ||intersect([(objlist)(.query)],mylist) as int}).csv(['_type','_brief','created'],{info:true});\",\"qryLang\":true}",
+                "field_description": "Text file specifying the mutual alignment of reference genes"
+            },
+            "1.17": {
+                "field_name": "noise_tolerance",
+                "field_title": "Noise",
+                "field_type": "real",
+                "field_order": 9,
+                "field_default_value": "3",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val) >= 0 && $_(val) < 100",
+                "field_description": "assume noise from sequencing technology (0-100]"
+            },
+            "1.18": {
+                "field_name": "pairedEnd",
+                "field_title": "Paired End Reads",
+                "field_type": "bool",
+                "field_order": -1,
+                "field_default_value": "true"
+            },
+            "1.19": {
+                "field_name": "parent_proc_ids",
+                "field_title": "Alignment(s)",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "process+"
+            },
+            "1.20": {
+                "field_name": "pvalue",
+                "field_title": "P value",
+                "field_type": "list",
+                "field_order": 19.5,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.21": {
+                "field_name": "qua_threshold",
+                "field_title": "Quality threshold",
+                "field_type": "integer",
+                "field_order": 23,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "$_(val)>=0",
+                "field_constraint_description": "Please provide a number greater than 0",
+                "field_description": "Position with quality below the thresold will be ignored from the profiling stage"
+            },
+            "1.22": {
+                "field_name": "reference_simil",
+                "field_title": "Generate similarities",
+                "field_type": "bool",
+                "field_order": 3.1,
+                "field_default_value": "true",
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "sortClones",
+                "field_title": "Clone swap",
+                "field_type": "bool",
+                "field_order": -2,
+                "field_default_value": "false",
+                "field_is_optional_fg": true
+            },
+            "1.24": {
+                "field_name": "TreeFrameSize",
+                "field_title": "Width of tree frame",
+                "field_type": "integer",
+                "field_parent": "treelist",
+                "field_order": 2,
+                "field_default_value": "30",
+                "field_is_optional_fg": true
+            },
+            "1.25": {
+                "field_name": "treelist",
+                "field_title": "Trees",
+                "field_type": "list",
+                "field_order": 20,
+                "field_is_optional_fg": true
+            },
+            "1.26": {
+                "field_name": "TreeReadOverlap",
+                "field_title": "Minimum overlap in tree frame [0-1]",
+                "field_type": "real",
+                "field_parent": "treelist",
+                "field_order": 4,
+                "field_default_value": "1",
+                "field_is_optional_fg": true
+            },
+            "1.27": {
+                "field_name": "treeSize",
+                "field_title": "Tree Size",
+                "field_type": "integer",
+                "field_parent": "treelist",
+                "field_order": 1,
+                "field_default_value": "500"
+            },
+            "1.28": {
+                "field_name": "TreeStep",
+                "field_title": "Step of tree frame",
+                "field_type": "integer",
+                "field_parent": "treelist",
+                "field_order": 3,
+                "field_default_value": "30",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

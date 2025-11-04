@@ -1,0 +1,106 @@
+{
+    "type.64": {
+        "_id": "type.64",
+        "_type": "type",
+        "name": "u-usage",
+        "title": "User Usage ",
+        "description": "Collect User information ",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "records",
+                "field_title": "Records",
+                "field_type": "array",
+                "field_order": 3,
+                "field_is_multi_fg": true
+            },
+            "1.2": {
+                "field_name": "records_count",
+                "field_title": "Qty",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_description": "remember the length of the Array"
+            },
+            "1.3": {
+                "field_name": "time",
+                "field_title": "Time",
+                "field_type": "datetime",
+                "field_parent": "records",
+                "field_order": 4,
+                "field_is_multi_fg": true,
+                "field_description": "An Array of time for each of the user usage obj"
+            },
+            "1.4": {
+                "field_name": "type",
+                "field_title": "Type",
+                "field_type": "integer",
+                "field_parent": "values",
+                "field_order": 7,
+                "field_description": "Each one in time will have diskSize"
+            },
+            "1.5": {
+                "field_name": "user",
+                "field_title": "User ID",
+                "field_type": "integer",
+                "field_order": 1,
+                "field_brief": "<b>Usage</b> for user $_(v)",
+                "field_description": "The user Indentifier"
+            },
+            "1.6": {
+                "field_name": "value",
+                "field_title": "Value",
+                "field_type": "integer",
+                "field_parent": "values",
+                "field_order": 8,
+                "field_description": "Each one in time array have req Cnt"
+            },
+            "1.7": {
+                "field_name": "values",
+                "field_title": "Measurement",
+                "field_type": "array",
+                "field_parent": "records",
+                "field_order": 6,
+                "field_is_multi_fg": true
+            },
+            "1.8": {
+                "field_name": "values_count",
+                "field_title": "Qty",
+                "field_type": "integer",
+                "field_parent": "records",
+                "field_order": 5,
+                "field_description": "remember the length of the value"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

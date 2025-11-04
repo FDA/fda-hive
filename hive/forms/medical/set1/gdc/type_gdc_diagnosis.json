@@ -1,0 +1,293 @@
+{
+    "400": {
+        "_id": "$type.gdc_diagnosis",
+        "_type": "type",
+        "name": "gdc_diagnosis",
+        "title": "Diagnosis",
+        "fields": {
+            "1.0": {
+                "field_name": "icd_10_code",
+                "field_title": "ICD-10 code",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "Glioblastoma|Glioblastoma multiforme|Glioblastoma with sarcomatous component|Glioblastoma, IDH wildtype|Glioblastoma, IDH-mutant|Unknown|Not Reported"
+            },
+            "1.2": {
+                "field_name": "age_at_diagnosis",
+                "field_title": "Patient Age at Diagnosis",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Age at the time of diagnosis expressed in number of days since birth."
+            },
+            "1.4": {
+                "field_name": "tissue_or_organ_of_origin",
+                "field_title": "Tissue or organ of origin",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "C71.0///Malignant neoplasm of cerebrum, except lobes and ventricles|C71.1///Malignant neoplasm of frontal lobe|C71.2///Malignant neoplasm of temporal lobe|C71.3///Malignant neoplasm of parietal lobe|C71.4///Malignant neoplasm of occipital lobe|C71.5///Malignant neoplasm of cerebral ventricle|C71.6///Malignant neoplasm of cerebellum|C71.7///Malignant neoplasm of brain stem|C71.8///Malignant neoplasm of overlapping sites of brain|C71.9///Malignant neoplasm of brain, unspecified",
+                "field_description": "The text term used to describe the anatomic site of origin, of the patient's malignant disease, as described by the World Health Organization's (WHO) International Classification of Diseases for Oncology (ICD-O)."
+            },
+            "1.5": {
+                "field_name": "classification_of_tumor",
+                "field_title": "Tumor Type",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "metastasis|other|Premalignant|primary|Progression|recurrence|Unknown|not reported|Not Allowed To Collect",
+                "field_description": "Text that describes the kind of disease present in the tumor specimen as related to a specific timepoint."
+            },
+            "1.6": {
+                "field_name": "who_cns_grade",
+                "field_title": "WHO grade",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Grade I|Grade II|Grade III|Grade IV|Grade Not Assigned|Unknown|Not Reported"
+            },
+            "1.7": {
+                "field_name": "year_of_diagnosis",
+                "field_title": "Year of initial pathologic diagnosis",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_description": "Numeric value to represent the year of an individual's initial pathologic diagnosis of cancer."
+            },
+            "1.8": {
+                "field_name": "primary_diagnosis",
+                "field_title": "Primary diagnosis",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "Glioblastoma|Glioblastoma multiforme|Glioblastoma with sarcomatous component|Glioblastoma, IDH wildtype|Glioblastoma, IDH-mutant|Unknown|Not Reported",
+                "field_description": "Text term used to describe the patient's histologic diagnosis, as described by the World Health Organization's (WHO) International Classification of Diseases for Oncology (ICD-O)."
+            },
+            "1.9": {
+                "field_name": "site_of_resection_or_biopsy",
+                "field_title": "Site of resection or biopsy",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Brain stem|Brain, NOS|Cerebellum, NOS|Cerebrum|Choroid|Endocrine gland, NOS|Frontal lobe|Parietal lobe|Pineal gland|Pituitary gland|Occipital lobe|Temporal lobe|Ventricle, NOS|Unknown|Not Reported",
+                "field_description": "The text term used to describe the anatomic site of origin, of the patient's malignant disease, as described by the World Health Organization's (WHO) International Classification of Diseases for Oncology (ICD-O)."
+            },
+            "1.10": {
+                "field_name": "first_symptom_prior_to_diagnosis",
+                "field_title": "Patient's first symptom related to disease",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Altered Mental Status|Headaches|Motor or Movement Changes|Seizures|Sensory Changes|Visual Changes|Unknown|Not Reported",
+                "field_description": "Text term used to describe the patient's first symptom experienced prior to diagnosis and thought to be related to the disease."
+            },
+            "1.11": {
+                "field_name": "days_to_last_known_disease_status",
+                "field_title": "Days to Last Known Disease Status",
+                "field_type": "integer",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_description": "Time interval from the date of last follow up to the date of initial pathologic diagnosis, represented as a calculated number of days."
+            },
+            "1.12": {
+                "field_name": "days_to_recurrence",
+                "field_title": "Days to recurrence",
+                "field_type": "integer",
+                "field_order": 13,
+                "field_is_optional_fg": true,
+                "field_description": "Number of days between the date used for index and the date the patient's disease recurred."
+            },
+            "1.13": {
+                "field_name": "days_to_last_follow_up",
+                "field_title": "Days to Last Followup",
+                "field_type": "integer",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_description": "Time interval from the date of last follow up to the date of initial pathologic diagnosis, represented as a calculated number of days."
+            },
+            "1.14": {
+                "field_name": "days_to_diagnosis",
+                "field_title": "Days to diagnosis",
+                "field_type": "integer",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_description": "Number of days between the date used for index and the date the patient was diagnosed with the malignant disease."
+            },
+            "1.15": {
+                "field_name": "days_to_best_overall_response",
+                "field_title": "Days to best overall response",
+                "field_type": "integer",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_description": "Number of days between the date used for index and the date of the patient was thought to have the best overall response to their disease."
+            },
+            "1.16": {
+                "field_name": "best_overall_response",
+                "field_title": "Best Response",
+                "field_type": "string",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "AJ-Adjuvant Therapy|CPD-Clinical Progression|CR-Complete Response|CRU-Complete Response Unconfirmed|DU-Disease Unchanged|IMR-Immunoresponse|IPD-Immunoprogression|MR-Minimal/Marginal Response|MX-Mixed Response|Non-CR/Non-PD-Non-CR/Non-PD|NPB-No Palliative Benefit|NR-No Response|PA-Palliative Therapy|PB-Palliative Benefit|PD-Progressive Disease|PPD-Pseudoprogression|PR-Partial Response|PSR-Pseudoresponse|RD-Responsive Disease|RP-Response|RPD-Radiographic Progressive Disease|sCR-Stringent Complete Response|SD-Stable Disease|SPD-Surgical Progression|TE-Too Early|VGPR-Very Good Partial Response",
+                "field_description": "The best improvement achieved throughout the entire course of protocol treatment."
+            },
+            "1.17": {
+                "field_name": "progression_or_recurrence",
+                "field_title": "Progression or Recurrence",
+                "field_type": "string",
+                "field_order": 18,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "yes|no|unknown|not reported|Not Allowed To Collect",
+                "field_description": "Yes/No/Unknown indicator to identify whether a patient has had a new tumor event after initial treatment."
+            },
+            "1.18": {
+                "field_name": "last_known_disease_status",
+                "field_title": "Last known disease status",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint_data": "Distant met recurrence/progression|Loco-regional recurrence/progression|Biochemical evidence of disease without structural correlate|Tumor free|Unknown tumor status|With tumor|not reported|Not Allowed To Collect",
+                "field_description": "Text term that describes the last known state or condition of an individual's neoplasm."
+            },
+            "1.19": {
+                "field_name": "method_of_diagnosis",
+                "field_title": "Method of diagnosis",
+                "field_type": "string",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Autopsy|Biopsy|Cytology|Debulking|Diagnostic Imaging|Enucleation|Excisional Biopsy|Fine Needle Aspiration|Imaging|Incisional Biopsy|Other|Physical Exam|Pathologic Review|Surgical Resection|Unknown|Not Reported",
+                "field_description": "Text term used to describe the method used to confirm the patients malignant diagnosis."
+            },
+            "1.20": {
+                "field_name": "pregnant_at_diagnosis",
+                "field_title": "Pregnant at diagnosis",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "The text term used to indicate whether the patient was pregnant at the time they were diagnosed."
+            },
+            "1.21": {
+                "field_name": "prior_treatment",
+                "field_title": "Prior treatment",
+                "field_type": "string",
+                "field_order": 20,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported|Not Allowed To Collect",
+                "field_description": "A yes/no/unknown/not applicable indicator related to the administration of therapeutic agents received before the body specimen was collected."
+            },
+            "1.22": {
+                "field_name": "prior_malignancy",
+                "field_title": "Prior malignancy",
+                "field_type": "string",
+                "field_order": 21,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "yes|no|unknown|not reported|Not Allowed To Collect",
+                "field_description": "The yes/no/unknown indicator used to describe the patient's history of prior cancer diagnosis."
+            },
+            "1.23": {
+                "field_name": "residual_disease",
+                "field_title": "Margins of surgical resection",
+                "field_type": "string",
+                "field_order": 22,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "R0///All Margins Pathologically Negative|R1///Microscopically Positive Margins or Microscopic Residual Disease|R2///Macroscopically Positive Margins or Gross Residual Disease|RX///Presence of Residual Disease Cannot Be Assessed|Unknown|Not Reported",
+                "field_description": "Text terms to describe the status of a tissue margin following surgical resection."
+            },
+            "1.24": {
+                "field_name": "synchronous_malignancy",
+                "field_title": "Synchronous malignancy",
+                "field_type": "string",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Unknown|Not Reported",
+                "field_description": "A yes/no/unknown indicator used to describe whether the patient had an additional malignant diagnosis at the same time the tumor used for sequencing was diagnosed. If both tumors were sequenced, both tumors would have synchronous malignancies."
+            },
+            "1.25": {
+                "field_name": "tumor_focality",
+                "field_title": "Tumor Focality",
+                "field_type": "string",
+                "field_order": 24,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Multifocal|Unifocal|Unknown|Not Reported",
+                "field_description": "The text term used to describe whether the patient's disease originated in a single location or multiple locations."
+            },
+            "1.26": {
+                "field_name": "tumor_grade",
+                "field_title": "Tumor grade",
+                "field_type": "string",
+                "field_order": 25,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "G1|G2|G3|G4|GX|GB|High Grade|Intermediate Grade|Low Grade|Unknown|Not Reported",
+                "field_description": "Numeric value to express the degree of abnormality of cancer cells, a measure of differentiation and aggressiveness."
+            },
+            "1.28": {
+                "field_name": "tumor_regression_grade",
+                "field_title": "Tumor regression grade",
+                "field_type": "string",
+                "field_order": 27,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0|1|2|3|Unknown",
+                "field_description": "A numeric value used to measure therapeutic response of the primary tumor and predict patient outcomes based on a three-point tumor regression grading system."
+            },
+            "1.31": {
+                "field_name": "supratentorial_localization",
+                "field_title": "Supratentorial Localization",
+                "field_type": "string",
+                "field_order": 30,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Cerebral Cortex|Deep Gray (e.g. Basal Ganglia, Thalamus)|Frontal lobe|Occipital lobe|Parietal lobe|Temporal lobe|White Matter|Unknown|Not Reported",
+                "field_description": "Text term to specify the location of the supratentorial tumor."
+            },
+            "1.33": {
+                "field_name": "margin_distance",
+                "field_title": "Distance of Closest Surgical Margin",
+                "field_type": "string",
+                "field_order": 32,
+                "field_is_optional_fg": true,
+                "field_description": "The distance of the closest surgical margin from tumor after surgical resection of the tumor. The closest distance between a tumor and its resection margin has prognostic significance."
+            },
+            "1.34": {
+                "field_name": "morphology",
+                "field_title": "ICD-O-3 Histology Code (Morphology)",
+                "field_type": "string",
+                "field_order": 33,
+                "field_constraint_data": "8000/0|8000/1|8000/3|8000/6|8000/9|8001/0|8001/1|8001/3|8002/3|8003/3|8004/3|8005/0|8005/3|8010/0|8010/2|8010/3|8010/6|8010/9|8011/0|8011/3|8012/3|8013/3|8014/3|8015/3|8020/3|8020/6|8021/3|8022/3|8023/3|8030/3|8031/3|8032/3|8033/3|8034/3|8035/3|8040/0|8040/1|8040/3|8041/3|8041/34|8041/6|8042/3|8043/3|8044/3|8045/3|8046/3|8046/6|8050/0|8050/2|8050/3|8051/0|8051/3|8052/0|8052/2|8052/3|8053/0|8060/0|8070/2|8070/3|8070/33|8070/6|8071/2|8071/3|8072/3|8073/3|8074/3|8075/3|8076/2|8076/3|8077/0|8077/2|8078/3|8080/2|8081/2|8082/3|8083/3|8084/3|8085/3|8086/3|8090/1|8090/3|8091/3|8092/3|8093/3|8094/3|8095/3|8096/0|8097/3|8098/3|8100/0|8101/0|8102/0|8102/3|8103/0|8110/0|8110/3|8120/0|8120/1|8120/2|8120/3|8121/0|8121/1|8121/3|8122/3|8123/3|8124/3|8130/1|8130/2|8130/3|8131/3|8140/0|8140/1|8140/2|8140/3|8140/33|8140/6|8141/3|8142/3|8143/3|8144/3|8145/3|8146/0|8147/0|8147/3|8148/0|8148/2|8149/0|8150/0|8150/1|8150/3|8151/0|8151/3|8152/1|8152/3|8153/1|8153/3|8154/3|8155/1|8155/3|8156/1|8156/3|8158/1|8160/0|8160/3|8161/0|8161/3|8162/3|8163/0|8163/2|8163/3|8170/0|8170/3|8171/3|8172/3|8173/3|8174/3|8175/3|8180/3|8190/0|8190/3|8191/0|8200/0|8200/3|8201/2|8201/3|8202/0|8204/0|8210/0|8210/2|8210/3|8211/0|8211/3|8212/0|8213/0|8213/3|8214/3|8215/3|8220/0|8220/3|8221/0|8221/3|8230/2|8230/3|8231/3|8240/1|8240/3|8240/6|8241/3|8242/1|8242/3|8243/3|8244/3|8245/1|8245/3|8246/3|8247/3|8248/1|8249/3|8249/6|8250/1|8250/2|8250/3|8251/0|8251/3|8252/3|8253/3|8254/3|8255/3|8256/3|8257/3|8260/0|8260/3|8261/0|8261/2|8261/3|8262/3|8263/0|8263/2|8263/3|8264/0|8265/3|8270/0|8270/3|8271/0|8272/0|8272/3|8280/0|8280/3|8281/0|8281/3|8290/0|8290/3|8300/0|8300/3|8310/0|8310/3|8310/6|8311/1|8311/3|8311/6|8312/3|8313/0|8313/1|8313/3|8314/3|8315/3|8316/3|8317/3|8318/3|8319/3|8320/3|8321/0|8322/0|8322/3|8323/0|8323/3|8324/0|8325/0|8330/0|8330/1|8330/3|8331/3|8332/3|8333/0|8333/3|8334/0|8335/3|8336/0|8337/3|8339/3|8340/3|8341/3|8342/3|8343/2|8343/3|8344/3|8345/3|8346/3|8347/3|8350/3|8360/1|8361/0|8370/0|8370/1|8370/3|8371/0|8372/0|8373/0|8374/0|8375/0|8380/0|8380/1|8380/2|8380/3|8381/0|8381/1|8381/3|8382/3|8383/3|8384/3|8390/0|8390/3|8391/0|8392/0|8400/0|8400/1|8400/3|8401/0|8401/3|8402/0|8402/3|8403/0|8403/3|8404/0|8405/0|8406/0|8407/0|8407/3|8408/0|8408/1|8408/3|8409/0|8409/3|8410/0|8410/3|8413/3|8420/0|8420/3|8430/1|8430/3|8440/0|8440/3|8441/0|8441/2|8441/3|8441/6|8442/1|8443/0|8444/1|8450/0|8450/3|8451/1|8452/1|8452/3|8453/0|8453/2|8453/3|8454/0|8460/0|8460/2|8460/3|8461/0|8461/3|8462/1|8463/1|8470/0|8470/2|8470/3|8471/0|8471/1|8471/3|8472/1|8473/1|8474/1|8474/3|8480/0|8480/1|8480/3|8480/6|8481/3|8482/3|8482/6|8490/3|8490/6|8500/2|8500/3|8500/6|8501/2|8501/3|8502/3|8503/0|8503/2|8503/3|8504/0|8504/2|8504/3|8505/0|8506/0|8507/2|8507/3|8508/3|8509/2|8509/3|8510/3|8512/3|8513/3|8514/3|8519/2|8520/2|8520/3|8521/1|8521/3|8522/1|8522/2|8522/3|8523/3|8524/3|8525/3|8530/3|8540/3|8541/3|8542/3|8543/3|8550/0|8550/1|8550/3|8551/3|8552/3|8560/0|8560/3|8561/0|8562/3|8570/3|8571/3|8572/3|8573/3|8574/3|8575/3|8576/3|8580/0|8580/1|8580/3|8581/1|8581/3|8582/1|8582/3|8583/1|8583/3|8584/1|8584/3|8585/1|8585/3|8586/3|8587/0|8588/3|8589/3|8590/1|8591/1|8592/1|8593/1|8594/1|8600/0|8600/3|8601/0|8602/0|8610/0|8620/1|8620/3|8621/1|8622/1|8623/1|8630/0|8630/1|8630/3|8631/0|8631/1|8631/3|8632/1|8633/1|8634/1|8634/3|8640/1|8640/3|8641/0|8642/1|8650/0|8650/1|8650/3|8660/0|8670/0|8670/3|8671/0|8680/0|8680/1|8680/3|8681/1|8682/1|8683/0|8690/1|8691/1|8692/1|8693/1|8693/3|8700/0|8700/3|8710/3|8711/0|8711/3|8712/0|8713/0|8714/3|8720/0|8720/2|8720/3|8720/6|8721/3|8722/0|8722/3|8723/0|8723/3|8725/0|8726/0|8727/0|8728/0|8728/1|8728/3|8730/0|8730/3|8740/0|8740/3|8741/2|8741/3|8742/2|8742/3|8743/3|8744/3|8745/3|8746/3|8750/0|8760/0|8761/0|8761/1|8761/3|8762/1|8770/0|8770/3|8771/0|8771/3|8772/0|8772/3|8773/3|8774/3|8780/0|8780/3|8790/0|8800/0|8800/3|8800/6|8800/9|8801/3|8801/6|8802/3|8803/3|8804/3|8804/6|8805/3|8806/3|8806/6|8810/0|8810/1|8810/3|8811/0|8811/1|8811/3|8812/0|8812/3|8813/0|8813/3|8814/3|8815/0|8815/1|8815/3|8820/0|8821/1|8822/1|8823/0|8824/0|8824/1|8825/0|8825/1|8825/3|8826/0|8827/1|8830/0|8830/1|8830/3|8831/0|8832/0|8832/3|8833/3|8834/1|8835/1|8836/1|8840/0|8840/3|8841/1|8842/0|8842/3|8850/0|8850/1|8850/3|8851/0|8851/3|8852/0|8852/3|8853/3|8854/0|8854/3|8855/3|8856/0|8857/0|8857/3|8858/3|8860/0|8861/0|8862/0|8870/0|8880/0|8881/0|8890/0|8890/1|8890/3|8891/0|8891/3|8892/0|8893/0|8894/0|8894/3|8895/0|8895/3|8896/3|8897/1|8898/1|8900/0|8900/3|8901/3|8902/3|8903/0|8904/0|8905/0|8910/3|8912/3|8920/3|8920/6|8921/3|8930/0|8930/3|8931/3|8932/0|8933/3|8934/3|8935/0|8935/1|8935/3|8936/0|8936/1|8936/3|8940/0|8940/3|8941/3|8950/3|8950/6|8951/3|8959/0|8959/1|8959/3|8960/1|8960/3|8963/3|8964/3|8965/0|8966/0|8967/0|8970/3|8971/3|8972/3|8973/3|8974/1|8975/1|8980/3|8981/3|8982/0|8982/3|8983/0|8983/3|8990/0|8990/1|8990/3|8991/3|9000/0|9000/1|9000/3|9010/0|9011/0|9012/0|9013/0|9014/0|9014/1|9014/3|9015/0|9015/1|9015/3|9016/0|9020/0|9020/1|9020/3|9030/0|9040/0|9040/3|9041/3|9042/3|9043/3|9044/3|9045/3|9050/0|9050/3|9051/0|9051/3|9052/0|9052/3|9053/3|9054/0|9055/0|9055/1|9060/3|9061/3|9062/3|9063/3|9064/2|9064/3|9065/3|9070/3|9071/3|9072/3|9073/1|9080/0|9080/1|9080/3|9081/3|9082/3|9083/3|9084/0|9084/3|9085/3|9086/3|9090/0|9090/3|9091/1|9100/0|9100/1|9100/3|9101/3|9102/3|9103/0|9104/1|9105/3|9110/0|9110/1|9110/3|9120/0|9120/3|9121/0|9122/0|9123/0|9124/3|9125/0|9130/0|9130/1|9130/3|9131/0|9132/0|9133/1|9133/3|9135/1|9136/1|9137/3|9140/3|9141/0|9142/0|9150/0|9150/1|9150/3|9160/0|9161/0|9161/1|9170/0|9170/3|9171/0|9172/0|9173/0|9174/0|9174/1|9175/0|9180/0|9180/3|9180/6|9181/3|9182/3|9183/3|9184/3|9185/3|9186/3|9187/3|9191/0|9192/3|9193/3|9194/3|9195/3|9200/0|9200/1|9210/0|9210/1|9220/0|9220/1|9220/3|9221/0|9221/3|9230/0|9230/3|9231/3|9240/3|9241/0|9242/3|9243/3|9250/1|9250/3|9251/1|9251/3|9252/0|9252/3|9260/3|9261/3|9262/0|9270/0|9270/1|9270/3|9271/0|9272/0|9273/0|9274/0|9275/0|9280/0|9281/0|9282/0|9290/0|9290/3|9300/0|9301/0|9302/0|9302/3|9310/0|9310/3|9311/0|9312/0|9320/0|9321/0|9322/0|9330/0|9330/3|9340/0|9341/1|9341/3|9342/3|9350/1|9351/1|9352/1|9360/1|9361/1|9362/3|9363/0|9364/3|9365/3|9370/3|9371/3|9372/3|9373/0|9380/3|9381/3|9382/3|9383/1|9384/1|9385/3|9390/0|9390/1|9390/3|9391/3|9392/3|9393/3|9394/1|9395/3|9396/3|9400/3|9401/3|9410/3|9411/3|9412/1|9413/0|9420/3|9421/1|9423/3|9424/3|9425/3|9430/3|9431/1|9432/1|9440/3|9440/6|9441/3|9442/1|9442/3|9444/1|9445/3|9450/3|9451/3|9460/3|9470/3|9471/3|9472/3|9473/3|9474/3|9475/3|9476/3|9477/3|9478/3|9480/3|9490/0|9490/3|9491/0|9492/0|9493/0|9500/3|9501/0|9501/3|9502/0|9502/3|9503/3|9504/3|9505/1|9505/3|9506/1|9507/0|9508/3|9509/1|9510/0|9510/3|9511/3|9512/3|9513/3|9514/1|9520/3|9521/3|9522/3|9523/3|9530/0|9530/1|9530/3|9531/0|9532/0|9533/0|9534/0|9535/0|9537/0|9538/1|9538/3|9539/1|9539/3|9540/0|9540/1|9540/3|9541/0|9542/3|9550/0|9560/0|9560/1|9560/3|9561/3|9562/0|9570/0|9571/0|9571/3|9580/0|9580/3|9581/3|9582/0|9590/3|9591/3|9596/3|9597/3|9650/3|9651/3|9652/3|9653/3|9654/3|9655/3|9659/3|9661/3|9662/3|9663/3|9664/3|9665/3|9667/3|9670/3|9671/3|9673/3|9675/3|9678/3|9679/3|9680/3|9684/3|9687/3|9688/3|9689/3|9690/3|9691/3|9695/3|9698/3|9699/3|9700/3|9701/3|9702/3|9705/3|9708/3|9709/3|9712/3|9714/3|9716/3|9717/3|9718/3|9719/3|9724/3|9725/3|9726/3|9727/3|9728/3|9729/3|9731/3|9732/3|9733/3|9734/3|9735/3|9737/3|9738/3|9740/1|9740/3|9741/1|9741/3|9742/3|9750/3|9751/1|9751/3|9752/1|9753/1|9754/3|9755/3|9756/3|9757/3|9758/3|9759/3|9760/3|9761/3|9762/3|9764/3|9765/1|9766/1|9767/1|9768/1|9769/1|9800/3|9801/3|9805/3|9806/3|9807/3|9808/3|9809/3|9811/3|9812/3|9813/3|9814/3|9815/3|9816/3|9817/3|9818/3|9820/3|9823/3|9826/3|9827/3|9831/3|9832/3|9833/3|9834/3|9835/3|9836/3|9837/3|9840/3|9860/3|9861/3|9863/3|9865/3|9866/3|9867/3|9869/3|9870/3|9871/3|9872/3|9873/3|9874/3|9875/3|9876/3|9891/3|9895/3|9896/3|9897/3|9898/1|9898/3|9910/3|9911/3|9920/3|9930/3|9931/3|9940/3|9945/3|9946/3|9948/3|9950/3|9960/3|9961/3|9962/3|9963/3|9964/3|9965/3|9966/3|9967/3|9970/1|9971/1|9971/3|9975/3|9980/3|9982/3|9983/3|9984/3|9985/3|9986/3|9987/3|9989/3|9991/3|9992/3|Unknown|Not Reported",
+                "field_description": "The third edition of the International Classification of Diseases for Oncology, published in 2000 used principally in tumor and cancer registries for coding the site (topography) and the histology (morphology) of neoplasms. The study of the structure of the cells and their arrangement to constitute tissues and, finally, the association among these to form organs. In pathology, the microscopic process of identifying normal and abnormal morphologic characteristics in tissues, by employing various cytochemical and immunocytochemical stains. A system of numbered categories for representation of data."
+            },
+            "1.36": {
+                "field_name": "tumor_depth",
+                "field_title": "Tumor Depth",
+                "field_type": "integer",
+                "field_order": 4.5,
+                "field_is_optional_fg": true,
+                "field_description": "Numeric value that represents the depth of tumor invasion, measured in millimeters (mm)."
+            }
+        },
+        "parent": {
+            "8": "$type.gdc"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,187 @@
+{
+    "318": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "unique-name": "MEDTRONIC-BMP-survey-list",
+        "survey": {
+            "9": {
+                "9.1": {
+                    "name": "$type.medtronic_demographics",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "10": {
+                "10.1": {
+                    "name": "$type.medtronic_medical_history",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "11": {
+                "11.1": {
+                    "name": "$type.medtronic_surgical_history",
+                    "order": 5,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "12": {
+                "12.1": {
+                    "name": "$type.medtronic_preop_pregnancy_test",
+                    "order": 6,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "14": {
+                "14.1": {
+                    "name": "$type.medtronic_surgery_data",
+                    "order": 8,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "15": {
+                "15.1": {
+                    "name": "$type.medtronic_hospital_discharge",
+                    "order": 9,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "16": {
+                "16.1": {
+                    "name": "$type.medtronic_odi",
+                    "order": 10,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "17": {
+                "17.1": {
+                    "name": "$type.medtronic_numeric_pain_rating",
+                    "order": 11,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "18": {
+                "18.1": {
+                    "name": "$type.medtronic_eq5d5l",
+                    "order": 12,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "19": {
+                "19.1": {
+                    "name": "$type.medtronic_additional_surgical_procedure",
+                    "order": 13,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "20": {
+                "20.1": {
+                    "name": "$type.medtronic_subject_visits",
+                    "order": 14,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "22": {
+                "22.1": {
+                    "name": "$type.medtronic_medications",
+                    "order": 16,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "23": {
+                "23.1": {
+                    "name": "$type.medtronic_adverse_event",
+                    "order": 17,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "24": {
+                "24.1": {
+                    "name": "$type.medtronic_pregnancy",
+                    "order": 18,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "25": {
+                "25.1": {
+                    "name": "$type.medtronic_cancer",
+                    "order": 19,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            },
+            "28": {
+                "28.1": {
+                    "name": "$type.medtronic_medical_image_transmittal_form",
+                    "order": 22,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "multiple_records": true
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

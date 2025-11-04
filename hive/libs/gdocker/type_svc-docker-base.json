@@ -1,0 +1,59 @@
+{
+    "99": {
+        "_id": "$type.svc-docker-base",
+        "_type": "type",
+        "name": "svc-docker-base",
+        "title": "Docker processes",
+        "description": "//\nlocation: vlib.qlib",
+        "fields": {
+            "1.0": {
+                "field_name": "sysdocker",
+                "field_title": "Docker Image",
+                "field_type": "obj",
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": false,
+                "field_is_hidden_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "sysdocker"
+            },
+            "1.2": {
+                "field_name": "dockerContainerName",
+                "field_title": "Docker Container Name",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "7": "$type.svc-glauncher-base"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

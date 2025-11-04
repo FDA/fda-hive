@@ -1,0 +1,71 @@
+#/*
+# *  ::718604!
+# * 
+# * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+# * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+# * Affiliation: Food and Drug Administration (1), George Washington University (2)
+# * 
+# * All rights Reserved.
+# * 
+# * The MIT License (MIT)
+# * 
+# * Permission is hereby granted, free of charge, to any person obtaining
+# * a copy of this software and associated documentation files (the "Software"),
+# * to deal in the Software without restriction, including without limitation
+# * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# * and/or sell copies of the Software, and to permit persons to whom the
+# * Software is furnished to do so, subject to the following conditions:
+# * 
+# * The above copyright notice and this permission notice shall be included
+# * in all copies or substantial portions of the Software.
+# * 
+# * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# * DEALINGS IN THE SOFTWARE.
+# */
+singularity_setup () {
+    local progFl="${1}"
+    local workDir="${2}"
+    local containerWorkDir="${3}"
+
+    export SINGULARITY_TMPDIR="${workDir}/singularity-tmp"
+    mkdir -p "${SINGULARITY_TMPDIR}"
+    if [[ $? != 0 ]]; then
+        echo "0,1,progError,could not create singularity tmp directory." > ${progFl}
+        exit 1
+    fi
+    export SINGULARITY_CONTAIN=1
+    export SINGULARITY_WORKDIR="${SINGULARITY_TMPDIR}"
+    export SINGULARITY_PWD="${containerWorkDir}"
+
+    SINGULARITY_BINDPATH="${workDir}:${containerWorkDir}"
+    while read -r -d $'\0' linked_dir; do
+        if [[ "${linked_dir}" =~ [,:] ]]; then
+            echo "0,1,progError,tried to mount folder with character not supported by singularity." > ${progFl}
+            exit 1
+        fi
+        SINGULARITY_BINDPATH="${SINGULARITY_BINDPATH},${linked_dir}"
+    done < <(find "${workDir}" -type l -print0 | xargs -0 --no-run-if-empty readlink -f -z | xargs -0 --no-run-if-empty dirname -z | sort -u -z)
+    export SINGULARITY_BINDPATH
+}
+
+get_capacity() {
+    local svc="${1}"
+
+    local THREADS=`qapp.os${os} -serviceGet "${svc}" capacity`
+    if [[ ! -z ${THREADS} ]]; then
+        rgx='^([0-9]+)'
+        # remove fraction
+        if [[ "${THREADS}" =~ $rgx ]]; then
+            THREADS="${BASH_REMATCH[1]}"
+        fi
+    fi
+    if [[ -z ${THREADS} || ${THREADS} -le 0 ]]; then
+        THREADS=1
+    fi
+    echo ${THREADS}
+}

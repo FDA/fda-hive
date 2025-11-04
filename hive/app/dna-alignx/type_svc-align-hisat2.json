@@ -1,0 +1,72 @@
+{
+    "type.348": {
+        "_id": "type.348",
+        "_type": "type",
+        "name": "svc-align-hisat2",
+        "title": "HISAT2 aligment",
+        "description": "HISAT2 based workflow",
+        "parent": {
+            "1": "type.91",
+            "2": "type.349"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.2": {
+                "field_name": "GTFfile",
+                "field_title": "GTF file",
+                "field_type": "obj",
+                "field_parent": "gtf_params",
+                "field_constraint": "type",
+                "field_constraint_data": "u-file",
+                "field_description": "path to GTF file"
+            },
+            "1.4": {
+                "field_name": "gtf_params",
+                "field_title": "GTF parameters",
+                "field_type": "list"
+            },
+            "1.5": {
+                "field_name": "hisat_gtf_to_exon",
+                "field_title": "Extract exons",
+                "field_type": "bool",
+                "field_parent": "gtf_params",
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "hisat_gtf_to_ss",
+                "field_title": "Extract splice sites",
+                "field_type": "bool",
+                "field_parent": "gtf_params",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,24 @@
+{
+    "243": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "Native HIVE-hexagon algorithm optimized for High Performance Cloud computing environments",
+        "icon": "?cmd=~dna~svc-align-hexagon.gif",
+        "title": "HIVE-Hexagon",
+        "version": "1.3.666",
+        "name": "svc-align-hexagon",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

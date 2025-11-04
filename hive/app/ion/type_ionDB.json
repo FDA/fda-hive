@@ -1,0 +1,62 @@
+{
+    "type.215": {
+        "_id": "type.215",
+        "_type": "type",
+        "name": "ionDB",
+        "title": "Generic ionDB",
+        "description": "Generic ionDB type",
+        "parent": {
+            "1": "type.67"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_default_value": "untitled db",
+                "field_is_summary_fg": true,
+                "field_brief": "'$_(v) <b>$_(t)(s)</b>'",
+                "field_description": "name for iondb"
+            },
+            "1.2": {
+                "field_name": "size",
+                "field_title": "Size",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_is_readonly_fg": 1,
+                "field_is_summary_fg": true,
+                "field_description": "size for iondb"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

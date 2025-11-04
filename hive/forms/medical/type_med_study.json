@@ -1,0 +1,56 @@
+{
+    "348": {
+        "_id": "$type.med_study",
+        "_type": "type",
+        "name": "med_study",
+        "title": "Study",
+        "fields": {
+            "1.1": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_brief": "Study: $_(v)"
+            },
+            "1.2": {
+                "field_name": "description",
+                "field_title": "Description",
+                "field_type": "text",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "consent_text",
+                "field_title": "Consent text",
+                "field_type": "text",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "path",
+                "field_title": "Group Path",
+                "field_type": "string",
+                "field_order": 4
+            }
+        },
+        "parent": {
+            "4": "$type.med_sys"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

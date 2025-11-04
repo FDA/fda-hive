@@ -1,0 +1,69 @@
+{
+    "workflows" : {
+        "name" : "argos-pipeline",
+        "title" : "Argos 1.22 pipeline",
+        "description" : "Argos pipeline to run assembly QC",
+        "comment" : "argos qc pipeline",
+
+        "_type" : "workflow",
+        "config" : [
+            {
+                "name" : "sra-toolkit",
+                "execute" : [
+                    "sra.toolkit='/soft/sratoolkit.3.0.7-centos_linux64/bin/';",
+                    "sra.prefetch=sra.toolkit+'prefetch -O '+hive.tmpdir;",
+                    "sra.fastq_dump=sra.toolkit+'fastq-dump --split-files' ;"
+                ]
+            }
+        ],
+        "steps" : [
+            {
+                "name" : "entry_form",
+                "execute" : [
+					"folderID=HIVE.folderCreate(folder);",
+                    "if(isvar('::genome')){assembly_downloader._ids=genome;} else {if( (isvar('::ref')==0) && isvar('::asm')){ref=HIVE.mapAssemblyToRef(asm);}if(string.len(ref)){assembly_downloader.folder=folderID;HIVE.loadNCBIacc(ref,'genome','genbank','assembly_downloader');}}",
+                    "if(isvar('::nucreads')){srr_to_fastq._ids=nucreads;} else {if( (isvar('::srr')==0) && isvar('::asm')){srr=HIVE.mapAssemblyToSRR(asm);}if(string.len(srr)){srr_to_fastq.folder=folderID;HIVE.loadNCBIacc(srr,'nuc-read','sra','srr_to_fastq');}} ",
+                    "err(isvar('::assembly_downloader._ids'),'Reference cannot be found;');",
+					"err(isvar('::srr_to_fastq._ids'),'NGS files cannot be found;');"
+                ]
+            },
+			{
+                "name" : "aligner",
+				"condition" : [
+					"entry_form.status=='done';"
+				],
+                "execute" : [
+                    "aligner.minMatchLen=40;aligner.query=srr_to_fastq._ids;aligner.subject=assembly_downloader._ids;aligner.name='ARGOS QC run';aligner.folder=folderID;",
+                    "HIVE.launchHexagon('aligner');"
+                ]
+            },
+            {
+                "name" : "profiler",
+				"condition" : [
+					"aligner.status=='done';"
+				],				
+                "execute" : [
+                    "aligner.status=='done';",
+                    "profiler.parent_proc_ids=aligner._id;profiler.name=aligner.name;profiler.folder=folderID;",
+                    "HIVE.launchHeptagon('profiler');"
+                ]
+            },
+            {
+                "name" : "alqc",
+                "execute" : [
+                    "profiler.status=='done';",
+                    "alqc.heptagon_id=profiler._id;alqc.name=profiler.name;",
+                    "alqc.ngsQC=setvar('::ngsQC',string.unescape(ngsQC),'{}');",
+					"alqc.asmQC=setvar('::asmQC',string.unescape(asmQC),'{}');",
+					"alqc.posQC=setvar('::posQC',string.unescape(posQC),'{}');",
+					"alqc.posAnnot=setvar('::posAnnot',string.unescape(posAnnot),'{}');",
+					"alqc.codingTable=codingTable;alqc.folder=folderID;",
+                    "if( isvar('::biosampleAcc') ){alqc.bioSampleQC=HIVE.biosampleMetadataNCBI(biosampleAcc);}",
+                    "if( isvar('::ref') )alqc.ref=ref;if( isvar('::asm') )alqc.asm=asm;if( isvar('::srr') )alqc.srr=srr;if( isvar('::biosampleAcc') )alqc.biosampleAcc=biosampleAcc;",
+                                        
+                    "form.alqc_id=HIVE.launchAlQC('alqc');"
+                ]
+            }
+        ]
+    }
+}

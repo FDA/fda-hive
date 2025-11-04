@@ -1,0 +1,135 @@
+{
+    "485": {
+        "_id": "$type.hep_eeg_upload",
+        "_type": "type",
+        "name": "hep_eeg_upload",
+        "title": "EEG Upload",
+        "fields": {
+            "1.1": {
+                "field_name": "eeg_completed",
+                "field_title": "Was an EEG completed?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "subtitle_1",
+                "field_title": "If yes, please select procedure and results",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "is_shown_fg=$(eeg_completed)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.3": {
+                "field_name": "procedure",
+                "field_title": "Procedure",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "Routine|Ambulatory|Video\r\n>is_shown_fg=$(eeg_completed)=='true'"
+            },
+            "1.4": {
+                "field_name": "results",
+                "field_title": "Results",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "Normal EEG|Abnormal (Epileptiform)\r\n>is_shown_fg=$(eeg_completed)=='true'"
+            },
+            "1.5": {
+                "field_name": "abnormal",
+                "field_title": "Abnormal",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Focal spikes|Generalized epileptiform discharges|Electrographic seizures|Other\r\n>is_shown_fg=$(results)=='Abnormal (Epileptiform)'&&$(eeg_completed)=='true'"
+            },
+            "1.6": {
+                "field_name": "abnormal_other",
+                "field_title": "If other, please specify",
+                "field_type": "string",
+                "field_order": 5.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(abnormal)=='Other'&&$(results)=='Abnormal (Epileptiform)'&&$(eeg_completed)=='true'"
+            },
+            "1.7": {
+                "field_name": "bilateral_discharge",
+                "field_title": "Are discharges bilateral, synchronous and symmetric?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(abnormal)=='Generalized epileptiform discharges'&&$(results)=='Abnormal (Epileptiform)'&&$(eeg_completed)=='true'"
+            },
+            "1.8": {
+                "field_name": "no_bilateral_discharge",
+                "field_title": "If no, please describe (NOTE: this may still be acceptable for inclusion)",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(bilateral_discharge)=='false'&&$(abnormal)=='Generalized epileptiform discharges'"
+            },
+            "1.9": {
+                "field_name": "clinical_focal_features",
+                "field_title": "Are there clinical or EEG focal features even with the diagnosis of generalized epilepsy?",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(abnormal)=='Generalized epileptiform discharges'&&$(results)=='Abnormal (Epileptiform)'&&$(eeg_completed)=='true'"
+            },
+            "1.10": {
+                "field_name": "clinical_focal_features_description",
+                "field_title": "If yes, please describe",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(clinical_focal_features)=='true'&&$(abnormal)=='Generalized epileptiform discharges'"
+            },
+            "1.11": {
+                "field_name": "eeg_uploaded",
+                "field_title": "Was EEG uploaded? (Both EEG Report and tracings)",
+                "field_type": "bool",
+                "field_order": 11
+            },
+            "1.12": {
+                "field_name": "eeg_uploaded_date",
+                "field_title": "If yes, please enter exam date",
+                "field_type": "date",
+                "field_order": 12,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(eeg_uploaded)=='true'"
+            },
+            "1.13": {
+                "field_name": "files",
+                "field_title": "Files",
+                "field_type": "file",
+                "field_order": 13,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.14": {
+                "field_name": "results_note_abnormal",
+                "field_title": "Earliest available EEG with Generalized epileptiform abnormality. Sleep included preferred but not required.",
+                "field_type": "string",
+                "field_order": 4.5,
+                "field_constraint_data": "is_shown_fg=$(results)=='Abnormal (Epileptiform)'",
+                "field_constraint_description": "description"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

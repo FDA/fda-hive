@@ -1,0 +1,87 @@
+{
+    "type.65": {
+        "_id": "type.65",
+        "_type": "type",
+        "name": "image",
+        "title": "Image Object ",
+        "description": "Show different kinds of image",
+        "parent": {
+            "1": "type.19"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "height",
+                "field_title": "Height",
+                "field_type": "integer",
+                "field_is_readonly_fg": 2
+            },
+            "1.2": {
+                "field_name": "icon",
+                "field_title": "Icon file name",
+                "field_type": "string",
+                "field_is_hidden_fg": true
+            },
+            "1.3": {
+                "field_name": "taken",
+                "field_title": "Date taken",
+                "field_type": "datetime",
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "thumb",
+                "field_title": "Thumbnail file name",
+                "field_type": "string",
+                "field_is_hidden_fg": true
+            },
+            "1.5": {
+                "field_name": "width",
+                "field_title": "Width",
+                "field_type": "integer",
+                "field_is_readonly_fg": 2
+            },
+            "1.6": {
+                "field_name": "x_res",
+                "field_title": "Horizontal resolution",
+                "field_type": "real",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "y_res",
+                "field_title": "Vertical resolution",
+                "field_type": "real",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

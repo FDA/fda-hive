@@ -1,0 +1,23 @@
+{
+    "276": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-recomb",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-recomb",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-recomb",
+        "description": "RECOMB performs recombinant DNA analysis of multiple subspecies using NGS sequences.",
+        "authors": {
+            "7": "V.Simonyan"
+        },
+        "contributors": {
+            "9": "K.Chumakov"
+        }
+    }
+}

@@ -1,0 +1,96 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+/* @import url("colors.css"); */
+@import url("buttons.css");
+@import url("scrollbars.css");
+/*SciHive Style variables*/
+/*@import url("scihive.css");*/
+/*FooterContainer*/
+/*@import url("footer.css");     */
+/*@import url("structure.css"); */
+/*@import url("dashboard.css"); */
+/*Dashboard Side Nav Specific*/
+@import url("side-nav.css");
+/*mssg-nofitication*/
+@import url("mssg-notification.css");
+/*Home Page Specific*/
+/*@import url("home.css"); */
+
+@import url("data-preview.css");
+
+@import url("dashboard.css");
+/*mssg-nofitication*/
+/* @import url("mssg-notification.css"); */
+/*Home Page Specific*/
+@import url("home.css");
+
+
+
+.buttonDiv{
+    position: fixed;
+    bottom:55px;
+    right: 15px;
+}
+.pane{
+    width: 90%;
+    margin: auto;
+}
+.ant-tabs{
+    overflow: visible;
+}
+
+.ant-pagination.mini .ant-pagination-item {
+    line-height: 15px;
+}
+.ant-pagination.mini .ant-pagination-prev, .ant-pagination.mini .ant-pagination-next {
+    line-height: 18px;
+}
+.ant-form-item {
+    margin-bottom: 10px;
+}
+.header-container-layout{
+    display: grid;
+    grid-template-rows: 40px 40px 1fr;
+    grid-template-areas:
+        "header"
+        "project"
+        "container";
+     transition:grid-template-rows 0.3s ease-out;
+}
+.header-container-layout_header {
+    grid-area: header;
+    display: flex;
+    height: 40px;
+    width:100%;
+    z-index: 1000;
+}
+.header-container-layout_container {
+    grid-area: container;
+}

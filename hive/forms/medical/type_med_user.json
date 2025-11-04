@@ -1,0 +1,79 @@
+{
+    "343": {
+        "_id": "$type.med_user",
+        "_type": "type",
+        "name": "med_user",
+        "title": "User",
+        "fields": {
+            "1.1": {
+                "field_name": "sys_uid",
+                "field_title": "User ID",
+                "field_type": "integer",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "sys_username",
+                "field_title": "Username",
+                "field_type": "string",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "sys_firstname",
+                "field_title": "First Name",
+                "field_type": "string",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "sys_lastname",
+                "field_title": "Last Name",
+                "field_type": "string",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "sys_role",
+                "field_title": "Role",
+                "field_type": "string",
+                "field_order": 5
+            },
+            "1.6": {
+                "field_name": "sys_mrn",
+                "field_title": "MRN",
+                "field_type": "string",
+                "field_order": 6
+            },
+            "1.7": {
+                "field_name": "sys_project",
+                "field_title": "Project",
+                "field_type": "string",
+                "field_order": 7
+            },
+            "1.8": {
+                "field_name": "sys_consent_signature",
+                "field_title": "Signature",
+                "field_type": "text",
+                "field_order": 8
+            }
+        },
+        "parent": {
+            "3": "$type.med_sys"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

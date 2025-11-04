@@ -1,0 +1,50 @@
+{
+    "364": {
+        "_id": "$type.ci3_shared_ret",
+        "_type": "type",
+        "name": "ci3_shared_ret",
+        "title": "CI3 Shared Variables",
+        "fields": {
+            "1.1": {
+                "field_name": "mrn",
+                "field_title": "Patient MRN",
+                "field_type": "string",
+                "field_order": 0,
+                "field_brief": "$_(v)"
+            },
+            "1.2": {
+                "field_name": "date_of_visit",
+                "field_title": "Date of visit",
+                "field_type": "date",
+                "field_order": 0.1
+            },
+            "1.3": {
+                "field_name": "date_data_entry",
+                "field_title": "Date of data entry",
+                "field_type": "date",
+                "field_order": 0.2
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_retrospective"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

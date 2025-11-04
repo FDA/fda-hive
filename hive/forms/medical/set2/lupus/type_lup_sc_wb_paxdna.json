@@ -1,0 +1,144 @@
+{
+    "569": {
+        "_id": "$type.lup_sc_wb_paxdna",
+        "_type": "type",
+        "name": "lup_sc_wb_paxdna",
+        "title": "Genomic DNA (Whole Blood)",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Genomic DNA (Whole Blood) - 1 Tube with Blue Cap",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "sample_collected",
+                "field_title": "Was the sample collected?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "sample_not_collected_reason",
+                "field_title": "Please select the reason why the sample was not collected",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Study participant declined|Personnel for sample collection unavailable|Damaged or occluded veins|Sample collection kits unavailable|Collection tube damaged|Other\r\n>is_shown_fg=$(sample_collected)=='false'"
+            },
+            "1.4": {
+                "field_name": "sample_not_collected_reason_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "{\"maxlength\":\"50\"}\r\n>is_shown_fg=$(sample_collected)=='false'&&$(sample_not_collected_reason)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.5": {
+                "field_name": "collection_datetime",
+                "field_title": "Date and time of collection",
+                "field_type": "datetime",
+                "field_order": 5,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(sample_collected)=='true';if($(this)!=''&&$(shipment_date_1)!=''&&this.dateStrFormatNoTZ('$(this)')>this.dateStrFormatNoTZ('$(shipment_date_1)')){ has_error='true';error_message=\"Collection date can't be greater than shipment date.\";}else if($(this)!=''){has_error='false';error_message=null;}"
+            },
+            "1.6": {
+                "field_name": "collected_lab_manual",
+                "field_title": "Was the sample collected and stored per the Laboratory Manual?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'"
+            },
+            "1.7": {
+                "field_name": "why_not_per_collected_lab_manual",
+                "field_title": "Please explain why the sample was not collected per the Laboratory Manual",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(collected_lab_manual)=='false'"
+            },
+            "1.8": {
+                "field_name": "subtitle_2",
+                "field_title": "Please scan the tube and indicate if it was shipped",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'",
+                "field_constraint_description": "subtitle",
+                "field_description": "Scan tube's QR code and scan the shipping envelope barcode"
+            },
+            "1.9": {
+                "field_name": "tube_1",
+                "field_title": "Tube 1",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "{\"maxlength\":\"11\"}\r\n>is_shown_fg=$(sample_collected)=='true'",
+                "field_constraint_description": "scanner"
+            },
+            "1.10": {
+                "field_name": "shipped_1",
+                "field_title": "Shipped",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.11": {
+                "field_name": "tracking_no_1",
+                "field_title": "Shipment Tracking Number",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(shipped_1)=='true'",
+                "field_constraint_description": "barcode"
+            },
+            "1.12": {
+                "field_name": "shipment_date_1",
+                "field_title": "Shipment Date",
+                "field_type": "date",
+                "field_order": 12,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(sample_collected)=='true'&&$(shipped_1)=='true'"
+            },
+            "1.13": {
+                "field_name": "not_shipped_same_day",
+                "field_title": "Please explain why sample was not shipped on the same day",
+                "field_type": "string",
+                "field_order": 13,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Shipping envelope unavailable|Sample collection too late for carrier pick-up|Envelope was not collected by carrier|Other\r\n>is_shown_fg=$(sample_collected)=='true'&&$(shipped_1)=='true'&&$(shipment_date_1)!=''&&$(collection_datetime)!=''&&this.dateToStrFormatNoTZ('$(shipment_date_1)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)')"
+            },
+            "1.14": {
+                "field_name": "not_shipped_same_day_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "{\"maxlength\":\"50\"}\r\n>is_shown_fg=$(sample_collected)=='true'&&$(shipped_1)=='true'&&$(not_shipped_same_day)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.15": {
+                "field_name": "stored_conditions",
+                "field_title": "Please specify how the sample was stored prior to shipment",
+                "field_type": "text",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(sample_collected)=='true'&&$(shipped_1)=='true'&&$(shipment_date_1)!=''&&$(collection_datetime)!=''&&this.dateToStrFormatNoTZ('$(shipment_date_1)')!=this.dateToStrFormatNoTZDT('$(collection_datetime)')"
+            }
+        },
+        "parent": {
+            "3": "$type.lup_sample_collection"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

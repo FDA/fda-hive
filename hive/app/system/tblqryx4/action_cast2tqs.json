@@ -1,0 +1,46 @@
+{
+    "131": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2tqs",
+        "order": 12,
+        "path": "/Convert/cast2tqs",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=scast&type=u-tqs&ids=$(ids)",
+        "title": "Convert to TQS",
+        "description": "Convert current object to TQS type",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

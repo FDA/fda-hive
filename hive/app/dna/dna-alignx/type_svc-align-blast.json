@@ -1,0 +1,140 @@
+{
+    "191": {
+        "_id": "$type.svc-align-blast",
+        "_type": "type",
+        "name": "svc-align-blast",
+        "title": "Blast Alignment",
+        "description": "// Blast alignment engine optimized for HIVE performance\nlocation: hive.app.dna.dna-alignx",
+        "parent": {
+            "1": "$type.svc-align-dnaseq"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.2": {
+                "field_name": "cmdLine",
+                "field_title": "Engine Arguments",
+                "field_type": "string",
+                "field_default_value": "-num_threads 1",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_description": "Additional Command Line arguments for blast engine"
+            },
+            "1.3": {
+                "field_name": "evalueFilter",
+                "field_title": "E-value Filter",
+                "field_type": "real",
+                "field_default_value": "1e-4",
+                "field_is_optional_fg": true,
+                "field_description": "Alignments with smaller scores are discarded and not reported. If 'none' is specified: all alignments are reported which satisfy the other criteria."
+            },
+            "1.4": {
+                "field_name": "maxHitsPerRead",
+                "field_title": "Max Target Sequences",
+                "field_type": "integer",
+                "field_default_value": "200",
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number",
+                "field_description": "Number of aligned sequences to keep. Use with report formats that do not have separate definition line and alignment sections such as tabular (all outfmt > 4). Not compatible with num_descriptions or num_alignments."
+            },
+            "1.5": {
+                "field_name": "num_alignments",
+                "field_title": "Number of Alignments to Keep",
+                "field_type": "integer",
+                "field_default_value": "10",
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number",
+                "field_description": "Show alignments for this number of database sequences."
+            },
+            "1.6": {
+                "field_name": "seedSize",
+                "field_title": "Word Size",
+                "field_type": "string",
+                "field_default_value": "28",
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number",
+                "field_description": "Word size for initial match."
+            },
+            "1.7": {
+                "field_name": "slice",
+                "field_title": "slice",
+                "field_type": "integer",
+                "field_default_value": "4000",
+                "field_is_optional_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=1000  && parseInt(\"$_(val)\")<=10000",
+                "field_constraint_description": "Give a positive number between 1000 and 10000",
+                "field_description": "Number of sequences for each job (for splitting of alignment among nodes)"
+            },
+            "1.8": {
+                "field_name": "splitSize",
+                "field_title": "slice",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "4000",
+                "field_is_optional_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=1000  && parseInt(\"$_(val)\")<=10000",
+                "field_constraint_description": "Give a positive number between 1000 and 10000",
+                "field_description": "Number of sequences for each job (for splitting of alignment among nodes)"
+            },
+            "1.9": {
+                "field_name": "version",
+                "field_title": "version",
+                "field_type": "string",
+                "field_default_value": "2.2.30",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "blastn_task",
+                "field_title": "task",
+                "field_type": "string",
+                "field_order": 12,
+                "field_default_value": "megablast",
+                "field_constraint": "choice",
+                "field_constraint_data": "blastn///blastn (Traditional requiring an exact match of 11 wordsize)|blastn-short///blastn-short (optimized for sequences shorter than 50 bases)| megablast///megablast (used to find very similar sequences|dc-megablast///dc-megablast (Discontiguos megablast used to find more distant sequences)"
+            },
+            "1.13": {
+                "field_name": "splitOnFrontEnd",
+                "field_title": "splitOnFrontEnd",
+                "field_type": "bool",
+                "field_parent": "splitList",
+                "field_default_value": "true",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,221 @@
+@import "variables";
+@import "mixins";
+
+html {
+    scroll-behavior: smooth;
+  }
+// #app {
+//  background: linear-gradient(90deg, #f3f4f5 50%, white 50%);
+// }
+
+.portal {
+    grid-area: 'container';
+    position: absolute;
+    top: 83px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(100% - 40px);
+    background: $hv-clr__ligh-light-grey;
+    background: $hv-clr__dark-blue;
+
+    &-wrap{
+        // max-width: 1500px;
+        // margin: 0px auto;
+
+        // height: 100%;
+        // overflow: hidden;
+        user-select: text;
+        // flex-direction: row;
+
+        // display: flex;
+        // flex:1 1 0%;
+
+        // min-height: 100vh;
+        max-width: 2200px;
+        margin: 0px auto;
+         height: 100%;
+/*   overflow: hidden;
+   */  display: flex;
+    }
+
+    &__tree {
+        // background-color: $hv-clr__dark-blue;
+        background-color: transparent;
+        padding: 40px 10px 75px 25px;
+        overflow-x: auto; // acting up
+
+        // height: 100vh;
+        min-width: 200px;
+        width: 400px;
+        top: 0;
+        float: left;
+
+        position: relative;
+        resize: horizontal;
+
+        box-shadow: -3px 0 3px #3340612e inset;
+
+        &-resizer {
+            opacity: 0;
+            background-color: $hv-clr__highligh-blue;
+            height: 100%;
+            width: 4px;
+            position: absolute;
+            top: 0;
+            right: 0px;
+            cursor: col-resize ;
+            &:hover{
+                opacity: 0.8;
+                transition: opacity 0.3s;
+                -webkit-transition: opacity 0.3s;
+            }
+        }
+    }
+
+    &__toolbar {
+        display: block;
+        display: flex;
+        justify-content: flex-end
+    }
+
+    &__table {
+        //overflow-x: scroll;
+        padding: 0px 10px 5px 25px;
+        background-color: #fff;
+        scroll-behavior: smooth;
+
+        min-width:200px;
+        flex:3;
+    }
+
+    &__lists-header {
+        display: flex;
+        //justify-content: space-between;
+        color: #202124;
+        font-weight: 500;
+        font-size: 16px;
+        margin-bottom: 10px;
+        padding: 0 12px;
+
+        span{
+            min-width: 300px;
+        }
+    }
+
+    &__lists-header-new {
+        display: flex;
+        //justify-content: space-between;
+        color: #202124;
+        font-weight: 500;
+        font-size: 16px;
+        margin-bottom: 10px;
+        margin-top: 10px;
+        padding: 0 12px;
+    }
+
+    &__lists {
+        height: calc(100vh - 200px);
+        overflow-y: auto;
+    }
+
+    &__lists-content {
+        display: flex;
+        margin-bottom: 3px;
+        padding: 0 12px;
+    }
+
+    &__table-list{
+        position: relative;
+        top: -35px;
+    }
+
+    span.item0{
+        width: 30%;
+    }
+    span.item1{
+        width: 20%;
+    }
+    span.item2{
+        width: 50%;
+    }
+
+    &__list {
+        @include clear-list;
+    }
+    &__list-title {
+        background: #33406128;
+        border-radius: 25px;
+        margin-bottom: 10px;
+        p{
+            display: inline-block;
+            font-size: 14px;
+            background: #334061;
+            background: #fff;
+            transition: background-color 0.3s 0.5s ease-in-out;
+            margin: 0;
+            color: #fff;
+            color: #334061;
+            padding: 3px 14px 3px 14px;
+            border-radius: 25px;
+            font-weight: 600;
+            box-shadow: 0px 0 7px 0px #33406159;
+
+            &.title-highlight {
+                background-color: $hv-clr__highligh-blue;
+                color: #fff;
+            }
+        }
+
+
+        &--path {
+            font-size: 13px;
+            padding-left: 28px;
+            font-style: italic;
+        }
+    }
+
+    &__list-record {
+        display: flex;
+      //  justify-content: space-between;
+        align-items: center;
+        padding: 3px 14px 3px 16px;
+        margin-bottom: 6px;
+
+        &:nth-of-type(odd){
+            background: #f3f4f5;
+            background: #f9f9f9;
+            border-radius: 25px;
+        }
+
+        &:hover {
+            background: #f0f5f9;
+            border-radius: 25px;
+        }
+
+        .portal__table__name{
+            min-width: 300px;
+            max-width: 300px;
+        }
+        a {
+            text-decoration: none;
+            cursor: pointer;
+            color: #202124;
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.2em;
+            &:hover {
+                text-decoration: underline;
+            }
+        }
+        p{
+            margin: 0;
+            font-size: 14px;
+        }
+    }
+    .portal__table__description{
+        min-width: 300px;
+        padding-left: 15px;
+    }
+
+}

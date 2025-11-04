@@ -1,0 +1,72 @@
+{
+    "4756": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "CI3_Forms_UV",
+        "readable_name": "Initial Visit",
+        "sl_order": 1,
+        "survey": {
+            "12": {
+                "12.0": {
+                    "name": "$type.ci3_demographics",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "14": {
+                "14.0": {
+                    "name": "$type.ci3_symptoms",
+                    "dependencies": "$type.ci3_demographics",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "15": {
+                "15.0": {
+                    "name": "$type.ci3_health_questionnaire",
+                    "dependencies": "$type.ci3_symptoms",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "44": {
+                "44.0": {
+                    "name": "$type.ci3_recurrence_uv",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

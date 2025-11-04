@@ -1,0 +1,53 @@
+{
+    "500": {
+        "_id": "$type.hep_microbiome_form",
+        "_type": "type",
+        "name": "hep_microbiome_form",
+        "title": "Microbiome Form",
+        "fields": {
+            "1.1": {
+                "field_name": "visit",
+                "field_title": "Visit",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_hidden_fg": true,
+                "field_constraint_data": "Visit 1|Visit 2|Visit 3"
+            },
+            "1.2": {
+                "field_name": "sample_sent",
+                "field_title": "Did the participant send their microbiome sample to Dr. Deepak Saxena?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "shipping_number",
+                "field_title": "Please provide the package tracking number",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sample_sent)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

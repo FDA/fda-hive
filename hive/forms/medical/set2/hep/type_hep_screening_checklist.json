@@ -1,0 +1,245 @@
+{
+    "515": {
+        "_id": "$type.hep_screening_checklist",
+        "_type": "type",
+        "name": "hep_screening_checklist",
+        "title": "Screening Checklist",
+        "fields": {
+            "1.1": {
+                "field_name": "hep_screening_patient",
+                "field_title": "Screening Questions For Patient",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "titledescription",
+                "field_description": "Subject may not be eligible if the response is “No” to any of Q1 – Q5, or “Yes” to Q6 and Q7."
+            },
+            "1.2": {
+                "field_name": "a13_yo",
+                "field_title": "1. Are you 13 years old or older?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "diagnosed_seizures",
+                "field_title": "2. Were you diagnosed with seizures at or after the age of 8?",
+                "field_type": "bool",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "absence_myoclonus_convulsion",
+                "field_title": "3. Have you had at least 1 absence, myoclonus or generalized tonic-clonic convulsion in the 6 months prior to treatment?",
+                "field_type": "bool",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "medication_seizures",
+                "field_title": "4. Have you been on medication for seizures for less than 12 months?",
+                "field_type": "bool",
+                "field_order": 5
+            },
+            "1.6": {
+                "field_name": "medications_history",
+                "field_title": "5. Can you provide a complete history of your medications (including doses and the approximate dates you were started on them)?",
+                "field_type": "bool",
+                "field_order": 6
+            },
+            "1.7": {
+                "field_name": "seizures_pregnancy",
+                "field_title": "6. Have ALL of your seizures occurred during pregnancy only?",
+                "field_type": "bool",
+                "field_order": 7
+            },
+            "1.8": {
+                "field_name": "drug_alcohol_abuse_patient",
+                "field_title": "7. Have you been diagnosed with chronic drug or alcohol abuse within the last 2 years?",
+                "field_type": "bool",
+                "field_order": 8
+            },
+            "1.9": {
+                "field_name": "abuse_interferes_daily_living_patient",
+                "field_title": "Clarify if abuse interferes with activities of daily living:",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(drug_alcohol_abuse_patient)=='true'"
+            },
+            "1.10": {
+                "field_name": "aed_name_1",
+                "field_title": "AED name:",
+                "field_type": "string",
+                "field_parent": "previous_aed_info",
+                "field_order": 1
+            },
+            "1.11": {
+                "field_name": "dosages",
+                "field_title": "Dosage(s):",
+                "field_type": "string",
+                "field_parent": "previous_aed_info",
+                "field_order": 2
+            },
+            "1.12": {
+                "field_name": "start_date_1",
+                "field_title": "Start date:",
+                "field_type": "date",
+                "field_parent": "previous_aed_info",
+                "field_order": 3,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.13": {
+                "field_name": "stop date_1",
+                "field_title": "Stop date:",
+                "field_type": "date",
+                "field_parent": "previous_aed_info",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.14": {
+                "field_name": "still_taking",
+                "field_title": "or still taking",
+                "field_type": "bool",
+                "field_parent": "previous_aed_info",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.15": {
+                "field_name": "abuse_interferes_daily_living_exclude_patient",
+                "field_type": "string",
+                "field_order": 10,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "is_shown_fg=$(abuse_interferes_daily_living_patient)=='true'&&$(drug_alcohol_abuse_patient)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "<span style=\"color: red;\">Exclude participant from study</span."
+            },
+            "1.16": {
+                "field_name": "hep_screening_doctor",
+                "field_title": "Screening Questions For Coordinator/Study Doctor",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_description": "titledescription",
+                "field_description": "Subject may not eligible if the response is “No” to Q8 and Q9 or  “Yes” to any of Q12 – Q17."
+            },
+            "1.17": {
+                "field_name": "absence_myoclonus_convulsions_semiology",
+                "field_title": "8. Does the patient have generalized seizures (absence, myoclonus or generalized tonic-clonic convulsions) based on seizure semiology?",
+                "field_type": "bool",
+                "field_order": 12
+            },
+            "1.18": {
+                "field_name": "seizure_six_months",
+                "field_title": "9. Has the patient had at least one seizure of any type above in the past 6 months?",
+                "field_type": "bool",
+                "field_order": 13
+            },
+            "1.19": {
+                "field_name": "eeg",
+                "field_title": "10. Has the patient had an EEG done?",
+                "field_type": "bool",
+                "field_order": 14
+            },
+            "1.20": {
+                "field_name": "eeg_select",
+                "field_title": "a. If YES, does the EEG show at least one of the following:",
+                "field_type": "string",
+                "field_order": 15,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "GTCSs alone accompanied by generalized spike-wave consistent with IGE per adjudication review|GTCSs with a history of absence and/or myoclonus, accompanied by generalized spike/wave consistent with IGE per adjudication review|GTCSs associated with a history of absence and/or myoclonus, not accompanied by generalized spike-wave consistent with IGE per adjudication review|A Clear history of absence and/or myoclonus, accompanied by generalized spike-wave consistent with IGE per adjudication review\n>is_shown_fg=$(eeg)=='true'"
+            },
+            "1.21": {
+                "field_name": "mri",
+                "field_title": "11. Has the patient had an MRI done?",
+                "field_type": "bool",
+                "field_order": 16
+            },
+            "1.22": {
+                "field_name": "mri_results",
+                "field_title": "a. What were the results?",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "is_shown_fg=$(mri)=='true'"
+            },
+            "1.23": {
+                "field_name": "neurological_disorder",
+                "field_title": "12. Does the patient have a progressive neurological disorder?",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_description": "(e.g., brain tumor, Alzheimer's disease, progressive myoclonic epilepsy, etc.)"
+            },
+            "1.24": {
+                "field_name": "epileptic_encephalopathy",
+                "field_title": "13. Does the patient have epileptic or development encephalopathy?",
+                "field_type": "bool",
+                "field_order": 19
+            },
+            "1.25": {
+                "field_name": "medical_comorbidities",
+                "field_title": "14. Does the patient have any major medical comorbidities?",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_description": "(e.g. HIV, kidney failure requiring dialysis, metastatic cancer, significant kidney or liver disease)"
+            },
+            "1.26": {
+                "field_name": "autism_disorder",
+                "field_title": "15. Does the patient have Autism Spectrum Disorder?",
+                "field_type": "bool",
+                "field_order": 21
+            },
+            "1.27": {
+                "field_name": "drug_alcohol_abuse_doctor",
+                "field_title": "16. Has the patient been diagnosed with chronic drug or alcohol abuse within the last 2 years?",
+                "field_type": "bool",
+                "field_order": 22
+            },
+            "1.28": {
+                "field_name": "abuse_interferes_daily_living_doctor",
+                "field_title": "If yes, clarify if abuse interferes with activities of daily living",
+                "field_type": "bool",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(drug_alcohol_abuse_doctor)=='true'"
+            },
+            "1.29": {
+                "field_name": "abuse_interferes_daily_living_exclude_doctor",
+                "field_type": "string",
+                "field_order": 24,
+                "field_constraint_data": "is_shown_fg=$(drug_alcohol_abuse_doctor)=='true'&&$(abuse_interferes_daily_living_doctor)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "<span style=\"color: red;\">Exclude participant from study</span."
+            },
+            "1.30": {
+                "field_name": "psychiatric_disorder",
+                "field_title": "17. Does the patient have a history of previous or current significant psychiatric disorder that would interfere with study requirements?",
+                "field_type": "bool",
+                "field_order": 25
+            },
+            "1.31": {
+                "field_name": "previous_aed_info",
+                "field_title": "Previous AED information",
+                "field_type": "array",
+                "field_order": 26,
+                "field_is_multi_fg": true
+            }
+        },
+        "parent": {
+            "4": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

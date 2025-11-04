@@ -1,0 +1,25 @@
+{
+    "101": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-cgi",
+                "dir": "$(HIVE.repo)/hive/app/dna-cgi",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna-cgi",
+        "description": "DNA.CGI provides web application common gateway interface",
+        "authors": {
+            "3": "V.Simonyan",
+            "16": "A.Golikov",
+            "17": "K.Karagiannis",
+            "18": "C.Lam",
+            "19": "L.Santana-Quinterro",
+            "20": "A.Rostovtsev"
+        }
+    }
+}

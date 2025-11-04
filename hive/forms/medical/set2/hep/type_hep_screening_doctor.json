@@ -1,0 +1,123 @@
+{
+    "649": {
+        "_id": "$type.hep_screening_doctor",
+        "_type": "type",
+        "name": "hep_screening_doctor",
+        "title": "Screening Questions For Coordinator/Study Doctor",
+        "parent": {
+            "8": "$type.hep"
+        },
+        "fields": {
+            "12.0": {
+                "field_name": "absence_myoclonus_convulsions_semiology",
+                "field_title": "Does the patient have generalized seizures (absence, myoclonus or generalized tonic-clonic convulsions) based on seizure semiology?",
+                "field_type": "bool",
+                "field_order": "1"
+            },
+            "12.2": {
+                "field_name": "seizure_six_months",
+                "field_title": "Has the patient had at least one seizure of any type above in the past 6 months?",
+                "field_type": "bool",
+                "field_order": "2"
+            },
+            "12.4": {
+                "field_name": "eeg",
+                "field_title": "Has the patient had an EEG done?",
+                "field_type": "bool",
+                "field_order": "3"
+            },
+            "12.6": {
+                "field_name": "eeg_select",
+                "field_title": "If YES, does the EEG show at least one of the following:",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_data": "GTCSs alone accompanied by generalized spike-wave consistent with IGE per adjudication review|GTCSs with a history of absence and/or myoclonus, accompanied by generalized spike/wave consistent with IGE per adjudication review|GTCSs associated with a history of absence and/or myoclonus, not accompanied by generalized spike-wave consistent with IGE per adjudication review|A Clear history of absence and/or myoclonus, accompanied by generalized spike-wave consistent with IGE per adjudication review\n>is_shown_fg=$(eeg)=='true'",
+                "field_is_multi_fg": true
+            },
+            "12.7": {
+                "field_name": "mri",
+                "field_title": "Has the patient had an MRI done?",
+                "field_type": "bool",
+                "field_order": "5"
+            },
+            "12.9": {
+                "field_name": "mri_results",
+                "field_title": "What were the results?",
+                "field_type": "string",
+                "field_order": "6",
+                "field_constraint_data": "is_shown_fg=$(mri)=='true'"
+            },
+            "12.11": {
+                "field_name": "neurological_disorder",
+                "field_title": "Does the patient have a progressive neurological disorder?",
+                "field_type": "bool",
+                "field_order": "7",
+                "field_description": "(e.g., brain tumor, Alzheimer's disease, progressive myoclonic epilepsy, etc.)"
+            },
+            "12.13": {
+                "field_name": "epileptic_encephalopathy",
+                "field_title": "Does the patient have epileptic or development encephalopathy?",
+                "field_type": "bool",
+                "field_order": "8"
+            },
+            "12.15": {
+                "field_name": "medical_comorbidities",
+                "field_title": "Does the patient have any major medical comorbidities?",
+                "field_type": "bool",
+                "field_order": "9",
+                "field_description": "(e.g. HIV, kidney failure requiring dialysis, metastatic cancer, significant kidney or liver disease)"
+            },
+            "12.17": {
+                "field_name": "autism_disorder",
+                "field_title": "Does the patient have Autism Spectrum Disorder?",
+                "field_type": "bool",
+                "field_order": "10"
+            },
+            "12.19": {
+                "field_name": "drug_alcohol_abuse",
+                "field_title": "Has the patient been diagnosed with chronic drug or alcohol abuse within the last 2 years?",
+                "field_type": "bool",
+                "field_order": "11"
+            },
+            "12.20": {
+                "field_name": "abuse_interferes_daily_living",
+                "field_title": "If yes, clarify if abuse interferes with activities of daily living",
+                "field_type": "bool",
+                "field_order": "12",
+                "field_constraint_data": "is_shown_fg=$(drug_alcohol_abuse)=='true'"
+            },
+            "12.21": {
+                "field_name": "abuse_interferes_daily_living_exclude",
+                "field_title": "If 'Yes\", exclude:",
+                "field_type": "string",
+                "field_order": "13",
+                "field_constraint_data": "is_shown_fg=$(drug_alcohol_abuse)=='true'&&$(abuse_interferes_daily_living)=='true'"
+            },
+            "12.23": {
+                "field_name": "psychiatric_disorder",
+                "field_title": "Does the patient have a history of previous or current significant psychiatric disorder that would interfere with study requirements?",
+                "field_type": "bool",
+                "field_order": "14"
+            }
+        },
+        "description": "Subject may not be eligible if the response is “No” to Q8 and Q9 or  “Yes” to any of Q12 – Q17.",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

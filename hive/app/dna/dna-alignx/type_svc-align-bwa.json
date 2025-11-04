@@ -1,0 +1,84 @@
+{
+    "196": {
+        "_id": "$type.svc-align-bwa",
+        "_type": "type",
+        "name": "svc-align-bwa",
+        "title": "BWA Service",
+        "description": "// Burrows Wheeler Aligner\nlocation: hive.app.dna.dna-alignx",
+        "parent": {
+            "1": "$type.svc-align-dnaseq"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "cmdLine",
+                "field_title": "Engine Arguments",
+                "field_type": "string",
+                "field_default_value": "-B 7",
+                "field_is_optional_fg": true,
+                "field_description": "Additional Command Line arguments for bwa engine"
+            },
+            "1.2": {
+                "field_name": "keepAllMatches",
+                "field_title": "Matches to Keep",
+                "field_type": "integer",
+                "field_default_value": "4",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///First Match|1///Best first match|2///All Matches within acceptable thresholds|3///All equally best alternative matches|4///Random vote between equally best alternative matches|5///Uniquely aligned reads only",
+                "field_description": "Decide which matches to maintain in the final hit list"
+            },
+            "1.3": {
+                "field_name": "mismatches",
+                "field_title": "Mismatches",
+                "field_type": "array",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.4": {
+                "field_name": "seedSize",
+                "field_title": "Seed Size (-k option)",
+                "field_type": "string",
+                "field_default_value": "28"
+            },
+            "1.5": {
+                "field_name": "version",
+                "field_title": "version",
+                "field_type": "string",
+                "field_default_value": "0.7.3a",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

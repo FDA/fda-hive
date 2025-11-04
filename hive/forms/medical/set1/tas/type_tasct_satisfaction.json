@@ -1,0 +1,61 @@
+{
+    "385": {
+        "_id": "$type.tasct_satisfaction",
+        "_type": "type",
+        "name": "tasct_satisfaction",
+        "title": "Satisfaction Questionnaire",
+        "fields": {
+            "1.1": {
+                "field_name": "satisfaction",
+                "field_title": "On a scale from 1 to 10, how satisfied are you with the results of your breast implant surgery? (1 being not satisfied at all, 10 being totally satisfied)",
+                "field_type": "integer",
+                "field_order": 1,
+                "field_constraint_data": "{\"range\":\"1-10\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"Not at All Satisfied\",\"maxLabel\":\"Totally Satisfied\"}",
+                "field_constraint_description": "slider"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

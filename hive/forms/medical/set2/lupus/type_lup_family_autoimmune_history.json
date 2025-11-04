@@ -1,0 +1,86 @@
+{
+    "547": {
+        "_id": "$type.lup_family_autoimmune_history",
+        "_type": "type",
+        "name": "lup_family_autoimmune_history",
+        "title": "Family Autoimmune History",
+        "fields": {
+            "1.1": {
+                "field_name": "family_member_diagnosed",
+                "field_title": "Has anyone in the participant's immediate family (grandparent, parent, sibling or children) been diagnosed with any autoimmune condition?",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_optional_fg": false,
+                "field_constraint_data": "Yes|No|Doesn't know|Prefers not to disclose",
+                "field_description": "Addison's disease<br />\r\nAlopecia areata<br />\r\nAnkylosing spondylitis<br />\r\nAutoimmune vasculitis<br />\r\nCeliac disease<br />\r\nCrohn's disease<br />\r\nDermatomyositis<br />\r\nGraves' disease<br />\r\nGuillain-Barre syndrome<br />\r\nHashimoto's thyroiditis<br />\r\nIrritable Bowel Disease (IBD)<br />\r\nLupus (any kind)<br />\r\nMultiple sclerosis<br />\r\nMyasthenia gravis<br />\r\nPernicious anemia<br />\r\nPolymyalgia rheumatica<br />\r\nPsoriasis/Psoriatic arthritis<br />\r\nReactive arthritis<br />\r\nRheumatoid arthritis<br />\r\nSjögren's syndrome<br />\r\nType I diabetes<br />\r\nUlcerative colitis"
+            },
+            "1.2": {
+                "field_name": "family_members_parent",
+                "field_title": "Family members",
+                "field_type": "array",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(family_member_diagnosed)=='Yes'"
+            },
+            "1.3": {
+                "field_name": "family_member",
+                "field_title": "Which family member was diagnosed with an autoimmune condition?",
+                "field_type": "string",
+                "field_parent": "family_members_parent",
+                "field_order": 2.1,
+                "field_constraint_data": "Sibling|Parent|Grandparent|Child|Cousin|Uncle/aunt|Other|Does not remember",
+                "field_constraint_description": "dropdown"
+            },
+            "1.4": {
+                "field_name": "family_member_other",
+                "field_title": "Specify",
+                "field_type": "string",
+                "field_parent": "family_members_parent",
+                "field_order": 2.2,
+                "field_constraint_data": "is_shown_fg=$(family_member)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.5": {
+                "field_name": "disease",
+                "field_title": "Select disease (check all that apply)",
+                "field_type": "string",
+                "field_parent": "family_members_parent",
+                "field_order": 2.3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Addison's disease|Alopecia areata|Ankylosing spondylitis|Celiac disease|Crohn's disease|Dermatomyositis|Graves' disease|Guillain-Barre syndrome|Hashimoto's thyroiditis|Immune mediated myositis|Lupus (any kind)|Multiple sclerosis|Myasthenia gravis|Pernicious anemia|Polymyalgia rheumatica|Psoriasis/Psoriatic arthritis|Reactive arthritis|Rheumatoid arthritis|Scleroderma or systemic sclerosis|Sjögren's syndrome|Type I diabetes|Ulcerative colitis|Vasculitis|Other|Does not remember|Prefers not to answer\r\n>$(this);let nonval='No autoimmune condition';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else if(triggeredVal){surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}nonval='Does not remember';triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else if(triggeredVal){surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}nonval='Prefers not to answer';triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else if(triggeredVal){surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.6": {
+                "field_name": "disease_other",
+                "field_title": "Specify other",
+                "field_type": "string",
+                "field_parent": "family_members_parent",
+                "field_order": 2.4,
+                "field_constraint_data": "is_shown_fg=$(disease)=='Other'",
+                "field_constraint_description": "subquestion"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

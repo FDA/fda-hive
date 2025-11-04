@@ -1,0 +1,209 @@
+{
+    "type.457": {
+        "_id": "type.457",
+        "_type": "type",
+        "name": "svc-pipeline-upload",
+        "title": "File upload",
+        "description": "File upload pipeline",
+        "prefetch": true,
+        "fields": {
+            "1.0": {
+                "field_name": "workflow_st1",
+                "field_title": "Step 1 - Upload processor",
+                "field_type": "list",
+                "field_parent": "workflow",
+                "field_role": "state",
+                "field_is_readonly_fg": 0
+            },
+            "1.2": {
+                "field_name": "st1_type",
+                "field_type": "obj",
+                "field_parent": "workflow_st1",
+                "field_default_value": "type.456",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_weakref": true
+            },
+            "1.4": {
+                "field_name": "st1_svc",
+                "field_type": "string",
+                "field_parent": "workflow_st1",
+                "field_default_value": "upload-processor",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2
+            },
+            "1.20": {
+                "field_name": "st1_objid",
+                "field_type": "obj",
+                "field_parent": "workflow_st1",
+                "field_default_value": "0",
+                "field_role": "output",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": false
+            },
+            "1.32": {
+                "field_name": "workflow_st2",
+                "field_title": "step 2 - Archiver",
+                "field_type": "list",
+                "field_parent": "workflow",
+                "field_role": "state"
+            },
+            "1.34": {
+                "field_name": "st2_datasource",
+                "field_title": "Source",
+                "field_type": "string",
+                "field_parent": "workflow_st2",
+                "field_default_value": "query://return (.st1_objid as obj).datasource;",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            },
+            "1.36": {
+                "field_name": "st2_inputFile",
+                "field_type": "string",
+                "field_parent": "workflow_st2",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_multi_fg": false
+            },
+            "1.38": {
+                "field_name": "st2_objid",
+                "field_type": "obj",
+                "field_parent": "workflow_st2",
+                "field_default_value": "0",
+                "field_role": "output",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true
+            },
+            "1.40": {
+                "field_name": "st2_type",
+                "field_type": "obj",
+                "field_parent": "workflow_st2",
+                "field_default_value": "type.54",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_weakref": true
+            },
+            "1.44": {
+                "field_name": "st2_svc",
+                "field_type": "string",
+                "field_parent": "workflow_st2",
+                "field_default_value": "dmArchiver",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2
+            },
+            "1.46": {
+                "field_name": "st2_dissect",
+                "field_title": "automatically process file(s)",
+                "field_type": "integer",
+                "field_parent": "workflow_st2",
+                "field_role": "parameter",
+                "field_is_hidden_fg": false
+            },
+            "1.48": {
+                "field_name": "st2_run_qc",
+                "field_title": "Quality Control",
+                "field_type": "bool",
+                "field_parent": "workflow_st2",
+                "field_role": "parameter",
+                "field_is_hidden_fg": false
+            },
+            "1.49": {
+                "field_name": "st2_run_screen",
+                "field_title": "Screen",
+                "field_type": "bool",
+                "field_parent": "workflow_st2",
+                "field_role": "parameter",
+                "field_is_hidden_fg": false
+            },
+            "1.50": {
+                "field_name": "st2_file_subject",
+                "field_title": "Reference in upload",
+                "field_type": "string",
+                "field_parent": "workflow_st2",
+                "field_role": "parameter",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": false
+            },
+            "1.51": {
+                "field_name": "st2_upload_subject",
+                "field_title": "Reference in HIVE",
+                "field_type": "obj",
+                "field_parent": "workflow_st2",
+                "field_role": "input",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "genome+"
+            },
+            "1.53": {
+                "field_name": "st2_onUserBehalf",
+                "field_title": "On Behalf of The User",
+                "field_type": "integer",
+                "field_parent": "workflow_st2",
+                "field_default_value": "query://return .onUserBehalf;",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:\"id\", inline:\"name\", outline:\"name\", url:\"http://?cmd=usrList&active=1&grp=0&primaryGrpOnly=1&raw=1\"}"
+            },
+            "1.55": {
+                "field_name": "st1_onUserBehalf",
+                "field_title": "On Behalf of The User",
+                "field_type": "integer",
+                "field_parent": "workflow_st1",
+                "field_default_value": "query://return .onUserBehalf;",
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:\"id\", inline:\"name\", outline:\"name\", url:\"http://?cmd=usrList&active=1&grp=0&primaryGrpOnly=1&raw=1\"}",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "8": "type.399",
+            "28": "type.330"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

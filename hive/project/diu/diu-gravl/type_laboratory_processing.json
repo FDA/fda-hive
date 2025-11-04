@@ -1,0 +1,112 @@
+{
+    "198456": {
+        "_id": "$type.laboratory_processing",
+        "_type": "type",
+        "name": "laboratory_processing",
+        "title": "Laboratory Processing",
+        "description": "Information about the processing for the sample.  There may be multiple processings that happen on a single sample",
+        "parent": {
+            "7": "$type.wastewater_collection"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "processing_type",
+                "field_title": "Processing Type",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint": "choice",
+                "field_constraint_data": "PCR|NGS",
+                "field_description": "Type of analysis performed."
+            },
+            "11.2": {
+                "field_name": "laboratory_name",
+                "field_title": "Lab Name",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint": "choice+",
+                "field_constraint_data": "ARIA",
+                "field_description": "Laboratory which performed the analysis."
+            },
+            "11.3": {
+                "field_name": "laboratory_id",
+                "field_title": "Laboratory ID",
+                "field_type": "string",
+                "field_order": 4,
+                "field_description": "Laboratory ID assigned to the sample for this processing.",
+                "field_is_optional_fg": true
+            },
+            "11.4": {
+                "field_name": "processing_date_time",
+                "field_title": "Date/Time",
+                "field_type": "datetime",
+                "field_order": 1
+            },
+            "11.8": {
+                "field_name": "processing_method",
+                "field_title": "Processing Method",
+                "field_type": "obj",
+                "field_order": 5,
+                "field_constraint": "type",
+                "field_constraint_data": "da_protocol",
+                "field_description": "Link to the protocol object used.",
+                "field_is_optional_fg": false,
+                "field_is_readonly_fg": 0
+            },
+            "11.10": {
+                "field_name": "wastewater_pcr_results",
+                "field_title": "PCR Results",
+                "field_type": "obj",
+                "field_order": 6,
+                "field_constraint": "type",
+                "field_constraint_data": "wastewater_pcr_results",
+                "field_description": "PCR Results from processing.",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_readonly_fg": 0
+            },
+            "11.11": {
+                "field_name": "wastewater_ngs_results",
+                "field_title": "NGS Results",
+                "field_type": "obj",
+                "field_order": 7,
+                "field_constraint": "type",
+                "field_constraint_data": "wastewater_ngs_results",
+                "field_description": "NGS Results from processing",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_readonly_fg": 0
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

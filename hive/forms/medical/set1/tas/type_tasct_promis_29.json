@@ -1,0 +1,314 @@
+{
+    "378": {
+        "_id": "$type.tasct_promis_29",
+        "_type": "type",
+        "name": "tasct_promis_29",
+        "title": "PROMIS-29 Profile v2.0",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Physical Function",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "pfa11_1",
+                "field_title": "Are you able to do chores such as vacuuming or yard work?",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "5///Without any difficulty|4///With a little difficulty|3///With some difficulty|2///With much difficulty|1///Unable to do"
+            },
+            "1.3": {
+                "field_name": "pfa21_2",
+                "field_title": "Are you able to go up and down stairs at a normal pace?",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "5///Without any difficulty|4///With a little difficulty|3///With some difficulty|2///With much difficulty|1///Unable to do"
+            },
+            "1.4": {
+                "field_name": "pfa23_3",
+                "field_title": "Are you able to go for a walk of at least 15 minutes?",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "5///Without any difficulty|4///With a little difficulty|3///With some difficulty|2///With much difficulty|1///Unable to do"
+            },
+            "1.5": {
+                "field_name": "pfa53_4",
+                "field_title": "Are you able to run errands and shop?",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "5///Without any difficulty|4///With a little difficulty|3///With some difficulty|2///With much difficulty|1///Unable to do"
+            },
+            "1.6": {
+                "field_name": "subtitle_2",
+                "field_title": "Anxiety. In the past 7 days",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "edanx01_5",
+                "field_title": "I felt fearful",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.8": {
+                "field_name": "edanx40_6",
+                "field_title": "I found it hard to focus on anything other than my anxiety",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.9": {
+                "field_name": "edanx41_7",
+                "field_title": "My worries overwhelmed me",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.10": {
+                "field_name": "edanx53_8",
+                "field_title": "I felt uneasy",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.11": {
+                "field_name": "subtitle_3",
+                "field_title": "Depression. In the past 7 days",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_description": "subtitle"
+            },
+            "1.12": {
+                "field_name": "eddep04_9",
+                "field_title": "I felt worthless",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.13": {
+                "field_name": "eddep06_10",
+                "field_title": "I felt helpless",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.14": {
+                "field_name": "eddep29_11",
+                "field_title": "I felt depressed",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.15": {
+                "field_name": "eddep41_12",
+                "field_title": "I felt hopeless",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "1///Never|2///Rarely|3///Sometimes|4///Often|5///Always"
+            },
+            "1.16": {
+                "field_name": "subtitle_4",
+                "field_title": "Fatigue. During the past 7 days",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_description": "subtitle"
+            },
+            "1.17": {
+                "field_name": "hi7_13",
+                "field_title": "I feel fatigued",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.18": {
+                "field_name": "an3_14",
+                "field_title": "I have trouble starting things because I am tired",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.19": {
+                "field_name": "fatexp41_15",
+                "field_title": "How run-down did you feel on average? .",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.20": {
+                "field_name": "fatexp40_16",
+                "field_title": "How fatigued were you on average?",
+                "field_type": "string",
+                "field_order": 20,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.21": {
+                "field_name": "subtitle_5",
+                "field_title": "Sleep Disturbance. In the past 7 day",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint_description": "subtitle"
+            },
+            "1.22": {
+                "field_name": "sleep109_17",
+                "field_title": "My sleep quality was",
+                "field_type": "string",
+                "field_order": 22,
+                "field_constraint_data": "5///Very poor|4///Poor|3///Fair|2///Good|1///Very good"
+            },
+            "1.23": {
+                "field_name": "sleep116_18",
+                "field_title": "My sleep was refreshing",
+                "field_type": "string",
+                "field_order": 23,
+                "field_constraint_data": "5///Not at all|4///A little bit|3///Somewhat|2///Quite a bit|1///Very much"
+            },
+            "1.24": {
+                "field_name": "sleep20_19",
+                "field_title": "I had a problem with my sleep",
+                "field_type": "string",
+                "field_order": 24,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.25": {
+                "field_name": "sleep44_20",
+                "field_title": "I had difficulty falling asleep ",
+                "field_type": "string",
+                "field_order": 25,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.26": {
+                "field_name": "subtitle_6",
+                "field_title": "Ability to Participate in Social Roles and Activities",
+                "field_type": "string",
+                "field_order": 26,
+                "field_constraint_description": "subtitle"
+            },
+            "1.27": {
+                "field_name": "srpper11 _caps_21",
+                "field_title": "I have trouble doing all of my regular leisure activities with others",
+                "field_type": "string",
+                "field_order": 27,
+                "field_constraint_data": "5///Never|4///Rarely|3///Sometimes|2///Usually|1///Always"
+            },
+            "1.28": {
+                "field_name": "srpper18 _caps_22",
+                "field_title": "I have trouble doing all of the family activities that I want to do",
+                "field_type": "string",
+                "field_order": 28,
+                "field_constraint_data": "5///Never|4///Rarely|3///Sometimes|2///Usually|1///Always"
+            },
+            "1.29": {
+                "field_name": "srpper23 _caps_23",
+                "field_title": "I have trouble doing all of my usual work (include work at home) .",
+                "field_type": "string",
+                "field_order": 29,
+                "field_constraint_data": "5///Never|4///Rarely|3///Sometimes|2///Usually|1///Always"
+            },
+            "1.30": {
+                "field_name": "srpper46 _caps_24",
+                "field_title": "I have trouble doing all of the activities with friends that I want to do",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_data": "5///Never|4///Rarely|3///Sometimes|2///Usually|1///Always"
+            },
+            "1.31": {
+                "field_name": "subtitle_7",
+                "field_title": "Pain Interference. In the past 7 days",
+                "field_type": "string",
+                "field_order": 31,
+                "field_constraint_description": "subtitle"
+            },
+            "1.32": {
+                "field_name": "painin9_25",
+                "field_title": "How much did pain interfere with your day to day activities?",
+                "field_type": "string",
+                "field_order": 32,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.33": {
+                "field_name": "painin22_26",
+                "field_title": "How much did pain interfere with work around the home?",
+                "field_type": "string",
+                "field_order": 33,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.34": {
+                "field_name": "painin31_27",
+                "field_title": "How much did pain interfere with your ability to participate in social activities?",
+                "field_type": "string",
+                "field_order": 34,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.35": {
+                "field_name": "painin34_28",
+                "field_title": "How much did pain interfere with your household chores?",
+                "field_type": "string",
+                "field_order": 35,
+                "field_constraint_data": "1///Not at all|2///A little bit|3///Somewhat|4///Quite a bit|5///Very much"
+            },
+            "1.36": {
+                "field_name": "subtitle_8",
+                "field_title": "Pain Intensity. In the past 7 days",
+                "field_type": "string",
+                "field_order": 36,
+                "field_constraint_description": "subtitle"
+            },
+            "1.37": {
+                "field_name": "global07_29",
+                "field_title": "How would you rate your pain on average?",
+                "field_type": "integer",
+                "field_order": 37,
+                "field_constraint": "undefined",
+                "field_constraint_data": "{\"range\":\"0-10\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"No pain\",\"maxLabel\":\"Worst imaginable pain\"}",
+                "field_constraint_description": "slider"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,349 @@
+// _type
+// 
+
+"primitives" : {
+	"descr" : "primitives branch",
+	  
+	"bool" : {
+		"_type" : "core",
+		"_title" : "Boolean" 
+	},
+	
+	"int" : {
+		"_type" : "core",
+		"_title" : "Integer"
+	},
+
+	"real" : {
+		"_type" : "core",
+		"_title" : "Real"
+	},
+	"uint" : {
+		"_type" : "int",
+		"_title" : "U-Integer",
+		"_limit" : {
+			"descr": "Only non negative values are accepted. ",
+			"range" : { "min" : 0 }   
+		}
+	},
+    "string" : {
+        "_type" : "core",
+		"_title" : "String"
+    },
+    
+    "static" : {
+        "_type" : "core",
+		"_title" : "Static Text"
+    },
+    
+	"text" : {
+		"_type" : "core",
+		"_title" : "Text"
+	},
+   
+	"memory" : {
+		"_type" : "uint",
+		"_title" : "Memory",
+		"_unit" : [
+            {value: 1, title: "B" },
+            {value: 1024, title: "KB" },
+            {value: 1048576, title: "MB" },
+            {value: 1073741824, title: "GB" },
+            {value: 1099511627776, title: "TB" },
+            {value: 1125899906842624, title: "PB" },
+            {value: 1152921504606846976, title: "EB" }
+		]
+	},
+	
+	"measure" : {
+        "_type": "measure",
+		"_title" : "Measure",
+        "_unit" : [
+            {value: 1e-24, title: "yocto" },
+            {value: 1e-21, title: "zepto" },
+            {value: 1e-18, title: "atto" },
+            {value: 1e-15, title: "femto" },
+            {value: 1e-12, title: "pico" },
+            {value: 1e-9, title: "nano" },
+            {value: 1e-6, title: "micro" },
+            {value: 1e-3, title: "milli" },
+            {value: 1e-2, title: "centi" },
+            {value: 1e-1, title: "deci" },
+            {value: 1 },
+            {value: 1e1, title: "deca" },
+            {value: 1e2, title: "hecto" },
+            {value: 1e3, title: "kilo" },
+            {value: 1e6, title: "mega" },
+            {value: 1e9, title: "giga" },
+            {value: 1e12, title: "tera" },
+            {value: 1e15, title: "peta" },
+            {value: 1e18, title: "exa" },
+            {value: 1e21, title: "zetta" },
+            {value: 1e24, title: "yotta" }
+        ]
+    },
+    "tel" : {
+        "_type" : "core",
+		"_title" : "Telephone"
+    },
+    "color" : {
+        "_type" : "core",
+		"_title" : "Color"
+    },
+	"cmdline" : {
+		"_type" : "text",
+		"_title" : "Command-Line"
+	},
+	"url" : {
+		"_type" : "core",
+		"_title" : "URL"
+	},
+    "image" : {
+        "_type" : "core",
+		"_title" : "Image"
+    },
+	"file" : {
+		"_type" : "core",
+		"_title" : "File"
+	},
+
+	"date" : {
+		"_type" : "core",
+		"_default" : "$datenow()"
+	},
+	"time" : {
+		"_type" : "core",
+		"_default" : "$timenow()",
+		"_title" : "Times"
+	},
+	
+	"datetime" : {
+		"_type" : "core",
+		"_default" : "$timenow()",
+		"_title" : "Date-Time"					
+	},
+	
+	"timespan" : {
+		
+		"start" : {
+			"_type" : "datetime"
+		},  
+		"end" : {
+			"_type" : "datetime"
+		},
+		"_title" : "Timespan"
+	},
+	
+	"ref" : {
+	   "source" : {
+			"_type" : "string" ,
+			"_title" : "Resource Authority" 
+		},
+		"db" : {
+			"_type" : "string" ,
+			"_title" : "Resource Database"
+		},
+		"id" : {
+			"_type" : "string",
+			"_vital" : true,
+			"_title" : "Resource Identifier"
+		},
+		"url" : {
+			"_type" : "url",
+			"_title" : "Resource URL"
+		},
+		"_title" : "Reference"
+	},
+			
+	"password" : {
+		"_type" : "string",
+		"_pswd" : true, 
+		"_title" : "Password"
+	},
+	
+	"email" : {
+		"_type" : "string",
+		"_title" : "Email"
+	},
+	
+	"keyval" : {
+	
+		"key" : {
+			"_type" : "string",
+			"_vital" : true ,
+			"_title" : "Key"  
+		},
+		
+		"value" : {
+			"_type" : "string",
+			"_plural" : true,
+			"_title" : "Value"
+		},
+		"_title" : "Key&Value(s)"
+	},
+	
+	"hiveid" : {	
+		"_type" : "ref",
+		
+		"source" :{ // overloading reference type 
+			"_default" : "HIVE",
+			"_rdonly" : true
+		},
+		"db" :{
+			"_default" : "Honeycomb",
+			"_rdonly" : true
+		}
+	},
+    "devel" : {    
+        
+        "t-bool" :{  
+            "_type" : "bool",
+            "_default" : true,
+            "_title" : "T-Boolean"
+        },
+        
+        "t-int" :{  
+            "_type" : "int",
+            "_default" : 123,
+            "_title" : "T-Integer"
+        },
+        "t-image" :{  
+            "_type" : "image",
+            "_title" : "T-Image"
+        },
+        
+        "t-real" :{  
+            "_type" : "real",
+            "_default" : 7.666,
+            "_title" : "T-Real"
+        },
+        
+        "t-uint" :{  
+            "_type" : "uint",
+            "_dic": {
+            	"_field" : { 
+	             	"value" : {
+	             		"_type" : "int"
+	             	},
+	             	"title" : {
+	             		"_type" : "string"
+	             	}
+	            }, 
+	            
+	            "choice": [
+	                {
+	                    "value":"1",
+	                    "title" : "val1"
+	                },
+	                {
+	                    "value":"2",
+	                    "title" : "val2"
+	                },
+	              	3
+	             ]
+			}
+        },     
+        "t-uint-range" : {  
+            "_type" : "uint",
+            "_limit" : {
+            	"range" : {
+            		"min" : 2,
+            		"max" : 12
+            	}
+	        }  
+        },        
+        
+        "t-string" :{
+            "_type" : "string",
+            "_default" : "d-string",
+            "_dic" : [   
+                {
+                    "value":"1",
+                    "title" : "dodod"
+                },
+                {
+                    "value":"2",
+                    "title" : "wowow"
+                },
+                {
+                    "value":"3"
+                }
+             ]  
+        },
+        
+        "t-static" :{
+            "_type" : "static"
+        },
+        
+        "t-text" : {
+            "_type" : "text"
+        },
+        
+        "t-memory" : {
+            "_type" : "memory"
+        },
+        "t-cmdline" : {
+            "_type" : "cmdline",
+            "_dic" : {
+                "choice" : [
+                    "Choose me",
+                    "No, choose me",
+                    {"value" : 13, "title" : " I am better"}
+                ]
+            }, 
+            "_rdonly" : 2
+        },
+        "t-url" : {
+            "_type" : "url"
+        },
+        "t-tel" : {
+            "_type" : "tel"
+        },
+        "t-color" : {
+            "_type" : "color"
+        },
+        "t-file" : {
+            "_type" : "file"
+        },
+        "t-image" : {
+            "_type" : "image"
+        },
+        "t-date" : {
+            "_type" : "date"
+        },
+        
+        "t-time" : {
+            "_type" : "time"
+        },
+        "t-datetime" : {
+            "_type" : "datetime"
+        },
+        
+        "t-timespan" : {
+            "_type" : "timespan"
+        },
+        
+        "t-ref" : {
+            "_type" : "ref",
+            "_title" : "T-Reference"
+        },
+                
+        "t-password" : {
+            "_type" : "password",
+            "_title" : "T-Password"
+        },
+        
+        "t-email" : {
+            "_type" : "email",
+            "_title" : "T-Email"
+        },
+            
+        "t-keyval" : {
+        
+            "_type" : "keyval",
+            "_title" : "T-Key Value Pair"
+              
+        }             
+    }
+    	
+}

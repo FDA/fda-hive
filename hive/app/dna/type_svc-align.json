@@ -1,0 +1,61 @@
+{
+    "172": {
+        "_id": "$type.svc-align",
+        "_type": "type",
+        "name": "svc-align",
+        "title": "Sequence Alignment Services",
+        "description": "// Sequence Alignment Engines General Service\nlocation: hive.app.dna",
+        "parent": {
+            "1": "$type.svc-dna"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.38": {
+                "field_name": "subject",
+                "field_title": "Reference Genome",
+                "field_type": "obj",
+                "field_is_readonly_fg": -1,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "^genome$,folder",
+                "field_description": "Reference genome (subject)"
+            },
+            "1.40": {
+                "field_name": "cmdLine",
+                "field_title": "Engine Arguments",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

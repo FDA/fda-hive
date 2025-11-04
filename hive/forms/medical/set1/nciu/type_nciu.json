@@ -1,0 +1,39 @@
+{
+    "33562": {
+        "_id": "$type.nciu",
+        "_type": "type",
+        "name": "nciu",
+        "title": "NCIU Questionnaires",
+        "fields": {
+            "1.0": {
+                "field_name": "patient_id",
+                "field_title": "Patient Identifier",
+                "field_type": "string",
+                "field_order": "0",
+                "field_is_hidden_fg": false,
+                "field_brief": "$_(v)"
+            }
+        },
+        "parent": {
+            "8": "$type.med_set1"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

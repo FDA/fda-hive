@@ -1,0 +1,40 @@
+{
+    "68044": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-rnaseq",
+        "description": "Tophat based RNA-seq workflow",
+        "icon": "img-algo/svc-align-tophat.gif",
+        "name": "tophat",
+        "version": "2.1.1",
+        "type_name": "svc-align-tophat",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

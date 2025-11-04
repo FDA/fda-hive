@@ -1,0 +1,27 @@
+{
+    "image": [
+        "jpg",
+        "jpeg",
+        "bmp",
+        "pcx",
+        "gif",
+        "png",
+        "tiff",
+        "tif",
+        "tga",
+        "img",
+        "ico",
+        "svg"
+    ],
+    "excel-file": [
+        "xls",
+        "xlsx"
+    ],
+    "csv-table": [
+        "csv"
+    ],
+    "tsv-table": [
+        "tsv",
+        "tab"
+    ]
+}

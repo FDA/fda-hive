@@ -1,0 +1,139 @@
+{
+    "164": {
+        "_id": "$type.u-hiveseq",
+        "_type": "type",
+        "name": "u-hiveseq",
+        "title": "HIVESeq",
+        "description": "//\nlocation: hive.app.dna",
+        "parent": {
+            "1": "$type.viodb"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "bases-count",
+                "field_title": "Number of Bases",
+                "field_type": "integer",
+                "field_order": 3,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Number of Bases in original file"
+            },
+            "1.2": {
+                "field_name": "category",
+                "field_title": "Define Category",
+                "field_type": "string",
+                "field_parent": "category_list",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_summary_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "genomic|short read|primers|adapters",
+                "field_constraint_description": "genomic|short read|primers|adapters",
+                "field_description": "Set of kyewords to classify this record"
+            },
+            "1.3": {
+                "field_name": "category_list",
+                "field_title": "Category List",
+                "field_type": "list",
+                "field_is_optional_fg": true,
+                "field_description": "Categorization of the sequence file"
+            },
+            "1.4": {
+                "field_name": "len-avg",
+                "field_title": "Average Length Read",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Average number of Length of the reads in the file"
+            },
+            "1.5": {
+                "field_name": "len-max",
+                "field_title": "Maximum Length Read",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Maximum Length of the reads in the file"
+            },
+            "1.6": {
+                "field_name": "len-min",
+                "field_title": "Minimum Length Read",
+                "field_type": "integer",
+                "field_order": 4,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true,
+                "field_description": "Minimum Length of the reads in the file"
+            },
+            "1.7": {
+                "field_name": "rec-count",
+                "field_title": "Records",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_is_readonly_fg": 1,
+                "field_is_summary_fg": true,
+                "field_brief": "$_(v) <b>$_(t)(s)</b>",
+                "field_description": "Number of Records in original file"
+            },
+            "1.8": {
+                "field_name": "rec-dim",
+                "field_title": "HIVE compression",
+                "field_type": "integer",
+                "field_order": 1,
+                "field_is_readonly_fg": 1,
+                "field_is_summary_fg": true,
+                "field_brief": "<small>$_(v)</small>/",
+                "field_description": "Number of Records after removing Redundancies"
+            },
+            "1.9": {
+                "field_name": "taxonomy",
+                "field_title": "Taxonomy ID",
+                "field_type": "string",
+                "field_parent": "tax_list",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "human-genome|viral-genome|bacterial-genome|representative-genome|transcriptome-genome|exome-genome",
+                "field_constraint_description": "human-genome|viral-genome|bacterial-genome|representative-genome|transcriptome-genome|exome-genome",
+                "field_description": "Taxonomy ID or species name",
+                "field_brief": "<i>$_(v)</i>: "
+            },
+            "1.10": {
+                "field_name": "tax_list",
+                "field_title": "Taxonomy List",
+                "field_type": "array"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

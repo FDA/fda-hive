@@ -1,0 +1,46 @@
+{
+    "262": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2genome",
+        "order": 12,
+        "path": "/Convert/cast2genome",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "nuc-read",
+        "url": "?cmd=scast&type=genome&ids=$(ids)",
+        "title": "Convert to Genome",
+        "description": "Convert from Reads to Genome",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

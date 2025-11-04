@@ -1,0 +1,40 @@
+{
+    "type.253": {
+        "_id": "type.253",
+        "_type": "type",
+        "name": "target_library",
+        "title": "Target/Filter Library",
+        "description": "Target.Filter libraries for Pathoscope integration.",
+        "parent": {
+            "1": "type.19"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

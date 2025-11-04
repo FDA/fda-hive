@@ -1,0 +1,106 @@
+{
+    "361": {
+        "_id": "$type.tmj_patient_past_surgical_history",
+        "_type": "type",
+        "name": "tmj_patient_past_surgical_history",
+        "title": "Patient Previous Surgical History",
+        "fields": {
+            "1.1": {
+                "field_name": "surgeries_related_to_tmjd",
+                "field_title": "Have you had any surgeries related to TMJD?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "surgical_list",
+                "field_title": "Please list the surgical procedures",
+                "field_type": "array",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(surgeries_related_to_tmjd)=='true'",
+                "field_constraint_description": "col-md-4"
+            },
+            "1.3": {
+                "field_name": "type_of_surgery",
+                "field_title": "Type of Surgery",
+                "field_type": "string",
+                "field_parent": "surgical_list",
+                "field_order": 2.1,
+                "field_constraint_data": "Full mouth restoration|Arthrocentesis surgery|Arthroplasty surgery|Arthroscopy surgery|Orthognathic surgery|Total Joint Replacement|Joint Replacement for Tumor, Trauma, Others with Vascular/Bone Fibula Grafts surgery|Intraoral Vertical Ramus Osteotomy and Intermaxillary Fixation surgery|Autogenous Reconstruction|Condylectomy/Condylotomy|Discectomy/Reconstruction/Repair|Disc replacement"
+            },
+            "1.4": {
+                "field_name": "procedure_date",
+                "field_title": "TMD surgical procedure date",
+                "field_type": "date",
+                "field_parent": "surgical_list",
+                "field_order": 2.2
+            },
+            "1.5": {
+                "field_name": "laterality_of_procedure",
+                "field_title": "Laterality of Procedure",
+                "field_type": "string",
+                "field_parent": "surgical_list",
+                "field_order": 2.3,
+                "field_constraint_data": "Right|Left|Both"
+            },
+            "1.6": {
+                "field_name": "surgery_success",
+                "field_title": "Did the surgery address the TMJ condition(s)?",
+                "field_type": "string",
+                "field_parent": "surgical_list",
+                "field_order": 2.4,
+                "field_constraint_data": "success - fixed the issue|failed - did not fix the issue|resulted in additional issues|no better/no worse "
+            },
+            "1.7": {
+                "field_name": "surgical_treatments_no",
+                "field_title": "Number/type of surgical treatments",
+                "field_type": "integer",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "4": "$type.tmj_questionnaires"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/TMJ-Registry/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/Administrators/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

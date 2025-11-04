@@ -1,0 +1,68 @@
+{
+    "type.441": {
+        "_id": "type.441",
+        "_type": "type",
+        "name": "tool_pkg",
+        "title": "HIVE Tool package",
+        "prefetch": true,
+        "fields": {
+            "1.0": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_key_fg": true,
+                "field_is_readonly_fg": 0,
+                "field_brief": "$_(t) $_(v)"
+            },
+            "1.2": {
+                "field_name": "version",
+                "field_title": "Version",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_key_fg": true,
+                "field_is_readonly_fg": 0,
+                "field_brief": "v$_(v)"
+            },
+            "1.4": {
+                "field_name": "init_script",
+                "field_title": "Initialization script name",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "8": "type.84"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

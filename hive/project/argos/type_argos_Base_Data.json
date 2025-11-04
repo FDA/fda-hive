@@ -1,0 +1,52 @@
+{
+    "272685": {
+        "_id": "$type.argos_Base_Data",
+        "_type": "type",
+        "name": "argos_Base_Data",
+        "title": "Base type for argos data",
+        "fields": {
+            "1.0": {
+                "field_name": "biosample",
+                "field_title": "Biosample Accession",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "1.2": {
+                "field_name": "reads",
+                "field_title": "SRR Accession",
+                "field_is_readonly_fg": 0,
+                "field_is_multi_fg": false,
+                "field_constraint": "choice"
+            },
+            "1.4": {
+                "field_name": "reference_id",
+                "field_title": "ref id"
+            },
+            "1.5": {
+                "field_name": "computation_object_id",
+                "field_title": "ARGOS QC Object ID"
+            }
+        },
+        "parent": {
+            "14": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

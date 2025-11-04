@@ -1,0 +1,108 @@
+{
+    "383": {
+        "_id": "$type.tasct_whiteley_index",
+        "_type": "type",
+        "name": "tasct_whiteley_index",
+        "title": "Whiteley Index 6",
+        "fields": {
+            "1.1": {
+                "field_name": "instructions_subtitle",
+                "field_title": "Please answer the following questions by moving the slider. The range goes from \"Not at all\" to \"A great deal\".",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "about_serious_illness_1",
+                "field_title": "Do you often worry about the possibility that you have got a serious illness?",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_constraint_data": "{\"range\":\"1-5\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"Not at all\",\"maxLabel\":\"A great deal\"}",
+                "field_constraint_description": "slider"
+            },
+            "1.3": {
+                "field_name": "worry_about_health_2",
+                "field_title": "Do you worry a lot about your health?",
+                "field_type": "integer",
+                "field_order": 3,
+                "field_constraint_data": "{\"range\":\"1-5\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"Not at all\",\"maxLabel\":\"A great deal\"}",
+                "field_constraint_description": "slider"
+            },
+            "1.4": {
+                "field_name": "symptoms_of_illnesses_3",
+                "field_title": "Do you often have the symptoms of very serious illnesses?",
+                "field_type": "integer",
+                "field_order": 4,
+                "field_constraint_data": "{\"range\":\"1-5\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"Not at all\",\"maxLabel\":\"A great deal\"}",
+                "field_constraint_description": "slider"
+            },
+            "1.5": {
+                "field_name": "different_symptoms_4",
+                "field_title": "Do you find that you are bothered by many different symptoms?",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_constraint_data": "{\"range\":\"1-5\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"Not at all\",\"maxLabel\":\"A great deal\"}",
+                "field_constraint_description": "slider"
+            },
+            "1.6": {
+                "field_name": "sth_wrong_with_body_5",
+                "field_title": "Do you think there is something seriously wrong with your body?",
+                "field_type": "integer",
+                "field_order": 6,
+                "field_constraint_data": "{\"range\":\"1-5\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"Not at all\",\"maxLabel\":\"A great deal\"}",
+                "field_constraint_description": "slider"
+            },
+            "1.7": {
+                "field_name": "afraid_of_illness_6",
+                "field_title": "Are you afraid of illness?",
+                "field_type": "integer",
+                "field_order": 7,
+                "field_constraint_data": "{\"range\":\"1-5\",\"unit\":\"point(s)\",\"step\":\"1\",\"pipStep\":\"1\",\"minLabel\":\"Not at all\",\"maxLabel\":\"A great deal\"}",
+                "field_constraint_description": "slider"
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

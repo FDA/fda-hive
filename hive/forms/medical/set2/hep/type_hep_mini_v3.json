@@ -1,0 +1,29 @@
+{
+    "506": {
+        "_id": "$type.hep_mini_v3",
+        "_type": "type",
+        "name": "hep_mini_v3",
+        "title": "MINI International Neuropsychiatric Interview",
+        "parent": {
+            "3": "$type.hep_mini_v1"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

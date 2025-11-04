@@ -1,0 +1,121 @@
+{
+    "type.238": {
+        "_id": "type.238",
+        "_type": "type",
+        "name": "svc-viral-mutation-comp",
+        "title": "Viral Mutation Comparator",
+        "description": "Regulatory Viral Mutation Comparator",
+        "parent": {
+            "1": "type.202"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "AAconsensus",
+                "field_title": "AA consensus mode",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.2": {
+                "field_name": "algosToReport",
+                "field_title": "Number of validation methods",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_default_value": "1"
+            },
+            "1.3": {
+                "field_name": "baseline_keywords",
+                "field_title": "Baseline keywords",
+                "field_type": "string",
+                "field_order": 1.5,
+                "field_default_value": "baseline;screening",
+                "field_is_multi_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "baseline///baseline|screening///screening"
+            },
+            "1.4": {
+                "field_name": "collapseIdenticalAAMutations",
+                "field_title": "Collapse mutations with same AA change",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_default_value": "0"
+            },
+            "1.5": {
+                "field_name": "enrichment",
+                "field_title": "Enrichment",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_default_value": "1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "100///report all|1///report when baseline is less than 1%"
+            },
+            "1.6": {
+                "field_name": "formatAlternatives",
+                "field_title": "Mutation calls from alternative pipelines",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_role": "input",
+                "field_constraint": "type",
+                "field_constraint_data": "u-file+"
+            },
+            "1.7": {
+                "field_name": "formatHIVE",
+                "field_title": "HIVE heptagon variants",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_role": "input",
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler-heptagon"
+            },
+            "1.8": {
+                "field_name": "frequencyThreshold",
+                "field_title": "Substitution threshold",
+                "field_type": "real",
+                "field_order": 4,
+                "field_default_value": "0.1"
+            },
+            "1.9": {
+                "field_name": "skipSynonymous",
+                "field_title": "Skip synonymous mutations",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_default_value": "1"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

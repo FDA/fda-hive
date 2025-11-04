@@ -1,0 +1,68 @@
+{
+    "5032": {
+        "_id": "$type.svc-diu-cflow",
+        "_type": "type",
+        "name": "svc-diu-cflow",
+        "title": "DIU ANTIDOTE Cflow",
+        "parent": {
+            "7": "$type.svc-diu-base"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "sampleID",
+                "field_title": "Sample Identifier",
+                "field_type": "string"
+            },
+            "11.2": {
+                "field_name": "sampleObj",
+                "field_title": "Sample Object",
+                "field_type": "obj",
+                "field_constraint": "type",
+                "field_constraint_data": "da_sample",
+                "field_is_multi_fg": true
+            },
+            "11.3": {
+                "field_name": "subprocesses",
+                "field_title": "SubProcesses",
+                "field_type": "array",
+                "field_is_multi_fg": false
+            },
+            "11.4": {
+                "field_name": "process_role",
+                "field_title": "Process Role",
+                "field_type": "string",
+                "field_parent": "subprocesses",
+                "field_order": 1,
+                "field_constraint": "choice",
+                "field_is_multi_fg": true
+            },
+            "11.5": {
+                "field_name": "process_obj",
+                "field_title": "Process Object",
+                "field_parent": "subprocesses",
+                "field_order": 2,
+                "field_constraint": "type",
+                "field_constraint_data": "+process",
+                "field_is_multi_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

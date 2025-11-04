@@ -1,0 +1,29 @@
+{
+    "351": {
+        "_id": "$type.svc-diu-base",
+        "_type": "type",
+        "name": "svc-diu-base",
+        "title": "DIU base processes",
+        "parent": {
+            "7": "$type.svc-computations-base"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,254 @@
+<script src="js/vjTypeTreeView.js"></script>
+<script>
+$.loadLayoutManager();
+$.loadCSS("css/tabs.css");
+$.loadCSS("css/look_and_feel/velvet.css");
+
+function type_editor_controller(base) {
+    this.id = base ? base.id : "type.117";
+    this.isfake = false;
+    this.isreadonly = base ? base.isreadonly : false;
+
+    vjDS.add("Meta-Type specifications", "dsRecordSpecMetaType", "http:
+    vjDS.add("Type specifications", "dsRecordSpecType", "static:
+    vjDS.add("Type tree", "dsTypeTree", "http:
+    vjDS.add("Type table", "dsTypeTable", "http:
+    vjDS.add("Type domain", "dsTypeDomain", "http:
+
+    this.type_editor_container = "dv_type_editor";
+
+    this.type_editor_options = {
+        data: ["dsRecordSpecMetaType", "dsRecordSpecType", "dsTypeDomain"],
+        formObject: document.forms["form-type-editor"],
+        showRoot: true,
+        autoStatus: 3,
+        autoDescription: false,
+        objType: "type",
+        constructionPropagateDown:10,
+        implementSaveButton: !this.isreadonly,
+        implementCopyButton: true,
+        implementTreeButton: true,
+        noAutoSelectValue: true,
+        readonlyMode: this.isreadonly,
+        container: this.type_editor_container,
+        propSpecFilter: function(tbl) {
+            var domain_id_descrs;
+            try {
+                domain_id_descrs = JSON.parse(this.getData(2).data)["objs"];
+            } catch(err) {
+                console.log("Invalid format");
+            }
+
+            if (!Array.isArray(domain_id_descrs)) {
+                domain_id_descrs = [];
+            }
+
+            var can_create_in_type_domain = false;
+            var domain_constraint;
+            domain_id_descrs.forEach(function(descr) {
+                if (descr["domain-id-descr_ascii"] == "type" && descr._effperm && descr._effperm[0] && descr._effperm[0].act && descr._effperm[0].act.exec) {
+                    can_create_in_type_domain = true;
+                    domain_constraint = "type
+                }
+            });
+
+            for (var ir=0; ir<tbl.rows.length; ir++) {
+                while (ir<tbl.rows.length && tbl.rows[ir].name[0] == "_") {
+                    if (tbl.rows[ir].name == "_domain" && can_create_in_type_domain) {
+                        tbl.rows[ir].constraint = "choice";
+                        tbl.rows[ir].constraint_data = domain_constraint;
+                        tbl.rows[ir].is_hidden_fg = 0;
+                        tbl.rows[ir].force_unhidden = 1;
+                        break;
+                    } else {
+                        tbl.rows.splice(ir, 1);
+                    }
+                }
+            }
+        }
+    };
+
+    this.reload = function(id) {
+        if (id) {
+            if (typeof(id) == "string" && id.charAt(0) == "-") {
+                id = id.substring(1);
+                this.isfake = true;
+            }
+        }
+        this.id = id;
+
+        var rv_or_opts = vjObj.find(this.type_editor_container) || this.type_editor_options;
+        rv_or_opts.hiveId = (this.id && !this.isfake) ? this.id : "type";
+        rv_or_opts.showReadonlyInNonReadonlyMode = this.id ? true : false;
+        rv_or_opts.constructAllNonOptionField = this.id ? true : true;
+        rv_or_opts.implementSetStatusButton = this.id ? true : false;
+        rv_or_opts.accumulateWithNonModified = true;
+        rv_or_opts.accumulateWithoutHidden = (this.id && !this.isfake) ? true : false;
+
+        vjDS["dsRecordSpecType"].reload(this.id ? "http:
+    };
+
+    this.reload(this.id);
+};
+
+gInitList += "typeEditorInit();";
+function typeEditorInit () {
+    setLocationTitle("Type Editor - HIVE");
+    var controller = new type_editor_controller({
+        id: "0"
+    });
+
+    $(function() {
+        $.widget("view.type-editor_tmplt-type-search-toolbar", {
+            _create: function() {
+                var oThis = this;
+
+                this.onClickCallback = function(e) {
+                    var value = oThis.searchEntry.val();
+                    $("[data-type-search-toolbar-input]").each(function() {
+                        if (this.value !== value) {
+                            this.value = value;
+                        }
+                    });
+                    if (value) {
+                        var url = vjDS["dsTypeTable"].url;
+                        var prop_name = "name,title,description";
+                        var prop_val = value + "," + value + "," + value;
+                        var value_hive_id = parseHiveId(value);
+                        if (value_hive_id.objId) {
+                            prop_name = ",_id";
+                            prop_val = "," + value;
+                            if (!value_hive_id.domainId) {
+                                prop_name += ",_id";
+                                prop_val += ",type." + value;
+                            }
+                        }
+                        url = urlExchangeParameter(url, "prop_name", prop_name);
+                        url = urlExchangeParameter(url, "prop_val", prop_val);
+                        vjDS["dsTypeTable"].reload(url, true);
+                        vjDS["dsTypeTree"].reload(urlExchangeParameter(vjDS["dsTypeTree"].url, "search", value), true);
+                    } else {
+                        var url = vjDS["dsTypeTable"].url;
+                        url = urlExchangeParameter(url, "prop_name", "-");
+                        url = urlExchangeParameter(url, "prop_val", "-");
+                        vjDS["dsTypeTable"].reload(url, true);
+                        vjDS["dsTypeTree"].reload(urlExchangeParameter(vjDS["dsTypeTree"].url, "search", "-"), true);
+                    }
+                };
+                this.onKeypressCallback = function(e) {
+                    if (e.which == 13) {
+                        oThis.onClickCallback();
+                    }
+                };
+
+                this.toolbar = $(document.createElement('div')).addClass('toolbar').appendTo(this.element);
+                this.searchEntry = $(document.createElement('input')).attr({type:'text', placeholder: 'Search', 'data-type-search-toolbar-input': true}).on("keypress", this.onKeypressCallback).appendTo(this.toolbar);
+                this.searchButton = $(document.createElement('button')).attr({type:'button'}).addClass('btn btn-default').append(
+                        $(document.createElement('span')).addClass('glyphicon glyphicon-search')
+                    ).click(this.onClickCallback).appendTo(this.toolbar);
+            }
+        });
+    }(jQuery));
+
+    var config = {
+        layout: {
+            items: [{
+                id: "navigation-tabs",
+                size: "20%",
+                tabs: {
+                    items: [
+                    {
+                        active: true,
+                        title: "Type tree",
+                        name: "type-tree",
+                        layout: {
+                            layoutType: "vertical",
+                            allowResize: false,
+                            margin: "outside",
+                            items: [
+                                {
+                                   size: "46",
+                                   view: { name: "type-editor_tmplt-type-search-toolbar" }
+                                }, {
+                                    size: "*",
+                                    overflow: "auto",
+                                    view: {
+                                        name: "dataview",
+                                        options: {
+                                            dataViewer: "vjTypeTreeView",
+                                            dataViewerOptions: {
+                                                data: ["dsTypeTree"],
+                                                selectCaptureCallback: function(viewer, node) { controller.reload(node.id); }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }, {
+                        title: "Type list",
+                        name: "type-list",
+                        layout: {
+                            layoutType: "vertical",
+                            allowResize: false,
+                            margin: "outside",
+                            items: [
+                                {
+                                   size: "46",
+                                   view: { name: "type-editor_tmplt-type-search-toolbar" }
+                                }, {
+                                    size: "*",
+                                    overflow: "auto",
+                                    view: {
+                                        name: "dataview",
+                                        options: {
+                                            dataViewer: "vjTableView",
+                                            dataViewerOptions: {
+                                                data: ["dsTypeTable"],
+                                                selectCaptureCallback: function(viewer, node) { controller.reload(node.id); },
+                                                overflowAuto: false
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }]
+                }
+            }, {
+                id: "mainview-tabs",
+                size: "80%",
+                tabs: {
+                    items: [{
+                        active: true,
+                        title: "Editor",
+                        name: "type-editor",
+                        overflow: "auto",
+                        view: {
+                            name: "dataview",
+                            options: {
+                                dataViewer: "vjRecordView",
+                                dataViewerOptions: controller.type_editor_options
+                            }
+                        }
+                    }]
+                }
+            }]
+        }
+    };
+
+    $('#main-content-uusage').layoutmanager({
+        type: 'horizontal',
+        saveState: false,
+        config: config
+    });
+};
+</script>
+
+<form name="form-type-editor" method="GET" action="dna.cgi" enctype="multipart/form-data">
+    <div class="HIVE_section" >
+        <div class="content">
+            <div class="main-content" id="main-content-uusage"></div>
+        </div>
+    </div>
+</form>

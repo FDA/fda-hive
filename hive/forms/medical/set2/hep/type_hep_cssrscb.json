@@ -1,0 +1,624 @@
+{
+    "1789": {
+        "_id": "$type.hep_cssrscb",
+        "_type": "type",
+        "name": "hep_cssrscb",
+        "title": "Columbia Suicide Severity Rating Scale Cssrs Baseline",
+        "parent": {
+            "8": "$type.hep"
+        },
+        "fields": {
+            "12.0": {
+                "field_name": "subtitle_1",
+                "field_title": "Baseline Safety Interventions Instructions for HEP",
+                "field_type": "string",
+                "field_order": "1",
+                "field_constraint_description": "subtitle",
+                "field_description": "As a safety precaution, all participants who endorse suicidal ideation on the C-SSRS must be referred for psychiatric evaluation. Please plan ahead for this possibility by creating a list of local mental health providers to be given to participants if needed. \n\n \n\nParticipants who score a 4 or 5 in the ‘Current’ column of page 2 of the C-SSRS (active suicidal ideation with or without a plan) must be referred for immediate evaluation in your site’s emergency department or by on-site psychiatric staff. \n\n \n\nParticipants who score a 2 or 3 in the ‘Current’ column of page 2 of the C-SSRS (passive suicidal ideation) must be referred to a mental health provider for psychiatric evaluation within 1 week, using the aforementioned list of providers. \n\n \n\nIf you have any questions or concerns as to the severity of a participant’s suicidal ideation, please contact Dr. Andres Kanner at 847-476-1811 (or if Dr. Kanner is unavailable, Dr. Siddhartha Nadkarni at 917-763-1016) to determine the necessity for acute intervention. \n\n \n\nWith all psychiatric referrals, the phenotyping clinician should explain to the participant that the interview suggests that they should seek evaluation by a mental health provider; please emphasize that this is not a clinical diagnosis. For adolescents (under age 18), the participant’s parent or guardian must also be notified immediately of any suicidal ideation, including if the parent/guardian is not present during the C-SSRS administration. Lastly, with all referrals, please also ask for written permission from the participant and/or parent or guardian (if under age 18) to contact their primary care provider and notify them of the participant’s C-SSRS score indicative of suicidal ideation. \n\n \n\nAfter completion of the study visit: \n\nfill out the HEP Safety Intervention Form in REDCap, and \n\nfollow up with the participant 1 week after referral to confirm they were able to schedule an appointment with a mental health provider."
+            },
+            "12.2": {
+                "field_name": "subtitle_2",
+                "field_title": "SUICIDAL IDEATION",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_description": "subtitle"
+            },
+            "12.6": {
+                "field_name": "subtitle_3",
+                "field_title": "Wish to be Dead",
+                "field_type": "string",
+                "field_order": "3",
+                "field_constraint_description": "subtitle"
+            },
+            "12.7": {
+                "field_name": "siq1_lifetime",
+                "field_title": "Lifetime: At any time in your life, have you wished you were dead or wished you could go to sleep and not wake up?",
+                "field_type": "bool",
+                "field_order": "4",
+                "field_is_optional_fg": true
+            },
+            "12.8": {
+                "field_name": "siq1_current",
+                "field_title": "Current: Past 6 Months",
+                "field_type": "bool",
+                "field_order": "5",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.10": {
+                "field_name": "siq1_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": "6",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='true'"
+            },
+            "12.11": {
+                "field_name": "subtitle_4",
+                "field_title": "Non-Specific Active Suicidal Thoughts",
+                "field_type": "string",
+                "field_order": "7",
+                "field_constraint_description": "subtitle",
+                "field_is_optional_fg": false
+            },
+            "12.12": {
+                "field_name": "siq2_lifetime",
+                "field_title": "Lifetime: Have you actually had any thoughts of killing yourself at any time?",
+                "field_type": "bool",
+                "field_order": "8",
+                "field_is_optional_fg": true
+            },
+            "12.14": {
+                "field_name": "siq2_current",
+                "field_title": "Current: Past 6 Months",
+                "field_type": "bool",
+                "field_order": "9",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.15": {
+                "field_name": "siq2_describe",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": "10",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.17": {
+                "field_name": "subtitle_5",
+                "field_title": "“Now I’d like you to think about the time in your life when you were feeling the most suicidal. During that time…”",
+                "field_type": "string",
+                "field_order": "11",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "12.18": {
+                "field_name": "subtitle_6",
+                "field_title": "Active Suicidal Ideation with Any Methods (Not Plan) without Intent to Act",
+                "field_type": "string",
+                "field_order": "12",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "12.19": {
+                "field_name": "siq3_lifetime",
+                "field_title": "Lifetime: Have you been thinking about how you might do this?",
+                "field_type": "bool",
+                "field_order": "13",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_description": "Subject endorses thoughts of suicide and has thought of at least one method during the assessment period. This is different than a specific plan with time, place or method details worked out (e.g. thought of method to kill self but not a specific plan). Includes \n\nperson who would say, “I thought about taking an overdose but I never made a specific plan as to when, where or how I would actually do it…..and I would never go through with it.”",
+                "field_is_optional_fg": true
+            },
+            "12.20": {
+                "field_name": "siq3_current",
+                "field_title": "Current: Past 6 Months",
+                "field_type": "bool",
+                "field_order": "14",
+                "field_constraint_data": "is_shown_fg=$(siq3_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.21": {
+                "field_name": "siq3_describe",
+                "field_title": "If yes, describe:",
+                "field_type": "text",
+                "field_order": "15",
+                "field_constraint_data": "is_shown_fg=$(siq3_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.23": {
+                "field_name": "subtitle_7",
+                "field_title": "Active Suicidal Ideation with Some Intent to Act, without Specific Plan",
+                "field_type": "string",
+                "field_order": "16",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "12.24": {
+                "field_name": "siq4_lifetime",
+                "field_title": "Lifetime: At any time, have you ever had any intention of acting on these thoughts of killing yourself? As opposed to you have the thoughts, but you definitely would not act on them?",
+                "field_type": "bool",
+                "field_order": "17",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.25": {
+                "field_name": "siq4_current",
+                "field_title": "Current: Past 6 Months",
+                "field_type": "bool",
+                "field_order": "18",
+                "field_constraint_data": "is_shown_fg=$(siq4_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.26": {
+                "field_name": "subtitle_8",
+                "field_title": "Active Suicidal Ideation with Specific Plan and Intent",
+                "field_type": "string",
+                "field_order": "19",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "12.27": {
+                "field_name": "siq5_lifetime",
+                "field_title": "Lifetime: At any time, have you ever started to work out, or actually worked out, the details of how to kill yourself? Do you intend to carry out this plan?",
+                "field_type": "bool",
+                "field_order": "20",
+                "field_constraint_data": "is_shown_fg=$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.28": {
+                "field_name": "siq5_current",
+                "field_title": "Current: Past 6 Months",
+                "field_type": "bool",
+                "field_order": "21",
+                "field_constraint_data": "is_shown_fg=$(siq5_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.29": {
+                "field_name": "siq5_description",
+                "field_title": "If yes, describe",
+                "field_type": "text",
+                "field_order": "22",
+                "field_constraint_data": "is_shown_fg=$(siq5_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.31": {
+                "field_name": "subtitle_9",
+                "field_title": "INTENSITY OF IDEATION",
+                "field_type": "string",
+                "field_order": "23",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='true'||$(siq2_lifetime)=='true'",
+                "field_constraint_description": "subtitle",
+                "field_is_optional_fg": false
+            },
+            "12.33": {
+                "field_name": "frequency",
+                "field_title": "Frequency: How many times have you had these thoughts?",
+                "field_type": "string",
+                "field_order": "24",
+                "field_constraint_data": "(1)Less than once a week|(2)Once a week|(3)2-5 times in week|(4)Daily or almost daily|(5)Many times each day\n>is_shown_fg=$(siq1_lifetime)=='true'||$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.34": {
+                "field_name": "duration",
+                "field_title": "Duration: When you have the thoughts how long do they last?",
+                "field_type": "string",
+                "field_order": "25",
+                "field_constraint_data": "(1)Fleeting - few seconds or minutes|(2)Less than 1 hour/some of the time|(3)1-4 hours/a lot of time|(4)4-8 hours/most of day|(5)More than 8 hours/persistent or continuous\n>is_shown_fg=$(siq1_lifetime)=='true'||$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.35": {
+                "field_name": "controllability",
+                "field_title": "Controllability: Could /can you stop thinking about killing yourself or wanting to die if you want to?",
+                "field_type": "string",
+                "field_order": "26",
+                "field_constraint_data": "(1)Easily able to control thoughts|(2)Can control thoughts with little difficulty|(3)Can control thoughts with some difficulty|(4)Can control thoughts  with a lot of difficulty|(5)Unable to control thoughts|(0) Does not attempt to control thoughts\n>is_shown_fg=$(siq1_lifetime)=='true'||$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.36": {
+                "field_name": "Deterrents",
+                "field_title": "Deterrents:  Are there things - anyone or anything (e.g. family, religion, pain of death) - that stopped you from wanting to die or acting on thoughts of committing suicide?",
+                "field_type": "string",
+                "field_order": "27",
+                "field_constraint_data": "(1)Deterrents definitely stopped you from attempting suicide|(2)Deterrents probably stopped you|(3)Uncertain that deterrents stopped you|(4) Deterrents most likely did not stop you|(5) Deterrents definitely did not stop you |(0) Does not apply\n>is_shown_fg=$(siq1_lifetime)=='true'||$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.37": {
+                "field_name": "reasons_for_ideation",
+                "field_title": "Reasons for Ideation: What sort of reasons did you have for thinking about wanting to die or killing yourself? Was it to end the pain or stop the way you were feeling (in other words you couldn’t go on living with this pain or how you were feeling) or was it to get attention,   revenge or a reaction from others? Or both?",
+                "field_type": "string",
+                "field_order": "28",
+                "field_constraint_data": "(1) Completely to get attention, revenge or a reaction from others.|(2)Mostly to get attention, revenge or a reaction from others.|(3) Equally to get attention, revenge or a reaction from others and to end/stop the pain.|(4)Mostly to end or stop the pain (you couldn’t go on living with the pain or how you were feeling).|(5) Completely to end or stop the pain (you couldn’t go on living with the pain or how you were feeling).|(0) Does not apply\n>is_shown_fg=$(siq1_lifetime)=='true'||$(siq2_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.39": {
+                "field_name": "subtitle_10",
+                "field_title": "SUICIDAL BEHAVIOR",
+                "field_type": "string",
+                "field_order": "29",
+                "field_constraint_description": "subtitle",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.41": {
+                "field_name": "subtitle_11",
+                "field_title": "Actual Attempt",
+                "field_type": "string",
+                "field_order": "30",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_constraint_description": "subtitle",
+                "field_description": "A potentially self-injurious act committed with at least some wish to die, as a result of act. Behavior was in part\nthought of as method to kill oneself. Intent does not have to be 100%. If there is any intent/desire to die associated\nwith the act, then it can be considered an actual suicide attempt. There does not have to be any injury or harm, just\nthe potential for injury or harm. If person pulls trigger while gun is in mouth but gun is broken so no injury results,\nthis is considered an attempt.\nInferring Intent: Even if an individual denies intent/wish to die, it may be inferred clinically from the behavior or\ncircumstances. For example, a highly lethal act that is clearly not an accident so no other intent but suicide can be\ninferred (e.g., gunshot to head, jumping from window of a high floor/story). Also, if someone denies intent to die, but\nthey thought that what they did could be lethal, intent may be inferred."
+            },
+            "12.42": {
+                "field_name": "sbq1_lifetime",
+                "field_title": "Lifetime: Have you made a suicide attempt?",
+                "field_type": "bool",
+                "field_order": "31",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.43": {
+                "field_name": "sbq1_past",
+                "field_title": "Past 2 years: Have you made a suicide attempt?",
+                "field_type": "bool",
+                "field_order": "32",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.45": {
+                "field_name": "sbq2_lifetime",
+                "field_title": "Lifetime: Total number of attempts",
+                "field_type": "integer",
+                "field_order": "33",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.46": {
+                "field_name": "sbq2_past",
+                "field_title": "Past 2 years: Total number of attempts",
+                "field_type": "integer",
+                "field_order": "34",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.48": {
+                "field_name": "sbq3_lifetime",
+                "field_title": "Lifetime: Have you done anything to harm yourself?",
+                "field_type": "bool",
+                "field_order": "35",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.50": {
+                "field_name": "sbq3_past",
+                "field_title": "Past 2 years: Have you done anything to harm yourself?",
+                "field_type": "bool",
+                "field_order": "36",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.52": {
+                "field_name": "sbq4_lifetime",
+                "field_title": "Lifetime: Have you done anything dangerous where you could have died?",
+                "field_type": "bool",
+                "field_order": "37",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.53": {
+                "field_name": "sbq4_past",
+                "field_title": "Past 2 years: Have you done anything dangerous where you could have died?",
+                "field_type": "bool",
+                "field_order": "38",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.54": {
+                "field_name": "sbq5_lifetime",
+                "field_title": "Lifetime: What did you do?",
+                "field_type": "text",
+                "field_order": "39",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.56": {
+                "field_name": "sbq5_past",
+                "field_title": "Past 2 years: What did you do?",
+                "field_type": "text",
+                "field_order": "40",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.58": {
+                "field_name": "sbq6_lifetime",
+                "field_title": "Lifetime: Did you [do this] as a way to end your life?",
+                "field_type": "bool",
+                "field_order": "41",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.59": {
+                "field_name": "sbq6_past",
+                "field_title": "Past 2 years: Did you [do this] as a way to end your life?",
+                "field_type": "bool",
+                "field_order": "42",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.60": {
+                "field_name": "sbq7_lifetime",
+                "field_title": "Lifetime: Did you want to die (even a little) when you [did this]?",
+                "field_type": "bool",
+                "field_order": "43",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.61": {
+                "field_name": "sbq7_past",
+                "field_title": "Past 2 years: Did you want to die (even a little) when you [did this]?",
+                "field_type": "bool",
+                "field_order": "44",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.63": {
+                "field_name": "sbq8_lifetime",
+                "field_title": "Lifetime: Were you trying to end your life when you [did this]?",
+                "field_type": "bool",
+                "field_order": "45",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.65": {
+                "field_name": "sbq8_past",
+                "field_title": "Past 2 years: Were you trying to end your life when you [did this]?",
+                "field_type": "bool",
+                "field_order": "46",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.67": {
+                "field_name": "sbq9_lifetime",
+                "field_title": "Lifetime: Or did you think it was possible you could have died from [doing this]?",
+                "field_type": "bool",
+                "field_order": "47",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.69": {
+                "field_name": "sbq9_past",
+                "field_title": "Past 2 years: Or did you think it was possible you could have died from [doing this] ?",
+                "field_type": "bool",
+                "field_order": "48",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.71": {
+                "field_name": "sbq10_lifetime",
+                "field_title": "Lifetime: Or did you do it purely for other reasons / without ANY intention of killing yourself (like to relieve stress, feel better, get sympathy, or get something else to happen)?",
+                "field_type": "bool",
+                "field_order": "49",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.73": {
+                "field_name": "sbq10_past",
+                "field_title": "Past 2 years: Or did you do it purely for other reasons / without ANY intention of killing yourself (like to relieve stress, feel better, get sympathy, or get something else to happen)?",
+                "field_type": "bool",
+                "field_order": "50",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.75": {
+                "field_name": "describe",
+                "field_title": "Describe",
+                "field_type": "text",
+                "field_order": "51",
+                "field_constraint_data": "is_shown_fg=$(sbq10_past)=='true'||$(sbq10_lifetime)=='true'",
+                "field_is_optional_fg": true
+            },
+            "12.77": {
+                "field_name": "subtitle_12",
+                "field_title": "Study Coordinator Only",
+                "field_type": "string",
+                "field_order": "52",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "12.78": {
+                "field_name": "sbq11_lifetime",
+                "field_title": "Lifetime: Has subject engaged in Non-Suicidal Self-Injurious Behavior?",
+                "field_type": "bool",
+                "field_order": "53",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.79": {
+                "field_name": "sbq11_past",
+                "field_title": "Past 2 years: Has subject engaged in Non-Suicidal Self-Injurious Behavior?",
+                "field_type": "bool",
+                "field_order": "54",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.81": {
+                "field_name": "subtitle_13",
+                "field_title": "Interrupted Attempt",
+                "field_type": "string",
+                "field_order": "55",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_constraint_description": "subtitle",
+                "field_is_optional_fg": true
+            },
+            "12.82": {
+                "field_name": "sbq12_lifetime",
+                "field_title": "Lifetime: Has there been a time when you started to do something to end your life but someone or something stopped you before you actually did anything?",
+                "field_type": "bool",
+                "field_order": "56",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.84": {
+                "field_name": "sbq12_past",
+                "field_title": "Past 2 years: Has there been a time when you started to do something to end your life but someone or something stopped you before you actually did anything?",
+                "field_type": "bool",
+                "field_order": "57",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.86": {
+                "field_name": "sbq12_lifetime_interrupted",
+                "field_title": "Lifetime: Total # of interrupted",
+                "field_type": "text",
+                "field_order": "58",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.87": {
+                "field_name": "sbq12_past_interrupted",
+                "field_title": "Past 2 years: Total # of interrupted",
+                "field_type": "text",
+                "field_order": "59",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.89": {
+                "field_name": "sbq12_describe",
+                "field_title": "Describe",
+                "field_type": "text",
+                "field_order": "60",
+                "field_constraint_data": "is_shown_fg=$(sbq12_lifetime)=='true'"
+            },
+            "12.91": {
+                "field_name": "subtitle_14",
+                "field_title": "Aborted Attempt:",
+                "field_type": "string",
+                "field_order": "61",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "12.93": {
+                "field_name": "sbq13_lifetime",
+                "field_title": "Lifetime: Has there been a time when you started to do something to try to end your life but you stopped yourself before you actually did anything?",
+                "field_type": "bool",
+                "field_order": "62",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.94": {
+                "field_name": "sbq13_past",
+                "field_title": "Past 2 years: Has there been a time when you started to do something to try to end your life but you stopped yourself before you actually did anything?",
+                "field_type": "bool",
+                "field_order": "63",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.96": {
+                "field_name": "sbq13_aborted_lifetime",
+                "field_title": "Lifetime: Number of aborted attempts",
+                "field_type": "integer",
+                "field_order": "64",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.98": {
+                "field_name": "sbq13_aborted_past",
+                "field_title": "Past 2 years: Number of aborted attempts",
+                "field_type": "integer",
+                "field_order": "65",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.100": {
+                "field_name": "subtitle_15",
+                "field_title": "Preparatory Acts or Behavior",
+                "field_type": "string",
+                "field_order": "66",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_description": "Acts or preparation towards imminently making a suicide attempt. This can include anything beyond a verbalization\nor thought, such as assembling a specific method (e.g., buying pills, purchasing a gun) or preparing for one's death\nby suicide (e.g., giving things away, writing a suicide note)."
+            },
+            "12.102": {
+                "field_name": "pbq1_lifetime",
+                "field_title": "Lifetime: Have you taken any steps towards making a suicide attempt or preparing to kill yourself (such as collecting pills, getting a gun, giving valuables away or writing a suicide note)?",
+                "field_type": "bool",
+                "field_order": "67",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.103": {
+                "field_name": "pbq1_past",
+                "field_title": "Past 2 years: Have you taken any steps towards making a suicide attempt or preparing to kill yourself (such as collecting pills, getting a gun, giving valuables away or writing a suicide note)?",
+                "field_type": "bool",
+                "field_order": "68",
+                "field_constraint_data": "is_shown_fg=$(pbq1_lifetime)=='true'"
+            },
+            "12.105": {
+                "field_name": "pbq1_describe",
+                "field_title": "Describe",
+                "field_type": "text",
+                "field_order": "69",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.107": {
+                "field_name": "pbq2_lifetime",
+                "field_title": "Lifetime:  Suicidal behavior was present during the assessment period?",
+                "field_type": "bool",
+                "field_order": "70",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.109": {
+                "field_name": "pbq2_past",
+                "field_title": "Past 2 years:  Suicidal behavior was present during the assessment period?",
+                "field_type": "bool",
+                "field_order": "71",
+                "field_constraint_data": "is_shown_fg=$(pbq2_lifetime)=='false'"
+            },
+            "12.111": {
+                "field_name": "subtitle_16",
+                "field_title": "MOST RECENT ATTEMPT",
+                "field_type": "string",
+                "field_order": "72",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.113": {
+                "field_name": "actual_lethality",
+                "field_title": "Actual Lethality/Medical Damage",
+                "field_type": "string",
+                "field_order": "73",
+                "field_constraint_data": "No physical damage or very minor physical damage\nActual Lethality/Medical Damage: (e.g., surface scratches).|Minor physical damage (e.g., lethargic speech;\nfirst-degree burns; mild bleeding; sprains).|Moderate physical damage; medical attention needed\n(e.g., conscious but sleepy, somewhat responsive;\nsecond-degree burns; bleeding of major vessel).|Moderately severe physical damage; medical\nhospitalization and likely intensive care required\n(e.g., comatose with reflexes intact; third-degree\nburns less than 20% of body; extensive blood loss\nbut can recover; major fractures).|Severe physical damage; medical hospitalization\nwith intensive care required (e.g., comatose\nwithout reflexes; third-degree burns over 20% of\nbody; extensive blood loss with unstable vital\nsigns; major damage to a vital area).|Death\n>is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.115": {
+                "field_name": "potential_lethality",
+                "field_title": "Potential Lethality: Only Answer if Actual Lethality=0: Likely lethality of actual attempt if no medical damage (the following examples, while having no actual medical damage, had potential for very serious lethality: put gun in mouth and pulled the trigger but gun fails to fire so no medical damage; laying on train tracks with oncoming train but pulled away before run over).",
+                "field_type": "string",
+                "field_order": "74",
+                "field_constraint_data": "Behavior not likely to result in injury|Behavior likely to result in injury but not likely to cause death|Behavior likely to result in death despite available medical care\n>is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'"
+            },
+            "12.117": {
+                "field_name": "date_of_recent_attempt",
+                "field_title": "Potential Lethality: Date of most recent attempt",
+                "field_type": "date",
+                "field_order": "75",
+                "field_constraint_data": "is_shown_fg=$(siq1_lifetime)=='false'&&$(siq2_lifetime)=='false'",
+                "field_is_optional_fg": true
+            },
+            "12.119": {
+                "field_name": "date_completed",
+                "field_title": "Date Completed",
+                "field_type": "date",
+                "field_order": "76"
+            }
+        },
+        "description": "As a safety precaution, all participants who endorse suicidal ideation on the C-SSRS must be referred for psychiatric evaluation. Please plan ahead for this possibility by creating a list of local mental health providers to be given to participants if needed.\n\n-\tParticipants who score a 4 or 5 in the ‘Current’ column of page 2 of the C-SSRS (active suicidal ideation with or without a plan) must be referred for immediate evaluation in your site’s emergency department or by on-site psychiatric staff.\n\n-\tParticipants who score a 2 or 3 in the ‘Current’ column of page 2 of the C-SSRS (passive suicidal ideation) must be referred to a mental health provider for psychiatric evaluation within 1 week, using the aforementioned list of providers.\n\nIf you have any questions or concerns as to the severity of a participant’s suicidal ideation, please contact Dr. Andres Kanner at 847-476-1811 (or if Dr. Kanner is unavailable, Dr. Siddhartha Nadkarni at 917-763-1016) to determine the necessity for acute intervention.\n\nWith all psychiatric referrals, the phenotyping clinician should explain to the participant that the interview suggests that they should seek evaluation by a mental health provider; please emphasize that this is not a clinical diagnosis. For adolescents (under age 18), the participant’s parent or guardian must also be notified immediately of any suicidal ideation, including if the parent/guardian is not present during the C-SSRS administration. Lastly, with all referrals, please also ask for written permission from the participant and/or parent or guardian (if under age 18) to contact their primary care provider and notify them of the participant’s C-SSRS score indicative of suicidal ideation.\n\nAfter completion of the study visit:\n-\tfill out the HEP Safety Intervention Form in REDCap, and\n-\tfollow up with the participant 1 week after referral to confirm they were able to schedule an appointment with a mental health provider.",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

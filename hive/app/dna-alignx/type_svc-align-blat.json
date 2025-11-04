@@ -1,0 +1,68 @@
+{
+    "type.124": {
+        "_id": "type.124",
+        "_type": "type",
+        "name": "svc-align-blat",
+        "title": "Blat Alignment",
+        "description": "Blat alignment engine parallellized by HIVE",
+        "parent": {
+            "1": "type.90"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.2": {
+                "field_name": "seedSize",
+                "field_title": "Seed Size",
+                "field_type": "string",
+                "field_default_value": "11"
+            },
+            "1.3": {
+                "field_name": "version",
+                "field_title": "Version",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_default_value": "35",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2
+            },
+            "1.4": {
+                "field_name": "svc",
+                "field_title": "Service ID",
+                "field_type": "string",
+                "field_parent": "system",
+                "field_default_value": "dna-alignx-blat",
+                "field_role": "state",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "375": {
+        "_id": "$type.ci3_po_1w_ret",
+        "_type": "type",
+        "name": "ci3_po_1w_ret",
+        "title": "Post-op outcomes and recurrence (1 week)",
+        "parent": {
+            "3": "$type.ci3_recurrence_ret"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

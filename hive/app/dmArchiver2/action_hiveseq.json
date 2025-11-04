@@ -1,0 +1,45 @@
+{
+    "155": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "hiveseq",
+        "is_obj_action": true,
+        "name": "hiveseq",
+        "order": -3,
+        "required_permission": 2,
+        "target": "true",
+        "type_name": "u-hiveseq+",
+        "url": "?cmd=menu&root=tools&selected=general&ids=$(ids)",
+        "title": "Hiveseq editor",
+        "description": "Create a new composite sequence file: HIVESEQ",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

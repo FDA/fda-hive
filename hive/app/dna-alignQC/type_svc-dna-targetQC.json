@@ -1,0 +1,60 @@
+{
+    "type.383": {
+        "_id": "type.383",
+        "_type": "type",
+        "name": "svc-dna-targetQC",
+        "title": "Targeted Alignment QC",
+        "description": "Targeted AlignmentQC",
+        "fields": {
+            "1.0": {
+                "field_name": "alignQC_objid",
+                "field_title": "Alignments",
+                "field_type": "obj",
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-align-dnaseq+"
+            },
+            "1.2": {
+                "field_name": "referenceAnnotations",
+                "field_title": "Intervals",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot",
+                "field_description": "Annotation file with intervals containing targeted regions"
+            }
+        },
+        "parent": {
+            "8": "type.318"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,105 @@
+{
+    "1": {
+        "_id": "type.194",
+        "_type": "type",
+        "name": "user_app_argument",
+        "title": "Command line argument",
+        "description": "User app command line argument",
+        "fields": {
+            "1.1": {
+                "field_name": "arg_type",
+                "field_title": "Type",
+                "field_type": "obj",
+                "field_description": "Argument type"
+            },
+            "1.2": {
+                "field_name": "arg_array_separator",
+                "field_title": "Separator",
+                "field_type": "string",
+                "field_description": "Array separator"
+            },
+            "1.3": {
+                "field_name": "arg_is_array",
+                "field_title": "Array",
+                "field_type": "bool",
+                "field_description": "Argument is an array"
+            },
+            "1.5": {
+                "field_name": "arg_default_value",
+                "field_title": "Value",
+                "field_type": "obj",
+                "field_description": "Default value"
+            },
+            "1.6": {
+                "field_name": "arg_prefix",
+                "field_title": "Prefix",
+                "field_type": "string",
+                "field_description": "Prefix to identify the input"
+            },
+            "1.7": {
+                "field_name": "arg_separator",
+                "field_title": "Separator",
+                "field_type": "string",
+                "field_description": "Separator for prefix and value"
+            },
+            "1.8": {
+                "field_name": "arg_position",
+                "field_title": "Position",
+                "field_type": "integer",
+                "field_description": "Position in the command line to place this input"
+            },
+            "1.9": {
+                "field_name": "arg_title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_description": "Argument title"
+            },
+            "1.10": {
+                "field_name": "arg_description",
+                "field_title": "Description",
+                "field_type": "text",
+                "field_description": "Argument description"
+            },
+            "1.11": {
+                "field_name": "arg_is_input",
+                "field_title": "Argument is an input",
+                "field_type": "bool",
+                "field_description": "Argument is an input vs parameter"
+            },
+            "1.12": {
+                "field_name": "arg_is_readonly",
+                "field_title": "Argument is a read-only",
+                "field_type": "bool",
+                "field_description": "Argument is a read-only"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

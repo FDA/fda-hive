@@ -1,0 +1,744 @@
+"types" : { 	
+ 
+	"hc_life" : { // this type defines all objects that have a lifespan in DB 
+		"_type" : "type",
+	
+	 	"ctime" : {  // creation time
+			"_type" : "datetime",
+			"_vital" : true
+		},
+		"mtime" : { // modification time 
+			"_type" : "datetime" 
+		},
+		"ltime" : { // logical validity time 
+			"start" : {   
+				"_type" : "datetime"
+			},
+			"end" : {   
+				"_type" : "datetime"
+			}
+		}, 
+		"expires" : { // time when it will be considered for becoming unavailable (soft) and then deleted (hard) 
+			"soft" : {   
+				"_type" : "datetime"
+			},
+			"hard" : {   
+				"_type" : "datetime"
+			}
+		},
+		"psswd" : {
+			"_type" : "password",
+			"_hidden" : true
+		} 
+	},
+	
+	"hc_type" : {
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit": "hc_life",
+		
+		"_field" : {
+
+			"_id" : {
+				"_type" : "hiveid",
+				"_public" : true,
+				"_vital" : true
+			}, 
+			
+			"name" : { 
+				"_type" : "string",
+				"_vital" : true
+			},
+			
+			"title" : { 
+				"_type" : "string",
+				"_public" : true 
+			},
+		 	
+		 	"descr" : { 
+		 		"_type" : "text" 
+			}			
+		},
+	
+		"name" : "hc_type",
+		"title" : "type construct",
+		"descr" : "Type for all types"
+	},
+	
+	"hc_base" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit": "hc_life",
+		
+		"_field" : {
+			
+			"_id" : {
+				"_type" : "hiveid",
+				"_public" : true,
+				"_vital" : true
+			}
+		},
+		
+		"name" : "hc_base",
+		"title" : "base type",
+		"descr" : "Base type for all types other than the type itself"
+	},
+	
+	"hc_sbase" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_base",
+		
+		"name" : "hc_sbase",
+		"title" : "base system type",
+		"descr" : "Base type for all system types"
+	},
+	
+	"hc_ubase" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_base",
+		
+		"name" : "hc_ubase",
+		"title" : "base user type",
+		"descr" : "Base type for all user visible types"
+	},
+	
+	
+	"hc_party" : { 
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_sbase",
+		
+		"_field" : {
+			"inactive" : { 
+				"_type" : "bool",
+				"title" : "is user inactive"
+			}, 
+			"is_admin" : { 
+				"_type" : "bool"
+			}, 
+			"category" : {
+				"_limit" : {
+					"choice" : [
+						"user", 
+						{"value":"system", "title": "System Service"}
+					]
+				}
+			}
+		},
+		
+		"name" : "hc_party",
+		"title" : "all parties",
+		"descr" : "Base type for groups and users, including system users and operation services"
+	},
+	
+	"hc_user" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_party",
+		
+		"_field" : {
+		 
+			"fst_name" : { 
+				"_type" :"string",
+				"title" : "first Name",
+				"_public" : true 
+			},
+			"lst_name" : { 
+				"_type" :"string",
+				"title" : "last Name",
+				"_public" : true  
+			}, 
+			"email" : { 
+				"_type" : "email",
+				"_vital" : true
+			}, 
+			"ok_email" : { 
+				"_type" : "bool",
+				"title" : "needs email validation"
+			}, 
+			"sessions" : { 
+				"_type" : "int",
+				"_hidden" : true,
+				"title" : "Maximum number of concurrent session"  
+			}, 
+			"psswd" : {
+				"_type" : "password",
+				"_vital" : true,
+				"_hidden" : true
+			},
+			"pwd_res" : { 
+				"_type" : "timespan",
+				"title" : "Password expiration"
+			}, 
+			"pwd_prev" : {
+				"_type" : "password",
+				"_plural" : true,
+				"_hidden" : true 
+			},
+			"pwd_reset" : { 
+				"_type" : "bool",
+				"title" : "Password reset needed"
+			},  
+			"log_count" : { 
+				"_type" : "int"
+			},
+			"log_time" : {
+				"_type" : "datetime"
+			}
+		},
+		
+		
+		"name" : "hc_user",
+		"title" : "user type",
+		"descr" : "Information about users"
+	},
+	
+	"hc_group" : {
+	 
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_party",
+		
+		"_field" : {
+			"name" : { 
+				"_type" : "string",
+				"_vital" : true 
+			},
+			"title" : { 
+				"_type" : "string",
+				"_public" : true 
+			},
+			"email" : { 
+				"_type" : "email"
+			},
+			"members" : {
+				"_type" : "hc_user", 
+				"_plural" : true,
+				"_infect": "*" 
+			}
+		},
+		
+		"name" : "hc_group",
+		"title" : "group type",
+		"descr" : "Information about groups"
+	},
+	
+	"hc_act" : {
+	
+		"_type" : "type", 
+		"_id" : "$newid()",
+
+		"_field" : { 
+			"name" : { 
+				"_type" : "string",
+				"_vital" : true 
+			}, 
+			"title": {
+				"_type" : "string",
+				"_public" : true
+			},
+			"descr" : { 
+				"_type" : "text" 
+			} 
+		},
+		"_inherit" : "hc_sbase",
+		
+		"name" : "hc_act",
+		"title" : "actions/permissions",
+		"descr" : "Actions/Permissions defined in the system"
+	},
+
+	"hc_rule" : {
+	
+		"_type" : "type", 
+		"_id" : "$newid()",
+
+		"_field" : { 
+			"act" : { 
+				"_type" : "hc_act",
+				"_plural" : true,
+				"_vital" : true
+			},
+			"party" : { 
+				"_type" : "hc_party",
+				"_plural" : true,
+				"_vital" : true
+			},
+			"obj" : { 
+				"_type" : "hc_base",
+				"_plural" : true,
+				"_vital" : true
+			},
+			"_infect" : {
+				"party": {
+					"_type" : "string", 
+					"_plural" : true
+				},
+				"obj": { 
+					"_type" : "string",
+					"_plural" : true
+				},
+				
+				"_layout" : "array"		
+			}
+			 
+		},
+		// "_inherit" : "hc_sbase",
+		
+		"name" : "hc_rule",
+		"title" : "rule",
+		"descr" : "Honeycomb rule connecting permission to objects and users"
+	},
+		
+	"hc_file" : {
+	
+		"_type" : "type",
+		"_abstr" : true,  // one cannot have object of this type by itself  
+			
+		"_field" : { 
+			"ext" : { 
+				"_type" : "string",
+				"_public" : true, 
+				"title" : "extension"
+		 	}, 		
+			"md5" : { 
+				"_type" : "string",
+				"title" : "MD5"
+			},
+			"name" : { 
+				"_type" : "string",
+				"_vital" : true,
+				"_public" : true
+			},
+			"orig_name" : { 
+				"_type" : "string" , 
+				"title" : "original name"
+			},
+			"size" : { 
+				"_type" : "int",
+				"_write" : "once" 
+			},
+			"zsize" : { 
+				"_type" : "int",
+				"_write" : "once",
+				"title" : "compressed size"
+			},
+			"source" : { 
+				"_type" : "string"
+			}
+		},
+		
+		"name" : "hc_file",
+		"title" : "file type" ,
+		"descr" : "Base type for all file types"
+	},
+	
+	"hc_system_file" : {
+	 
+		"_type" : "type",
+		"_id" : "$newid()",
+		
+		"_inherit" : [ 
+			"hc_file", 
+			"hc_sbase"
+		],
+		
+		"name" : "hc_system_file",
+		"title" : "system file"
+	},
+	
+	"hc_user_file" : {
+	 
+		"_type" : "type",
+		"_id" : "$newid()",
+		
+		"_inherit" : [ 
+			"hc_file",
+			"hc_ubase"
+		],
+		
+		"name": "hc_user_file",
+		"title": "user file"
+	},
+	
+	"hc_dir" : {
+	
+		"_type" : "type",
+		"_abstr" : true, // one cannot have object of this type by itself 
+		
+		"_field" : { 
+			"name" : { 
+				"_type" : "string",
+				"_vital" : true,
+				"_public" : true
+			},
+			"orig-name" : { 
+				"_type" : "string" , 
+				"title" : "original name"
+			},
+			"source" : { 
+				"_type" : "string"
+			},
+			"children" : {
+				"_type" : "hiveid",
+				"_plural" : true,
+				"_infect": ["browse"]
+			}
+		},
+				
+		"name" : "hc_dir",
+		"title" : "directory type" ,
+		"descr" : "Base type for all directory types"
+	},
+	
+	"hc_system_dir" : {
+	 
+		"_type" : "type",
+		"_id" : "$newid()",
+		
+		"_inherit" : [ 
+			"hc_dir", 
+			"hc_sbase"
+		],
+		
+		"name": "hc_system_dir",
+		"title": "system directory"
+	},
+	
+	"hc_user_dir" : {
+	 
+		"_type" : "type",
+		"_id" : "$newid()",
+		
+		"_inherit" : [ 
+			"hc_dir",
+			"hc_ubase"
+		],
+		
+		"name": "hc_user_dir",
+		"title": "user directory"
+	},
+	
+	"hc_app" : { 
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_sbase",
+		
+		"_field" : {
+			"name" : { 
+				"_type" : "string",
+				"_vital" : true
+			},
+			"version" : { 
+				"_type" : "string",
+				"_vital" : true
+			},
+			"title" : {
+				"_type" : "string",
+				"_vital" : true,
+				"_public" : true
+			},
+			"cmdline" : {
+				"_type" : "cmdline",
+				"_plural" : true
+			}, 
+			"script" : {
+				"_type" : "text"
+			}, 
+			"descr" : { 
+				"_type" : "text"
+			}
+		},
+		
+		"name" : "hc_app",
+		"title" : "app type",
+		"descr" : "Base type for all apps"
+	},
+	
+	"hc_svc" : { 
+		
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_sbase",
+		
+		"_field" : {
+			"name" : { 
+				"_type" : "string",
+				"_vital" : true
+			},
+			"version" : { 
+				"_type" : "string",
+				"_vital" : true
+			},
+			"title" : {
+				"_type" : "string"
+			}, 
+			"descr": {
+				"_type" : "text"
+			}, 
+			"categories" : {
+				"_type" : "string",
+				"_plural" : true
+			},
+			"svc-type" : {
+				"_limit" : {
+					"choice" : [ "push" , "pull" ]
+				}
+			},
+			"max-jobs" : {
+				"_type" : "uint",
+				"_default" : 1
+			},
+			"nice" : {
+				"_type" : "uint",
+				"_default" : 0
+			},
+			"parallel-jobs" : {
+				"_type" : "uint",
+				"_default" : 0	 
+			},
+			"max-loops" : { 
+				"_type" : "uint",
+				"_default" : 100
+			},
+			"max-trials" : { 
+				"_type" : "uint",
+				"_default" : 3
+			},
+			"priority" : { 
+				"_type" : "uint",
+				"_default" : 0
+			},
+			"run-multithread" : { 
+				"_type" : "uint",
+				"_default" : 1
+			},
+			"active-job-reserve" : { 
+				"_type" : "uint",
+				"_default" : 0
+			},
+			"capacity-demand" : { 
+				"_type" : "uint",
+				"_default" : 1
+			},		
+			"nograb-disconnect-after" : { 
+				"_type" : "uint",
+				"_default" : 5
+			},			
+			"nograb-exit-after" : { 
+				"_type" : "uint",
+				"_default" : 10
+			},			
+			"maxmem-soft-limit" : { 
+				"_type" : "memory"
+			},
+			"maxmem-hard-limit" : { 
+				"_type" : "memory"
+			},
+			"up-threads" : { 
+				"_type" : "uint"
+			},
+	 		"emails" : {
+	 			"_type" : "email",
+	 			"_plural" : true
+	 		},
+	 		"sleep-time-miliseconds" : { 
+				"_type" : "uint",
+				"_default" : 60000
+			},
+			"delay-launch-seconds" : { 
+				"_type" : "uint",
+				"_default" : 1
+			},
+			"polite-exit-timeout-seconds" : { 
+				"_type" : "uint",
+				"_default" : 60000
+			},
+			"knockout-seconds" : {
+				"_type" : "uint",
+				"_default" : 900
+			},
+			"request-restart-seconds" : {
+				"_type" : "uint",
+				"_default" : 1000
+			},
+			"cleanup-days" : {
+				"_type" : "uint",
+				"_default" : 28
+			},	
+			"lazy-report-seconds" : {
+				"_type" : "uint",
+				"_default" : 10
+			},	
+			"delayed-action-seconds" : {
+				"_type" : "uint",
+				"_default" : 0
+			},
+			"host" : {
+				"_type" : "string",
+				"_plural" : true,
+				"_default" : "QPrideSrv"
+			},
+			"config" : {
+				"_type" : "keyval",
+	 			"_vital" : true,  			
+	 			"_plural" : true
+			}
+		},
+		
+		"name" : "hc_svc",
+		"title" : "service type",
+		"descr" : "Base type for all services"
+	},
+	
+	
+	"hc_proc" : {
+	 
+		"_type" : "type",
+		"_abstract": true,
+		
+		"_field" : {
+			"started" : { 
+				"_type" : "datetime",
+				"_default" : "$now()"
+			},
+			"completed" : { 
+				"_type" : "datetime"
+			}, 
+			"requestID" : {
+				"_type" : "int"
+			}, 
+			"priority" : {
+				"_type" : "int"
+			}, 
+			"progress" : {
+				"_type" : "int"
+			}, 
+			"progress100" : {
+				"_type" : "int"
+			}, 
+			"action" : {
+				"_type" : "int"
+			}, 
+			"status" : {
+				"_type" : "int",
+				"_vital" : true
+			},
+			"submitter" : {
+				"_type" : "string"
+			}, 
+			"service" : {
+				"_type" : "string",
+				"_vital" : true
+			}
+		},
+		
+		"name" : "hc_proc",
+		"title" : "process type",
+		"descr" : "Base type for all process types"
+	},
+	
+				
+	"hc_sproc" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		 
+		"_inherit" : [ 
+			"hc_proc",
+			"hc_sbase"
+		],
+		 
+		"name" : "hc_sproc",
+		"title" : "system process type"
+	},
+	
+		
+	"hc_uproc" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		
+		"_inherit" : [ 
+			"hc_proc",
+			"hc_ubase"
+		],
+		
+		"name" : "hc_uproc",
+		"title" : "user process type"
+	},
+	
+	
+	"hc_host" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		
+		"_field" : {
+			"name" : {
+				"_type" : "string",
+				"_vital" : true
+			},
+			"os" : {
+				"_type" : "string",
+				"_vital" : true
+			},
+			"ip4" : {
+				"_type" : "string",
+				"_default" : "nslookup comb | grep Server  | awk '{print $2}'" 
+			},
+			"category" : {
+				"_type" : "string",
+				"_plural" : true 
+			},
+			"os" : {
+				"_type" : "string"
+			},
+			"active" : {
+				"_type" : "bool" 
+			},
+			"cores" : {
+				"_type" : "uint"
+			},
+			"memory" : {
+				"_type" : "memory"
+			},
+			"storage" : {
+				"_type" : "memory"
+			},
+			"capacity" : {
+				"_type" : "uint"
+			}
+		},
+		"_inherit" : "hc_sbase",
+		
+		"name" : "hc_host",
+		"title" : "host type"
+	},
+	
+	"hc_hostgroup" : {
+	
+		"_type" : "type",
+		"_id" : "$newid()",
+		"_inherit" : "hc_host",
+		
+		"_field" : {
+			"members" : {
+				"_type" : "hc_host",
+				"_vital" : true,
+				"_plural" : true
+			}
+		},
+		
+		
+		"name" : "hc_hostgroup",
+		"title" : "host group type"
+	} 
+}

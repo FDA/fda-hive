@@ -1,0 +1,192 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+h2 ~ button{
+    border-style:solid;
+    border-width: 1px;
+    color: #0f56b9;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+   border-radius: 0px;
+    padding: 5px 15px;
+    margin-right: 10px;
+   /* background-color: #0149ad; */ 
+    background-color: white;
+    border-color: #87afe6;
+    align-items: center;
+    font-size: 16px;
+    
+}
+h2 ~ button:hover{
+     background-color: #87afe6;
+     color: #fff;
+    border-radius: 0px;
+}
+h2 ~ button:focus{
+     background-color: #1766d3;
+     border-color: #0149ad;
+     color: #fff;
+    border-radius: 0px;
+}
+.btn-active{
+     background-color: #1766d3;
+      border-style:none;
+     color: #fff;
+}
+
+
+h2{
+    color: #87afe6;
+    border: 0px;
+    padding-top: 20px;
+    padding-bottom: 5px;
+}
+
+
+.panel-body{
+    border-style: none;
+    border: 0px;
+    text-align:center;
+}
+.panel{
+    border-style: none;
+    border: 0px;
+}
+
+.panel-default>.panel-heading{
+    border-style:none;
+}
+
+/*STYLING TABS*/
+
+.nav-tabs>li.active>a, .nav-tabs>li.active>a:hover, .nav-tabs>li.active>a:focus{
+    color: #333;
+    border-color: #87afe6;
+    border-bottom: #fff;
+     border-radius: 0px;
+    
+}
+
+/*STYLING TABLES*/
+/*
+form[name="requestProject-form"] .REC_table:first-child{
+    margin: 0px auto;
+}
+*/
+.REC_table td {
+    font-size: 16px;
+}
+.REC_table th{
+    font-size: 16px;
+    background-color: #87afe6; 
+    color: #fff;
+    letter-spacing: 0.5px;
+    padding-left: 5px;
+    font-weight: normal;
+    border-color: white;
+}
+/*input fleid*/
+.REC_input{
+    color: #000000;
+    padding-left: 5px;
+    background-color: #fafafa;
+    border-color: #f5f5f5;
+    
+    margin-left: 10px;
+    background-image: none;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+}
+
+input[type='button']{
+     line-height: 1.499;
+    position: relative;
+    display: inline-block;
+    font-weight: 400;
+    white-space: nowrap;
+    text-align: center;
+    background-image: none;
+    box-shadow: 0 2px 0 rgba(0,0,0,.015);
+    cursor: pointer;
+    -webkit-transition: all .3s cubic-bezier(.645,.045,.355,1);
+    transition: all .3s cubic-bezier(.645,.045,.355,1);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    height: 32px;
+    padding: 0 15px;
+ 
+    color: rgba(0,0,0,.65);
+    background-color: #fff;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    font-size: 16px;
+}
+.hv-btn{
+      /**/
+    margin-bottom: 10px;  
+}
+
+input[type='button']:hover{
+    color: #40a9ff;
+    background-color: #fff;
+    border-color: #40a9ff;
+}
+input[type='button']:focus{
+    color: #40a9ff;
+    background-color: #fff;
+    border-color: #40a9ff;
+}
+
+.content {
+    height: calc(100% - 80px);
+    left: 0px;
+    right: 0px;
+}
+.main-content {
+    margin: 0px auto;
+     position: relative !important; 
+     top: unset !important; 
+    height: 100% !important;
+     left: unset !important; 
+}
+.panel-body> div{
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+img[src="img/chevronRightGrey.svg"]{
+    visibility: hidden;
+}
+form[name*="-form"]~#hive_default_bottom_section, form~#hive_default_bottom_section {
+    bottom: 11px;
+}

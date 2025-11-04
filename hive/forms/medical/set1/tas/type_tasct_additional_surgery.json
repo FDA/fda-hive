@@ -1,0 +1,65 @@
+{
+    "386": {
+        "_id": "$type.tasct_additional_surgery",
+        "_type": "type",
+        "name": "tasct_additional_surgery",
+        "title": "Additional Surgery Questionnaire",
+        "fields": {
+            "1.1": {
+                "field_name": "other_surgery ",
+                "field_title": "Have you had any other surgery since your first breast augmentation surgery?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "surgery_related_breast_implants",
+                "field_title": "Have you had surgery related to your breast implants since your first breast augmentation surgery?",
+                "field_type": "bool",
+                "field_order": 2
+            }
+        },
+        "parent": {
+            "3": "$type.tasct_forms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TAS/SBS/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

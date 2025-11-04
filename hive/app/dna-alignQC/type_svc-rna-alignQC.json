@@ -1,0 +1,82 @@
+{
+    "type.379": {
+        "_id": "type.379",
+        "_type": "type",
+        "name": "svc-rna-alignQC",
+        "title": "Rna Alignment QC",
+        "description": "Rna Alignment QC",
+        "fields": {
+            "1.0": {
+                "field_name": "heptagon_objid",
+                "field_title": "Profilers For Crocodile Plot",
+                "field_type": "obj",
+                "field_parent": "sample_group",
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler-heptagon"
+            },
+            "1.4": {
+                "field_name": "alignQC_objid",
+                "field_title": "Alignments",
+                "field_type": "obj",
+                "field_parent": "sample_group",
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-align-dnaseq+"
+            },
+            "1.6": {
+                "field_name": "sample_group",
+                "field_title": "Sample Group",
+                "field_type": "list",
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true
+            },
+            "1.8": {
+                "field_name": "max_length_of_short",
+                "field_title": "Maximum length of short transcripts",
+                "field_type": "integer",
+                "field_default_value": "500"
+            },
+            "1.9": {
+                "field_name": "min_length_of_long",
+                "field_title": "Minimum length of long transcripts",
+                "field_type": "integer",
+                "field_default_value": "5000"
+            }
+        },
+        "parent": {
+            "8": "type.318"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

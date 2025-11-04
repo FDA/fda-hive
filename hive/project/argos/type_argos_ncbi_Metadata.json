@@ -1,0 +1,266 @@
+{
+    "277436": {
+        "_id": "$type.argos_ncbi_Metadata",
+        "_type": "type",
+        "name": "argos_ncbi_Metadata",
+        "title": "NCBI metadata",
+        "parent": {
+            "7": "$type.argos_Base_Data"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "accession",
+                "field_title": "assembly accession",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.2": {
+                "field_name": "paired_accession",
+                "field_title": "paired accession",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.3": {
+                "field_name": "source_database",
+                "field_title": "source database",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.4": {
+                "field_name": "organism_name",
+                "field_title": "organism name",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.5": {
+                "field_name": "tax_id",
+                "field_title": "tax id",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.6": {
+                "field_name": "strain",
+                "field_title": "strain",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.7": {
+                "field_name": "assembly_level",
+                "field_title": "assembly level",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.8": {
+                "field_name": "assembly_status",
+                "field_title": "assembly status",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.9": {
+                "field_name": "assembly_name",
+                "field_title": "assembly name",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.10": {
+                "field_name": "assembly_type",
+                "field_title": "assembly type",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.11": {
+                "field_name": "release_date",
+                "field_title": "release date",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.12": {
+                "field_name": "submitter",
+                "field_title": "submitter",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.13": {
+                "field_name": "sequencing_tech",
+                "field_title": "sequencing tech",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.14": {
+                "field_name": "assembly_method",
+                "field_title": "assembly method",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.15": {
+                "field_name": "bioproject",
+                "field_title": "bioproject",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.16": {
+                "field_name": "biosample",
+                "field_title": "biosample",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.17": {
+                "field_name": "biosample_submission_date",
+                "field_title": "biosample submission date",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.18": {
+                "field_name": "collected_by",
+                "field_title": "collected by",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.19": {
+                "field_name": "collection_date",
+                "field_title": "collection date",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.20": {
+                "field_name": "geo_location",
+                "field_title": "geo location",
+                "field_type": "string",
+                "field_is_optional_fg": false
+            },
+            "11.21": {
+                "field_name": "host",
+                "field_title": "host",
+                "field_type": "string"
+            },
+            "11.22": {
+                "field_name": "host_disease",
+                "field_title": "host disease",
+                "field_type": "string"
+            },
+            "11.23": {
+                "field_name": "isolate",
+                "field_title": "isolate",
+                "field_type": "string"
+            },
+            "11.24": {
+                "field_name": "isolate_alias",
+                "field_title": "isolate alias",
+                "field_type": "string"
+            },
+            "11.25": {
+                "field_name": "isolation_source",
+                "field_title": "isolation source",
+                "field_type": "string"
+            },
+            "11.26": {
+                "field_name": "lat_lon",
+                "field_title": "lat lon",
+                "field_type": "string"
+            },
+            "11.27": {
+                "field_name": "biosample_strain",
+                "field_title": "biosample strain",
+                "field_type": "string"
+            },
+            "11.28": {
+                "field_name": "host_sex",
+                "field_title": "host sex",
+                "field_type": "string"
+            },
+            "11.29": {
+                "field_name": "host_age",
+                "field_title": "host age",
+                "field_type": "string"
+            },
+            "11.30": {
+                "field_name": "culture_collection",
+                "field_title": "culture collection",
+                "field_type": "string"
+            },
+            "11.31": {
+                "field_name": "host_disease_outcome",
+                "field_title": "host disease outcome",
+                "field_type": "string"
+            },
+            "11.32": {
+                "field_name": "host_health_state",
+                "field_title": "host health state",
+                "field_type": "string"
+            },
+            "11.33": {
+                "field_name": "host_description",
+                "field_title": "host description",
+                "field_type": "string"
+            },
+            "11.34": {
+                "field_name": "host_disease_stage",
+                "field_title": "host disease stage",
+                "field_type": "string"
+            },
+            "11.35": {
+                "field_name": "num_chromosomes",
+                "field_title": "num chromosomes",
+                "field_type": "string"
+            },
+            "11.36": {
+                "field_name": "genome_coverage",
+                "field_title": "genome coverage",
+                "field_type": "string"
+            },
+            "11.37": {
+                "field_name": "annotation_provider",
+                "field_title": "annotation provider",
+                "field_type": "string"
+            },
+            "11.38": {
+                "field_name": "num_genes",
+                "field_title": "num genes",
+                "field_type": "string"
+            },
+            "11.39": {
+                "field_name": "parent_accession",
+                "field_title": "bioproject parent accession",
+                "field_type": "string"
+            },
+            "11.40": {
+                "field_name": "bco_id",
+                "field_title": "bco id",
+                "field_type": "string"
+            },
+            "11.41": {
+                "field_name": "schema_version",
+                "field_title": "schema version",
+                "field_type": "string"
+            },
+            "11.43": {
+                "field_name": "id_method",
+                "field_title": "sample id method",
+                "field_type": "string"
+            },
+            "11.44": {
+                "field_name": "sample_name",
+                "field_title": "sample name",
+                "field_type": "string"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

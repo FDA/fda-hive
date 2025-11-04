@@ -1,0 +1,490 @@
+{
+    "358": {
+        "_id": "$type.ci3_cut_down_approach_ret",
+        "_type": "type",
+        "name": "ci3_cut_down_approach_ret",
+        "title": "Cut-Down Approach",
+        "fields": {
+            "1.1": {
+                "field_name": "entry_type",
+                "field_title": "Entry type",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_data": "prospective|retrospective (no time log)"
+            },
+            "1.2": {
+                "field_name": "subtitle_1",
+                "field_title": "Consent (required variable)",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_description": "subtitle"
+            },
+            "1.3": {
+                "field_name": "research_consent",
+                "field_title": "Research consent",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "obtained consent|refused consent"
+            },
+            "1.4": {
+                "field_name": "consent_to_novel_sbo_management",
+                "field_title": "Consent to novel SBO management",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "obtained consent|refused consent|consent retracted|excluded due to need for operative management/bowel compromise|excluded due to surgeon discretion|excluded due to location of stricture/obstruction not amenable to novel approach|excluded for other reason"
+            },
+            "1.5": {
+                "field_name": "demographics_subtitle",
+                "field_title": "Demographics",
+                "field_type": "string",
+                "field_order": 4.9,
+                "field_constraint_description": "subtitle"
+            },
+            "1.6": {
+                "field_name": "demographics",
+                "field_title": "Demographics",
+                "field_type": "obj",
+                "field_order": 5,
+                "field_constraint": "type",
+                "field_constraint_data": "ci3_demographics"
+            },
+            "1.7": {
+                "field_name": "pre_operative_variables_subtitle",
+                "field_title": "Pre-operative variables",
+                "field_type": "string",
+                "field_order": 5.9,
+                "field_constraint_description": "subtitle"
+            },
+            "1.8": {
+                "field_name": "pre_operative_variables",
+                "field_title": "Pre-operative variables",
+                "field_type": "obj",
+                "field_order": 6,
+                "field_constraint": "type",
+                "field_constraint_data": "ci3_pre_operative"
+            },
+            "1.9": {
+                "field_name": "subtitle_2",
+                "field_title": "Intra-operative variables",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_description": "subtitle"
+            },
+            "1.10": {
+                "field_name": "obstruction_location",
+                "field_title": "Is the obstruction in the",
+                "field_type": "string",
+                "field_order": 8,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Esophagus|Stomach|Duodenum|Jejunum|Ileum|Ileocecal valve or Ileocolic anastomosis|Ascending or transverse colon|Descending or sigmoid colon|Rectum"
+            },
+            "1.11": {
+                "field_name": "obstruction_location_prior_site",
+                "field_title": "Is the obstruction at the site of a prior anastomosis or strictureplasty?",
+                "field_type": "string",
+                "field_order": 8.5,
+                "field_constraint_data": "Yes|No|Unknown"
+            },
+            "1.12": {
+                "field_name": "site_of_incision",
+                "field_title": "Site of incision",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "left upper quadrant (LUQ)|right upper quadrant (RUQ)|left lower quadrant (LLQ)|right lower quadrant (RLQ)|Mid-abdomen"
+            },
+            "1.13": {
+                "field_name": "device_type",
+                "field_title": "Device Type",
+                "field_type": "string",
+                "field_parent": "device_type_used",
+                "field_order": 1,
+                "field_constraint_data": "Wire (guide wire, type used -name, manufacturer, model, length)|Sheath (diameter, length, type, manufacturer)|Catheter (name, diameter, length)|Balloon|Other (specify)"
+            },
+            "1.14": {
+                "field_name": "wire_used",
+                "field_title": "Wire used",
+                "field_type": "string",
+                "field_parent": "device_type_used",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(device_type)=='Wire (guide wire, type used -name, manufacturer, model, length)'"
+            },
+            "1.15": {
+                "field_name": "sheath_used",
+                "field_title": "Sheath used",
+                "field_type": "string",
+                "field_parent": "device_type_used",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(device_type)=='Sheath (diameter, length, type, manufacturer)'"
+            },
+            "1.16": {
+                "field_name": "angiographic_catheter_used",
+                "field_title": "Angiographic catheter used",
+                "field_type": "string",
+                "field_parent": "device_type_used",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(device_type)=='Catheter (name, diameter, length)'"
+            },
+            "1.17": {
+                "field_name": "balloon_used",
+                "field_title": "Balloon used",
+                "field_type": "string",
+                "field_parent": "device_type_used",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(device_type)=='Balloon'"
+            },
+            "1.18": {
+                "field_name": "length_of_incision",
+                "field_title": "Length of Incision (cm)",
+                "field_type": "integer",
+                "field_order": 10
+            },
+            "1.19": {
+                "field_name": "initial_approach_to_lesion",
+                "field_title": "Initial approach to lesion",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "From below or distal to the point of obstruction (retrograde)|From above or proximal to the point of obstruction (antegrade)|Other (specify)"
+            },
+            "1.20": {
+                "field_name": "specify_1",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 12,
+                "field_constraint_data": "is_shown_fg=$(initial_approach_to_lesion)=='Other (specify)'"
+            },
+            "1.21": {
+                "field_name": "anatomic_location",
+                "field_title": "Anatomic location where cut-down was targeted",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "Proximal small bowel|Mid-small bowel|Distal small bowel|Large bowel"
+            },
+            "1.22": {
+                "field_name": "proximal_diversion_performed",
+                "field_title": "Proximal diversion (stoma) performed",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "no|yes|NA|uknown"
+            },
+            "1.23": {
+                "field_name": "sheath",
+                "field_title": "Sheath used",
+                "field_type": "integer",
+                "field_order": 15
+            },
+            "1.24": {
+                "field_name": "device_type_used",
+                "field_title": "Device Type Used ",
+                "field_type": "array",
+                "field_order": 16,
+                "field_is_multi_fg": true
+            },
+            "1.25": {
+                "field_name": "other_device_used",
+                "field_title": "Other device used specify",
+                "field_type": "text",
+                "field_parent": "device_type_used",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(device_type)=='Other (specify)'"
+            },
+            "1.26": {
+                "field_name": "simultaneous_endoscopy_performed",
+                "field_title": "Simultaneous endoscopy performed",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "none performed|colonoscopy|endoscopy via colostomy|enteroscopy via percutaneous|other (specify)|NA|unknown"
+            },
+            "1.27": {
+                "field_name": "simultaneous_endoscopy_performed_specify",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 17.1,
+                "field_constraint_data": "is_shown_fg=$(simultaneous_endoscopy_performed)=='other (specify)'"
+            },
+            "1.28": {
+                "field_name": "if_endoscope_used",
+                "field_title": "If Endoscope used",
+                "field_type": "string",
+                "field_order": 18,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Gastroscope|Bronchoscope|Adult colonoscope|Pediatric colonoscope|Ureteroscope|Rigid proctoscope|Anoscope|Spy glass (specify which type)|Ambu scope (specify which type)|Other (specify)"
+            },
+            "1.29": {
+                "field_name": "specify_2",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 19,
+                "field_constraint_data": "is_shown_fg=$(if_endoscope_used)=='Other (specify)'"
+            },
+            "1.30": {
+                "field_name": "spy_glass_specify_type",
+                "field_title": "specify which type",
+                "field_type": "string",
+                "field_order": 19.1,
+                "field_constraint_data": "is_shown_fg=$(if_endoscope_used)=='Spy glass (specify which type)'"
+            },
+            "1.31": {
+                "field_name": "ambu_scope_specify_type",
+                "field_title": "specify which type",
+                "field_type": "string",
+                "field_order": 19.2,
+                "field_constraint_data": "is_shown_fg=$(if_endoscope_used)=='Ambu scope (specify which type)'"
+            },
+            "1.32": {
+                "field_name": "if_endoscope_used_dilumen_over_scope",
+                "field_title": "If Endoscope used, Dilumen over the scope double balloon used?",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_is_optional_fg": true
+            },
+            "1.33": {
+                "field_name": "intra_op_imaging",
+                "field_title": "Intra-op imaging",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint_description": "subtitle"
+            },
+            "1.34": {
+                "field_name": "guidance_used_to_reach_lesion",
+                "field_title": "What guidance has been used to reach the lesion and execute the procedure?",
+                "field_type": "string",
+                "field_order": 22,
+                "field_constraint_data": "none|fluoroscopy|cone-beam CT|fluoro and cone beam|Optical (Endoscopy/ colonoscopy)|ultrasound|NA|unk"
+            },
+            "1.35": {
+                "field_name": "fluoro_time",
+                "field_title": "Fluoro time ",
+                "field_type": "integer",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='fluoro and cone beam'"
+            },
+            "1.36": {
+                "field_name": "enter_radiation_dose",
+                "field_title": "Enter Radiation dose ",
+                "field_type": "text",
+                "field_order": 25,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='fluoro and cone beam'"
+            },
+            "1.37": {
+                "field_name": "if_cone_beam_ct",
+                "field_title": "IF cone beam CT selected, enter the number of spins ",
+                "field_type": "integer",
+                "field_order": 26,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'"
+            },
+            "1.38": {
+                "field_name": "cone_beam_ct_during_procedure",
+                "field_title": "Cone beam CT during procedure selected",
+                "field_type": "string",
+                "field_order": 27,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'"
+            },
+            "1.39": {
+                "field_name": "cbct_manufacturer",
+                "field_title": "CBCT manufacturer (Siemens, GE, … )",
+                "field_type": "string",
+                "field_order": 28,
+                "field_constraint_data": "Needle guidance|Drop markers with the “insert” key on areas of interests|“Auto-Select” tool to Segment out the area of interest and make a VR model out of it.|“Vision Export” to overlay segmented volume on fluoro images|Bi-view registration in Vision to register the pre-op segmented volume to the live image\r\n>is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'"
+            },
+            "1.40": {
+                "field_name": "needle_guidance_technology_used",
+                "field_title": "Needle guidance technology used?",
+                "field_type": "bool",
+                "field_order": 29,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'"
+            },
+            "1.41": {
+                "field_name": "if_needle_guidance",
+                "field_title": "If YES, specify ",
+                "field_type": "text",
+                "field_order": 30,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'&&$(needle_guidance_technology_used)==true"
+            },
+            "1.42": {
+                "field_name": "image_capture",
+                "field_title": "Image capture",
+                "field_type": "string",
+                "field_order": 31,
+                "field_constraint_data": "Image fusion (image overlay of cbct to 3d image) /3D recon (GE device needle guide)/mapping|Linkage to intraop images|Other (specify)\r\n>is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'"
+            },
+            "1.43": {
+                "field_name": "specify_4",
+                "field_title": "specify",
+                "field_type": "string",
+                "field_order": 32,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'&&$(image_capture)=='Other (specify)'"
+            },
+            "1.44": {
+                "field_name": "intraoperative_intraluminal_contrast_injection",
+                "field_title": "Intraoperative Intraluminal contrast injection",
+                "field_type": "bool",
+                "field_order": 33,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'"
+            },
+            "1.45": {
+                "field_name": "specify_5",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 34,
+                "field_constraint_data": "is_shown_fg=$(guidance_used_to_reach_lesion)=='cone-beam CT'&&$(intraoperative_intraluminal_contrast_injection)==true"
+            },
+            "1.46": {
+                "field_name": "obstruction_alleviation_method",
+                "field_title": "Obstruction alleviation method",
+                "field_type": "string",
+                "field_order": 35,
+                "field_constraint_data": "Balloon dilation|Endoscope (itself)|Proximal Stoma|Other (specify)|Didn’t reach the lesion"
+            },
+            "1.47": {
+                "field_name": "endoscope_specify_type",
+                "field_title": "specify type",
+                "field_type": "string",
+                "field_order": 35.1,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Endoscope (itself)'"
+            },
+            "1.48": {
+                "field_name": "obstruction_alleviation_method_other",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 35.2,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Other (specify)'"
+            },
+            "1.49": {
+                "field_name": "balloon_type",
+                "field_title": "Balloon type ",
+                "field_type": "string",
+                "field_order": 36,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Balloon dilation'"
+            },
+            "1.50": {
+                "field_name": "balloon_used_number",
+                "field_title": "If Balloon used, Number of times same balloon used",
+                "field_type": "integer",
+                "field_order": 37,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Balloon dilation'"
+            },
+            "1.51": {
+                "field_name": "large_balloon_used",
+                "field_title": "Larger balloon used?",
+                "field_type": "bool",
+                "field_order": 38,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Balloon dilation'"
+            },
+            "1.52": {
+                "field_name": "larger_balloon_type",
+                "field_title": "Larger Balloon type ",
+                "field_type": "string",
+                "field_order": 39,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Balloon dilation'&&$(large_balloon_used)==true"
+            },
+            "1.53": {
+                "field_name": "number_large_balloon_used",
+                "field_title": "Number of times larger balloon used",
+                "field_type": "integer",
+                "field_order": 40,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Balloon dilation'&&$(large_balloon_used)==true"
+            },
+            "1.54": {
+                "field_name": "balloon_dilation_successful",
+                "field_title": "Overall was balloon dilation successful?",
+                "field_type": "bool",
+                "field_order": 41,
+                "field_constraint_data": "is_shown_fg=$(obstruction_alleviation_method)=='Balloon dilation'"
+            },
+            "1.55": {
+                "field_name": "s_l_bowel_closure_method",
+                "field_title": "Small/large bowel closure method",
+                "field_type": "string",
+                "field_order": 42,
+                "field_constraint_data": "none (e.g. in case of stoma)|novel closure device (specify)|suture closure"
+            },
+            "1.56": {
+                "field_name": "specify_6",
+                "field_title": "specify",
+                "field_type": "string",
+                "field_order": 43,
+                "field_constraint_data": "is_shown_fg=$(s_l_bowel_closure_method)=='novel closure device (specify)'"
+            },
+            "1.57": {
+                "field_name": "abdominal_closure",
+                "field_title": "Abdominal closure",
+                "field_type": "string",
+                "field_order": 44,
+                "field_constraint_data": "none ( e.g. in case of stoma)|fascia closed"
+            },
+            "1.58": {
+                "field_name": "subtitle_3",
+                "field_title": "Select intra-op outcomes",
+                "field_type": "string",
+                "field_order": 45,
+                "field_constraint_description": "subtitle"
+            },
+            "1.59": {
+                "field_name": "intraoperative_complications",
+                "field_title": "Intraoperative Complications",
+                "field_type": "string",
+                "field_order": 46,
+                "field_constraint_data": "none|bleeding|free perforation|leakage of contrast suggestive of small perforation|Nearby structure or organ damage|Other (specify)"
+            },
+            "1.60": {
+                "field_name": "specify_7",
+                "field_title": "specify",
+                "field_type": "text",
+                "field_order": 47,
+                "field_constraint_data": "is_shown_fg=$(intraoperative_complications)=='Other (specify)'"
+            },
+            "1.61": {
+                "field_name": "device_malfunction",
+                "field_title": "Device malfunction",
+                "field_type": "bool",
+                "field_order": 48
+            },
+            "1.62": {
+                "field_name": "total_time",
+                "field_title": "Total Time to reach the lesion ( number of min from device introduction, incision time, etc.)",
+                "field_type": "integer",
+                "field_order": 49
+            },
+            "1.63": {
+                "field_name": "procedure_time",
+                "field_title": "Procedure time (min)",
+                "field_type": "integer",
+                "field_order": 50
+            },
+            "1.64": {
+                "field_name": "approach_successful",
+                "field_title": "Was the approach successful?",
+                "field_type": "bool",
+                "field_order": 51
+            },
+            "1.65": {
+                "field_name": "converter",
+                "field_type": "string",
+                "field_order": 52,
+                "field_constraint_data": "ci3_endoscopy_approach-Endoscopy Approach|ci3_percutaneous_approach-Percutaneous Approach|ci3_laparoscopic_approach-Laparoscopic Approach|ci3_open_surgery_approach-Open Surgery Approach",
+                "field_constraint_description": "converter"
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_retrospective"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

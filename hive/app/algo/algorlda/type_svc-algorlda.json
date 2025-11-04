@@ -1,0 +1,409 @@
+{
+    "330": {
+        "_id": "$type.svc-algorlda",
+        "_type": "type",
+        "name": "svc-algorlda",
+        "title": "RLDA tools",
+        "description": "// Clusterization and classification RLDA Utility\nlocation: hive.app.algo.algorlda",
+        "parent": {
+            "1": "$type.svc-AIML"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "binThreshold",
+                "field_title": "Threshold for binary values",
+                "field_type": "real",
+                "field_parent": "parsing",
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true
+            },
+            "1.2": {
+                "field_name": "bootStrapCounter",
+                "field_title": "Bootstrap every so many steps",
+                "field_type": "integer",
+                "field_parent": "bootstrap",
+                "field_order": 6,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "0///do not bootstrap",
+                "field_constraint_description": "|10000///10000 steps|1000///1000 steps",
+                "field_description": "How frequently to bootstrap the samples"
+            },
+            "1.3": {
+                "field_name": "bootStrapFraction",
+                "field_title": "Bootstrap core fraction",
+                "field_type": "real",
+                "field_parent": "bootstrap",
+                "field_order": 7,
+                "field_default_value": "0.9",
+                "field_is_optional_fg": true,
+                "field_description": "The fraction of samples in maintained in each bootstrap step"
+            },
+            "1.4": {
+                "field_name": "categs",
+                "field_title": "As pasted CSV text",
+                "field_type": "text",
+                "field_parent": "categsGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Enter the categroization matrix where rowa correspond to samples and columns are category values"
+            },
+            "1.5": {
+                "field_name": "categsFile",
+                "field_title": "Categories File",
+                "field_type": "obj",
+                "field_parent": "categsGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file,csv-table"
+            },
+            "1.6": {
+                "field_name": "categsGroup",
+                "field_title": "Categorization table",
+                "field_type": "list",
+                "field_order": 2
+            },
+            "1.7": {
+                "field_name": "checkCategs",
+                "field_title": "As pasted CSV text",
+                "field_type": "text",
+                "field_parent": "checkCategsGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Enter the categroization matrix where rowa correspond to samples and columns are category values"
+            },
+            "1.8": {
+                "field_name": "checkCategsFile",
+                "field_title": "As file object",
+                "field_type": "obj",
+                "field_parent": "checkCategsGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file,csv-table"
+            },
+            "1.9": {
+                "field_name": "checkCategsGroup",
+                "field_title": "Check Categorization table",
+                "field_type": "list",
+                "field_parent": "check-list",
+                "field_order": 6
+            },
+            "1.10": {
+                "field_name": "checkMatrix",
+                "field_title": "As pasted CSV text",
+                "field_type": "text",
+                "field_parent": "checkMatrixGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Enter the matrix of measured variables"
+            },
+            "1.11": {
+                "field_name": "checkMatrixFile",
+                "field_title": "As file object",
+                "field_type": "obj",
+                "field_parent": "checkMatrixGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file,csv-table"
+            },
+            "1.12": {
+                "field_name": "checkMatrixGroup",
+                "field_title": "Check Matrix Measureables",
+                "field_type": "list",
+                "field_parent": "check-list",
+                "field_order": 1
+            },
+            "1.13": {
+                "field_name": "classifier",
+                "field_title": "Classifier Column",
+                "field_type": "integer",
+                "field_parent": "classifier-list",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0|1|2",
+                "field_constraint_description": "Select the column to server as classifier",
+                "field_description": "This value will be used to classify the samples"
+            },
+            "1.14": {
+                "field_name": "dataMode",
+                "field_title": "Matrix Parsing Mode",
+                "field_type": "integer",
+                "field_parent": "parsing",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Numerical Values in Table|1///Binary Values match/missmatch first row|2///Individual Unique Values Enumerated|3///Binary values below=0/above=1 threshold"
+            },
+            "1.15": {
+                "field_name": "filterColumns",
+                "field_title": "Filter columns (measurements)  by substring or regexp",
+                "field_type": "string",
+                "field_parent": "filters",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "ERCC-|regex:ENST"
+            },
+            "1.16": {
+                "field_name": "filterRows",
+                "field_title": "Filter rows (samples) by substring or regexp",
+                "field_type": "string",
+                "field_parent": "filters",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.17": {
+                "field_name": "filters",
+                "field_title": "Filters",
+                "field_type": "list",
+                "field_order": 2
+            },
+            "1.19": {
+                "field_name": "funcType",
+                "field_title": "Functions",
+                "field_type": "string",
+                "field_parent": "classifier-list",
+                "field_order": 5,
+                "field_default_value": "0",
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "linear///Linear Discriminant|enzymatic///Non-Linear metabolomic kinetics|quadratic///Quadratic discriminant"
+            },
+            "1.20": {
+                "field_name": "matrix",
+                "field_title": "As pasted CSV text",
+                "field_type": "text",
+                "field_parent": "matrixGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_description": "Enter the matrix of measured variables"
+            },
+            "1.21": {
+                "field_name": "matrixFile",
+                "field_title": "Matrix File",
+                "field_type": "obj",
+                "field_parent": "matrixGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file,csv-table"
+            },
+            "1.22": {
+                "field_name": "matrixGroup",
+                "field_title": "Matrix of Measurables",
+                "field_type": "list",
+                "field_order": 1
+            },
+            "1.23": {
+                "field_name": "matrixTransposed",
+                "field_title": "Samples are first row (instead of first column)",
+                "field_type": "bool",
+                "field_parent": "matrixGroup",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_description": "Is the list of samples in the first row (as opposed to first column)?"
+            },
+            "1.24": {
+                "field_name": "nonZeroMin",
+                "field_title": "Minimal number of non zeros allowed for a row",
+                "field_type": "real",
+                "field_parent": "filters",
+                "field_default_value": "0"
+            },
+            "1.25": {
+                "field_name": "nrepeat",
+                "field_title": "Number of Computational Threads",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.26": {
+                "field_name": "PCAMode",
+                "field_title": "Classifier Mode",
+                "field_type": "integer",
+                "field_parent": "classifier-list",
+                "field_order": 0,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///RLDA|1///PCA"
+            },
+            "1.27": {
+                "field_name": "readNumsAsNums",
+                "field_title": "Numeric Value interpetations",
+                "field_type": "integer",
+                "field_parent": "parsing",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///do not interpet numbers as numbers in categorical columns|1///Interpret numerals as numbers even in categorical columns"
+            },
+            "1.28": {
+                "field_name": "scaleVectorsByValue",
+                "field_title": "Scale vector coefficients by eigenvalue",
+                "field_type": "integer",
+                "field_parent": "output",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0//do not scale|1///scale"
+            },
+            "1.29": {
+                "field_name": "zeroMax",
+                "field_title": "Maximum number of zeros allowed for a row",
+                "field_type": "real",
+                "field_parent": "filters",
+                "field_default_value": "-1",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///any number of zeros are allowed"
+            },
+            "1.31": {
+                "field_name": "minimalOut",
+                "field_title": "Minimize Output",
+                "field_type": "bool",
+                "field_parent": "output",
+                "field_default_value": "0"
+            },
+            "1.33": {
+                "field_name": "classifier-list",
+                "field_title": "Classifier",
+                "field_type": "list",
+                "field_order": 3
+            },
+            "1.35": {
+                "field_name": "continousPhenotypeMin",
+                "field_title": "Minimum",
+                "field_type": "string",
+                "field_parent": "continous-grp",
+                "field_order": 1,
+                "field_default_value": "auto",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint": "choice+",
+                "field_constraint_data": "order///Sort order base ranking|auto///Autodetermine the range"
+            },
+            "1.36": {
+                "field_name": "continousPhenotypeMax",
+                "field_title": "Maximum",
+                "field_type": "string",
+                "field_parent": "continous-grp",
+                "field_order": 2,
+                "field_default_value": "auto",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "order///Sort order base ranking|auto///Autodetermine the range"
+            },
+            "1.38": {
+                "field_name": "scaleMode",
+                "field_title": "Scale Mode",
+                "field_type": "integer",
+                "field_parent": "parsing",
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///do not scale|1///z-scale|2///unit scale"
+            },
+            "1.39": {
+                "field_name": "missing",
+                "field_title": "Missing Values",
+                "field_type": "string",
+                "field_parent": "parsing",
+                "field_default_value": "0",
+                "field_constraint_data": "0///zero|ave///ave|average value"
+            },
+            "1.40": {
+                "field_name": "continous_cls",
+                "field_title": "Continous classifier",
+                "field_type": "bool",
+                "field_parent": "continous-grp",
+                "field_default_value": "0"
+            },
+            "1.42": {
+                "field_name": "parsing",
+                "field_title": "Parsing",
+                "field_type": "list",
+                "field_order": 1
+            },
+            "1.44": {
+                "field_name": "bootstrap",
+                "field_title": "Bootstrap",
+                "field_type": "list",
+                "field_order": 4
+            },
+            "1.46": {
+                "field_name": "output",
+                "field_title": "Output",
+                "field_type": "list",
+                "field_order": 5
+            },
+            "1.48": {
+                "field_name": "check-list",
+                "field_title": "Checks",
+                "field_type": "list"
+            },
+            "1.50": {
+                "field_name": "continous-grp",
+                "field_title": "Continous Classifier",
+                "field_type": "list",
+                "field_parent": "classifier-list"
+            },
+            "1.52": {
+                "field_name": "topChoiceForFinal",
+                "field_title": "Final Classifier Dimension",
+                "field_type": "integer",
+                "field_order": 8,
+                "field_default_value": "700"
+            },
+            "1.54": {
+                "field_name": "includeCats",
+                "field_title": "Include Categories",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,27 @@
+{
+    "228": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-diprofiler",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-diprofiler",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-diprofiler",
+        "description": "DI-PROFILER provides a split read jump based structural variant analysis . This tool is used for detection of on- and off-target analysis of translocations, inversions as well ass defective interfering viral particle analysis",
+        "synonyms": {
+            "11": "dvg-profiler"
+        },
+        "authors": {
+            "13": "K.Karagiannis",
+            "26": "V.Simonyan"
+        },
+        "contributors": {
+            "15": "K.Chumakov"
+        }
+    }
+}

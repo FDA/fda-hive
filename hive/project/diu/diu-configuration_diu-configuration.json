@@ -1,0 +1,47 @@
+{
+    "12650": {
+        "_id": "$upsert()",
+        "_type": "diu-configuration",
+        "controller_ip": "3.218.15.60",
+        "controller_port": "9952",
+        "controller_uci": "SIC-BG-Controller-2",
+        "default_geolocation": "44,33",
+        "sessionID": "user9",
+        "unique-name": "diu-configuration"
+    },
+    "12472": {
+        "_id": "$upsert()",
+        "_type": "diu-configuration",
+        "isa-connection-status": "connected",
+        "controller_ip": "3.218.15.77",
+        "controller_port": "9951",
+        "controller_uci": "SIC-BG-Controller-2",
+        "default_geolocation": "-157.716,21.357",
+        "unique-name": "diu-configuration",
+        "sessionID": "user9",
+        "collection-timezone": "US/Hawaii",
+        "_perm": [
+            {
+                "party": "/everyone/public/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

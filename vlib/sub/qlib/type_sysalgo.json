@@ -1,0 +1,120 @@
+{
+    "75": {
+        "_id": "$type.sysalgo",
+        "_type": "type",
+        "name": "sysalgo",
+        "title": "Algorithm objects",
+        "description": "// All executable algorithms base object\nvlob.qlib",
+        "parent": {
+            "1": "$type.sysapp"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "description",
+                "field_title": "Description",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.2": {
+                "field_name": "icon",
+                "field_title": "Icon",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "name",
+                "field_title": "name",
+                "field_type": "string",
+                "field_order": 25,
+                "field_is_key_fg": true,
+                "field_description": "name"
+            },
+            "1.4": {
+                "field_name": "qpsvc",
+                "field_title": "QP Service",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:'qpsvc',inline:'qpsvc',outline:'id,title', url:'http://?cmd=objList&type=qpsvc&raw=1&mode=csv'}"
+            },
+            "1.5": {
+                "field_name": "result_assignation",
+                "field_title": "Assignation",
+                "field_type": "string",
+                "field_parent": "result_files",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "output"
+            },
+            "1.6": {
+                "field_name": "result_files",
+                "field_title": "Result",
+                "field_type": "array",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "result_files_description",
+                "field_title": "Description",
+                "field_type": "string",
+                "field_parent": "result_files",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.8": {
+                "field_name": "result_files_regex",
+                "field_title": "File wildcard",
+                "field_type": "string",
+                "field_parent": "result_files",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "*///all files|*.csv///CSV files|*.fa*///Fasta files"
+            },
+            "1.9": {
+                "field_name": "title",
+                "field_title": "Title",
+                "field_type": "string",
+                "field_brief": "$_(v)"
+            },
+            "1.10": {
+                "field_name": "version",
+                "field_title": "version",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_brief": "$_(v)"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

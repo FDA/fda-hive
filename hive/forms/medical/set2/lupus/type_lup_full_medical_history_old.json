@@ -1,0 +1,231 @@
+{
+    "549": {
+        "_id": "$type.lup_full_medical_history_old",
+        "_type": "type",
+        "name": "lup_full_medical_history_old",
+        "title": "Full Medical History",
+        "fields": {
+            "1.1": {
+                "field_name": "knows_relatives_health_problems",
+                "field_title": "How much does the participant know about illnesses or health problems for his parents, grandparents, brothers, sisters, and/or children?",
+                "field_type": "string",
+                "field_order": 0.5,
+                "field_constraint_data": "A lot|Some|None at all"
+            },
+            "1.2": {
+                "field_name": "heart_blood_condition",
+                "field_title": "Has the participant ever been diagnosed with any of the following heart or blood conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Anemia|Atrial fibrillation (Afib) or Atrial flutter|Bleeding disorder|Congestive heart failure|Coronary artery/coronary heart disease|Heart attack|Heart valve disease|High cholesterol|Hypertension (high blood pressure)|Peripheral vascular disease|Pulmonary embolism or deep vein thrombosis|Sickle cell disease|Stroke|Transient ischemic attacks (TIAs or mini-strokes)|Other heart or blood condition|No diagnosed heart or blood conditions\r\n>$(this);let nonval='No diagnosed heart or blood conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.3": {
+                "field_name": "heart_blood_condition_other",
+                "field_title": "Specify other heart or blood condition",
+                "field_type": "text",
+                "field_order": 2,
+                "field_constraint_data": "is_shown_fg=$(heart_blood_condition)=='Other heart or blood condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.4": {
+                "field_name": "lung_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following lung conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Asthma|Chronic Lung Disease|Sleep Apnea|Other lung condition|No diagnosed lung conditions\r\n>$(this);let nonval='No diagnosed lung conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.5": {
+                "field_name": "lung_conditions_other",
+                "field_title": "Specify other lung condition",
+                "field_type": "text",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(lung_conditions)=='Other lung condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.6": {
+                "field_name": "cancers",
+                "field_title": "Has the participant ever been diagnosed with any of the following cancers (check all that apply)?",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Bladder cancer|Blood or soft tissue cancer|Bone cancer|Brain cancer|Breast cancer|Cervical cancer|Colon cancer/Rectal cancer|Endocrine cancer|Endometrial cancer|Esophageal cancer|Eye cancer|Head and neck cancer|Kidney cancer|Lung cancer|Ovarian cancer|Pancreatic cancer|Prostate cancer|Skin cancer|Stomach cancer|Thyroid cancer|Other cancer|No diagnosed cancer\r\n>$(this);let nonval='No diagnosed cancer';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.7": {
+                "field_name": "cancers_other",
+                "field_title": "Specify other cancer",
+                "field_type": "text",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(cancers)=='Other cancer'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.8": {
+                "field_name": "digestive_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following digestive conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Acid reflux|Bowel obstruction|Celiac disease|Colon polyps|Crohn's disease|Diverticulosis/diverticulitis|Gall stones|Hemorrhoids|Hernia|Irritable bowel syndrome (IBS)|Liver condition|Pancreatitis|Peptic ulcers|Ulcerative colitis|Other digestive condition|No diagnosed digestive conditions\r\n>$(this);let nonval='No diagnosed digestive conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.9": {
+                "field_name": "digestive_conditions_other",
+                "field_title": "Specify other digestive condition",
+                "field_type": "text",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(digestive_conditions)=='Other digestive condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.10": {
+                "field_name": "hormone_endocrine_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following hormone/endocrine conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 9,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Hyperthyroidism|Hypothyroidism|Prediabetes|Type 1 Diabetes|Type 2 Diabetes|Other/Unknown diabetes|Other/Unknown thyroid condition|Other hormone/endocrine condition|No diagnosed hormone or endocrine conditions\r\n>$(this);let nonval='No diagnosed hormone or endocrine conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.11": {
+                "field_name": "hormone_endocrine_conditions_other",
+                "field_title": "Specify other hormone/endocrine condition",
+                "field_type": "text",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(hormone_endocrine_conditions)=='Other hormone/endocrine condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.12": {
+                "field_name": "kidney_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following kidney conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 11,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Acute kidney disease with no current dialysis|Kidney disease with dialysis|Kidney disease without dialysis|Kidney stones|Other kidney condition|No diagnosed kidney conditions\r\n>$(this);let nonval='No diagnosed kidney conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.13": {
+                "field_name": "kidney_conditions_other",
+                "field_title": "Specify other kidney condition",
+                "field_type": "text",
+                "field_order": 12,
+                "field_constraint_data": "is_shown_fg=$(kidney_conditions)=='Other kidney condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.14": {
+                "field_name": "bone_joint_muscle_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following bone, joint and muscle conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 13,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Carpal tunnel syndrome|Fibromyalgia|Fractured/broken any bones in the last 5 years|Gout|Osteoarthritis|Osteoporosis|Pseudogout|Rheumatoid arthritis|Spine, muscle, or bone disorders (non-cancer)|Other arthritis|Other bone, joint or muscle condition|No diagnosed bone, joint or muscle conditions\r\n>$(this);let nonval='No diagnosed bone, joint or muscle conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.15": {
+                "field_name": "arthritis_other",
+                "field_title": "Specify other arthritis",
+                "field_type": "text",
+                "field_order": 14,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "is_shown_fg=$(bone_joint_muscle_conditions)=='Other arthritis'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.16": {
+                "field_name": "bone_joint_muscle_conditions_other",
+                "field_title": "Specify other bone, joint or muscle condition",
+                "field_type": "text",
+                "field_order": 15,
+                "field_constraint_data": "is_shown_fg=$(bone_joint_muscle_conditions)=='Other bone, joint or muscle condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.17": {
+                "field_name": "hearing_eye_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following hearing or eye conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 16,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Blindness, all causes|Cataracts|Dry eyes|Farsighted|Nearsighted|Astigmatism|Glaucoma|Macular degeneration|Tinnitus|Severe hearing loss or partial deafness in one or both ears|Other hearing or eye condition|No diagnosed hearing or eye conditions\r\n>$(this);let nonval='No diagnosed hearing or eye conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.18": {
+                "field_name": "hearing_eye_conditions_other",
+                "field_title": "Specify other hearing or eye condition",
+                "field_type": "text",
+                "field_order": 17,
+                "field_constraint_data": "is_shown_fg=$(hearing_eye_conditions)=='Other hearing or eye condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.19": {
+                "field_name": "infectious_diseases",
+                "field_title": "Has the participant ever been diagnosed with any of the following infectious diseases (check all that apply)?",
+                "field_type": "string",
+                "field_order": 18,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Chickenpox|Chronic sinus infections|Covid|Dengue fever|Hepatitis A|Hepatitis B|Hepatitis C|HIV/AIDS|Lyme disease|Recurrent urinary tract infections (UTI)/bladder infections|Reoccurring yeast infection|Severe acute respiratory syndrome (SARS)|Sexually transmitted infections (Gonorrhea, Syphilis, Chlamydia)|Shingles|Tuberculosis|West Nile virus|Zika virus|Other infectious disease|No diagnosed infectious diseases\r\n>$(this);let nonval='No diagnosed infectious diseases';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.20": {
+                "field_name": "infectious_diseases_other",
+                "field_title": "Specify other infectious disease",
+                "field_type": "text",
+                "field_order": 19,
+                "field_constraint_data": "is_shown_fg=$(infectious_diseases)=='Other infectious disease'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.21": {
+                "field_name": "nervous_system_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following brain and nervous system conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 20,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Cerebral palsy|Chronic fatigue|Concussion or loss of consciousness|Dementia|Epilepsy or seizure|Insomnia|Lou Gehrig’s Disease (Amyotrophic Lateral Sclerosis or ALS)|Memory loss or impairment|Migraine headaches|Multiple sclerosis|Muscular dystrophy (MD)|Narcolepsy|Neuropathy|Parkinson's disease|Restless leg syndrome|Spinal cord injury or impairment|Traumatic brain injury (TBI)|Other brain or nervous system condition|No diagnosed brain or nervous system conditions\r\n>$(this);let nonval='No diagnosed brain or nervous system conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.22": {
+                "field_name": "nervous_system_conditions_other",
+                "field_title": "Specify other brain or nervous system condition",
+                "field_type": "text",
+                "field_order": 21,
+                "field_constraint_data": "is_shown_fg=$(nervous_system_conditions)=='Other brain or nervous system condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.23": {
+                "field_name": "mental_substance_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following mental health and substance use conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 22,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Alcohol use disorder|Anxiety reaction/panic disorder|Attention-deficit/hyperactivity disorder (ADHD)|Autism spectrum disorder|Bipolar disorder|Depression|Drug use disorder|Eating disorder|Personality disorder|Post-traumatic stress disorder (PTSD)|Schizophrenia|Social phobia|Other mental health or substance use condition|No diagnosed mental health or substance use conditions\r\n>$(this);let nonval='No diagnosed mental health or substance use conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            },
+            "1.24": {
+                "field_name": "mental_substance_conditions_other",
+                "field_title": "Specify other mental health or substance use condition",
+                "field_type": "text",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(mental_substance_conditions)=='Other mental health or substance use condition'&&($(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some')",
+                "field_constraint_description": "subquestion"
+            },
+            "1.25": {
+                "field_name": "other_general_conditions",
+                "field_title": "Has the participant ever been diagnosed with any of the following other general conditions (check all that apply)?",
+                "field_type": "string",
+                "field_order": 24,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Acne|Allergies|Chronic pain|Endometriosis|Enlarged prostate|Fibroids|Obesity|PCOS (polycystic ovarian syndrome)|Reactions to anesthesia (such as hyperthermia)|Skin condition (e.g. Eczema, Psoriasis)|Vitamin B deficiency|Vitamin D deficiency|No other diagnosed conditions\r\n>$(this);let nonval='No other diagnosed conditions';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else{surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}is_shown_fg=$(knows_relatives_health_problems)=='A lot'||$(knows_relatives_health_problems)=='Some'"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,152 @@
+{
+    "543": {
+        "_id": "$type.lup_eligibility_criteria",
+        "_type": "type",
+        "name": "lup_eligibility_criteria",
+        "title": "Eligibility Criteria",
+        "fields": {
+            "1.1": {
+                "field_name": "new_onset_sle",
+                "field_title": "Did the participant have a new onset of SLE within 12 months of meeting classification criteria or physician diagnosis of SLE?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "renal_biopsy",
+                "field_title": "Did the participant have a renal biopsy confirming LN diagnosis within 4 months of enrollment showing class III or IV +/-V, class V, or class II?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "additional_support",
+                "field_title": "If the participant has clinically suspected and active LN with intention to treat per the treating physician but unable to obtain a kidney biopsy, additional support from the treating physician must be submitted for review.",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_description": "Including, but not limited to, the amount or degree of worsening proteinuria, documented active urinary sediment, and serologic biomarkers."
+            },
+            "1.4": {
+                "field_name": "suspected_class_vi",
+                "field_title": "Is the participant a suspected class VI or has sustained glomerular filtration rate (GFR) <30 over three months?",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(renal_biopsy)=='true'||$(additional_support)=='true'"
+            },
+            "1.5": {
+                "field_name": "not_eligible_message",
+                "field_title": "The patient is not eligible for the LN Active Cohort",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(suspected_class_vi)=='true'&&($(renal_biopsy)=='true'||$(additional_support)=='true')",
+                "field_constraint_description": "description",
+                "field_description": "<span style='color:red'>The patient is not eligible for the LN Active Cohort</span>"
+            },
+            "1.6": {
+                "field_name": "flare_within_30_days",
+                "field_title": "Did the participant have a flare within 30 days preceding enrollment into the study?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "if($(no_current_flares)=='false'){value_fg='true'};"
+            },
+            "1.7": {
+                "field_name": "no_current_flares",
+                "field_title": "The participant has no current flares at enrollment.",
+                "field_type": "bool",
+                "field_order": 7
+            },
+            "1.8": {
+                "field_name": "eligible_noc",
+                "field_title": "The participant is eligible for the New Onset Cohort",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(new_onset_sle)=='true'&&$(renal_biopsy)=='false'&&$(additional_support)=='false'&&$(flare_within_30_days)=='false';value_fg='';if(is_shown_fg){value_fg='New Onset Cohort'};",
+                "field_constraint_description": "description",
+                "field_description": "The participant is eligible for the New Onset Cohort"
+            },
+            "1.9": {
+                "field_name": "eligible_lnac",
+                "field_title": "The participant is eligible for the LN Active Cohort",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=($(renal_biopsy)=='true'||$(additional_support)=='true')&&$(suspected_class_vi)=='false';value_fg='';if(is_shown_fg){value_fg='LN Active Cohort'};",
+                "field_constraint_description": "description",
+                "field_description": "The participant is eligible for the LN Active Cohort"
+            },
+            "1.10": {
+                "field_name": "eligible_erlfc",
+                "field_title": "The participant is eligible for the Extra-renal Lupus Flare Cohort",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(renal_biopsy)=='false'&&$(additional_support)=='false'&&$(flare_within_30_days)=='true';value_fg='';if(is_shown_fg){value_fg='Extra-renal Lupus Flare Cohort'};",
+                "field_constraint_description": "description",
+                "field_description": "The participant is eligible for the Extra-renal Lupus Flare Cohort"
+            },
+            "1.11": {
+                "field_name": "eligible_pcc",
+                "field_title": "The participant is eligible for the Prevalent Cases Cohort",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(new_onset_sle)=='false'&&$(renal_biopsy)=='false'&&$(additional_support)=='false'&&$(flare_within_30_days)=='false'&&$(no_current_flares)=='true';value_fg='';if(is_shown_fg){value_fg='Prevalent Cases Cohort'};",
+                "field_constraint_description": "description",
+                "field_description": "The participant is eligible for the Prevalent Cases Cohort"
+            },
+            "1.12": {
+                "field_name": "additional_evidence",
+                "field_title": "Please provide the additional evidence for the participant's eligibility for the LN Active Cohort",
+                "field_type": "text",
+                "field_order": 12,
+                "field_constraint_data": "{\"maxlength\":\"200\"}\r\n>is_shown_fg=$(additional_support)=='true'"
+            },
+            "1.13": {
+                "field_name": "cohort_assigned",
+                "field_title": "Please confirm the participant is assigned to the $(eligible_noc) $(eligible_lnac) $(eligible_erlfc) $(eligible_pcc)",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(eligible_noc)!=''||$(eligible_lnac)!=''||$(eligible_erlfc)!=''||$(eligible_pcc)!='';"
+            },
+            "1.14": {
+                "field_name": "new_cohort_assigned",
+                "field_title": "Which cohort would you like to assign the participant to?",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "New Onset|LN Active|Extra-renal Lupus Flare|Prevalent Cases\r\n>is_shown_fg=$(cohort_assigned)=='false';"
+            },
+            "1.15": {
+                "field_name": "cohort_assignment_decision",
+                "field_title": "Please document your cohort assignment decision",
+                "field_type": "text",
+                "field_order": 15,
+                "field_constraint_data": "{\"maxlength\":\"100\"}\r\n>is_shown_fg=$(cohort_assigned)=='false';"
+            },
+            "1.16": {
+                "field_name": "lna_supporting_documents",
+                "field_title": "Please upload any supporting documents",
+                "field_type": "file",
+                "field_order": 12.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=($(renal_biopsy)=='true'||$(additional_support)=='true')&&$(suspected_class_vi)=='false'",
+                "field_constraint_description": "subquestion"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

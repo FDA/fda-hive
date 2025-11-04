@@ -1,0 +1,29 @@
+{
+    "342": {
+        "_id": "$type.med_sys",
+        "_type": "type",
+        "name": "med_sys",
+        "title": "Medical System Objects",
+        "parent": {
+            "7": "$type.med_form"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

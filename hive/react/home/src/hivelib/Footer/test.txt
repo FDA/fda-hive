@@ -1,0 +1,23 @@
+
+// import React, { Component } from "react";
+// import ReactDOM from "react-dom";
+// import { FooterContainer } from "./Footer/footer_container";  // eslint-disable-next-line
+// class App extends Component {
+//     render(){
+//         return(
+//         <>
+//             <FooterContainer />
+//         </>
+//        )
+//     }
+// }
+
+//  ReactDOM.render(<App />, document.querySelector("#root"));
+
+        <!-- <script src="/nodejs/marianna.faradzheva/static/js/bundle.js"></script>
+        <script src="/nodejs/marianna.faradzheva/static/js/0.chunk.js"></script>
+        <script src="/nodejs/marianna.faradzheva/static/js/1.chunk.js"></script>
+        <script src="/nodejs/marianna.faradzheva/static/js/2.chunk.js"></script>
+        <script src="/nodejs/marianna.faradzheva/static/js/3.chunk.js"></script>
+        <script src="/nodejs/marianna.faradzheva/static/js/4.chunk.js"></script>
+        <script src="/nodejs/marianna.faradzheva/static/js/main.chunk.js"></script> -->

@@ -1,0 +1,43 @@
+{
+    "158": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "is_obj_action": true,
+        "name": "cast2fhirpro",
+        "order": 15,
+        "path": "/Convert/cast2fhirpro",
+        "required_permission": 4,
+        "type_name": "u-file",
+        "url": "?cmdr=scast&type=fhir_pro&ids=$(ids)",
+        "title": "Convert to FHIR-PRO",
+        "description": "Convert to FHIR-PRO file type",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

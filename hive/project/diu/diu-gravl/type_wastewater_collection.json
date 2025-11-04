@@ -1,0 +1,30 @@
+{
+    "198708": {
+        "_id": "$type.wastewater_collection",
+        "_type": "type",
+        "name": "wastewater_collection",
+        "title": "Wastewater Data Collection",
+        "description": "Parent type for wastewater data collection and analysis.",
+        "parent": {
+            "7": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,12 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+bin/fdahivecli
+src/fdahive/__init__.py
+src/fdahive/__main__.py
+src/fdahive/session.py
+src/fdahivecli.egg-info/PKG-INFO
+src/fdahivecli.egg-info/SOURCES.txt
+src/fdahivecli.egg-info/dependency_links.txt
+src/fdahivecli.egg-info/top_level.txt

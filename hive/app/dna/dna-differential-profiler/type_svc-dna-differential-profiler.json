@@ -1,0 +1,215 @@
+{
+    "224": {
+        "_id": "$type.svc-dna-differential-profiler",
+        "_type": "type",
+        "name": "svc-dna-differential-profiler",
+        "title": "Differential Profiler",
+        "description": "//Find differences among different Profiling outputs\nlocation: hive.app.dna.dna-differential-profiler",
+        "parent": {
+            "1": "$type.svc-profile"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "dip_annotationGeneType",
+                "field_title": "Annotation Gene Type",
+                "field_type": "string",
+                "field_parent": "dip_outputsArray",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_description": "Annotation Gene types"
+            },
+            "1.2": {
+                "field_name": "dip_annotationObjID",
+                "field_title": "Annotation File",
+                "field_type": "obj",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.3": {
+                "field_name": "dip_annotationType",
+                "field_title": "Annotation Types",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice+",
+                "field_description": "Annotation types"
+            },
+            "1.4": {
+                "field_name": "dip_diffComparator",
+                "field_title": "Comparator Function to use",
+                "field_type": "integer",
+                "field_parent": "dip_inputsArray",
+                "field_order": 4,
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///above or below Threshold|2///absolute difference|3///'X' times|4///Percentage|5///Mutation Difference"
+            },
+            "1.5": {
+                "field_name": "dip_diffmax",
+                "field_title": "maximum",
+                "field_type": "integer",
+                "field_parent": "dip_minmax",
+                "field_order": 3,
+                "field_constraint_data": "0///not specified"
+            },
+            "1.6": {
+                "field_name": "dip_diffmin",
+                "field_title": "minimum",
+                "field_type": "integer",
+                "field_parent": "dip_minmax",
+                "field_order": 2,
+                "field_constraint_data": "0///not specified"
+            },
+            "1.7": {
+                "field_name": "dip_diffOption",
+                "field_title": "Source...",
+                "field_type": "string",
+                "field_parent": "dip_inputsArray",
+                "field_order": 1,
+                "field_default_value": "1",
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Coverage|2///SNP's|3///LeftTail|4///RightTail|5///Length of Sequences|6///Length of Alignments",
+                "field_description": "SNPprofile.csv?coverage///Coverage|SNPprofile.csv?snp///SNP's|ProfileInfo.csv?Left Tail///LeftTail|ProfileInfo.csv?Right Tail///RightTail|ProfileInfo.csv?Length of Sequences///Length of Sequences|ProfileInfo.csv?Length of Alignments///Length of Alignments"
+            },
+            "1.8": {
+                "field_name": "dip_diffValue",
+                "field_title": "Value",
+                "field_type": "integer",
+                "field_parent": "dip_inputsArray",
+                "field_order": 5
+            },
+            "1.9": {
+                "field_name": "dip_entryArray",
+                "field_title": "Differential Options",
+                "field_type": "list",
+                "field_order": 1,
+                "field_is_multi_fg": true
+            },
+            "1.10": {
+                "field_name": "dip_inputsArray",
+                "field_title": "Filter Inputs",
+                "field_type": "array",
+                "field_parent": "dip_entryArray",
+                "field_order": 1,
+                "field_is_multi_fg": true
+            },
+            "1.11": {
+                "field_name": "dip_minmax",
+                "field_title": "Values to be considered...",
+                "field_type": "list",
+                "field_parent": "dip_inputsArray",
+                "field_order": 2
+            },
+            "1.12": {
+                "field_name": "dip_outListColumns",
+                "field_title": "Columns",
+                "field_type": "array",
+                "field_parent": "dip_outputsArray",
+                "field_order": 10,
+                "field_is_multi_fg": true
+            },
+            "1.13": {
+                "field_name": "dip_outputAnnot",
+                "field_title": "Add Annotation Info",
+                "field_type": "bool",
+                "field_parent": "dip_outputsArray",
+                "field_order": 1,
+                "field_default_value": "false",
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "dip_outputColumn",
+                "field_title": "Output to report",
+                "field_type": "string",
+                "field_parent": "dip_outListColumns",
+                "field_order": 1,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Coverage|2///SNP's|3///LeftTail|4///RightTail|5///Length of Sequences|6///Length of Alignments|7///Annotation Info"
+            },
+            "1.15": {
+                "field_name": "dip_outputDifferential",
+                "field_title": "Add Column to report Different Coverage",
+                "field_type": "bool",
+                "field_parent": "dip_outputsArray",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "dip_outputGeneTable",
+                "field_title": "Print Gene Table",
+                "field_type": "bool",
+                "field_parent": "dip_outputsArray",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.17": {
+                "field_name": "dip_outputRangeFilter",
+                "field_title": "Range Filter Value",
+                "field_type": "integer",
+                "field_parent": "dip_outputsArray",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.18": {
+                "field_name": "dip_outputsArray",
+                "field_title": "Output",
+                "field_type": "list",
+                "field_parent": "dip_entryArray",
+                "field_order": 2
+            },
+            "1.19": {
+                "field_name": "dip_outputSNP",
+                "field_title": "Report Different SNP's Only (must add column SNP)",
+                "field_type": "bool",
+                "field_parent": "dip_outputsArray",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.20": {
+                "field_name": "dip_profileID",
+                "field_title": "HIVE-Heptagon profiling results to compare",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_readonly_fg": -1,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

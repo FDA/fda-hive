@@ -1,0 +1,43 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+
+<script type="application/javascript">
+
+    setLocationTitle("MetaPhlAn Service: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "dna-metaphlan", "svc-dna-metaphlan");
+    algoProcess.visibleParameters=["name","inputs"];
+    algoProcess.submitButtonName="Submit";
+    algoProcess.initialPresets={
+        "sysapp":"query:alloftype('sysappdep',{name:'dna-metaphlan'})[0]",
+        "sysdocker":"query:alloftype('sysdocker',{name:'kraken-metaphlan-image'})[0]",
+        "DB":"query:alloftype('special',{name:'MetaPhlAn-DB'})[0]"
+    };     
+    
+    gInitList += "dnaMetaPhlAnInit();";
+    function dnaMetaPhlAnInit () {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-dna-metaphlan',
+            algoTitle: "MetaPhlAn Utility"
+        });
+        
+    };
+</script>
+

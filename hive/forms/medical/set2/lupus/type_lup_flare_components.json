@@ -1,0 +1,109 @@
+{
+    "548": {
+        "_id": "$type.lup_flare_components",
+        "_type": "type",
+        "name": "lup_flare_components",
+        "title": "Flare Components",
+        "description": "<h5>Check box: if descriptor is present at the time of visit or in the preceding 10 days</h5>",
+        "fields": {
+            "1.1": {
+                "field_name": "change_of_sledai_2k_3p",
+                "field_title": "Change of SLEDAI-2K instrument of 3 points or more",
+                "field_type": "bool",
+                "field_order": 1,
+                "field_constraint_description": "checkbox"
+            },
+            "1.2": {
+                "field_name": "change_of_sledai_2k_12p",
+                "field_title": "Change of SLEDAI-2K instrument of > 12 points",
+                "field_type": "bool",
+                "field_order": 2,
+                "field_constraint_data": "is_shown_fg=$(change_of_sledai_2k_3p)=='true';if($(change_of_sledai_2k_3p)=='false'){value_fg='false';}",
+                "field_constraint_description": "checkbox,subquestion"
+            },
+            "1.3": {
+                "field_name": "increase_in_prednisone",
+                "field_title": "Increase in prednisone",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_constraint_description": "checkbox"
+            },
+            "1.4": {
+                "field_name": "increase_in_prednisone_more_05",
+                "field_title": "Is the increase in prednisone > 0.5 mg/kg/day?",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(increase_in_prednisone)=='true';if($(increase_in_prednisone)=='false'){surveyState.answer=[];}",
+                "field_constraint_description": "subquestion"
+            },
+            "1.5": {
+                "field_name": "increase_in_pga",
+                "field_title": "Increase in Physician Global Assessment of ≥1.0",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_constraint_description": "checkbox"
+            },
+            "1.6": {
+                "field_name": "increase_in_pga_more_25",
+                "field_title": "Is the increase in Physician Global Assessment > 2.5?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(increase_in_pga)=='true';if($(increase_in_pga)=='false'){surveyState.answer=[];}",
+                "field_constraint_description": "subquestion"
+            },
+            "1.7": {
+                "field_name": "added_nsaid",
+                "field_title": "Added NSAID or hydroxychloroquine for SLE activity",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_constraint_description": "checkbox"
+            },
+            "1.8": {
+                "field_name": "new_camm_sle",
+                "field_title": "New cyclophosphamide, azathioprine, methotrexate or mycophenolate for SLE activity",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_description": "checkbox"
+            },
+            "1.9": {
+                "field_name": "mild_moderate_flare",
+                "field_title": " Mild or Moderate Flare Message",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=($(change_of_sledai_2k_3p)=='true'||$(increase_in_prednisone)=='true'||$(increase_in_pga)=='true'||$(added_nsaid)=='true')&&$(change_of_sledai_2k_12p)!='true'&&$(increase_in_prednisone_more_05)!='true'&&$(increase_in_pga_more_25)!='true'&&$(new_camm_sle)!='true'",
+                "field_constraint_description": "description",
+                "field_description": "<h3 style='color:orange'>Mild or Moderate Flare</h3>"
+            },
+            "1.10": {
+                "field_name": "severe_flare",
+                "field_title": " Severe Flare Message",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(change_of_sledai_2k_12p)=='true'||$(increase_in_prednisone_more_05)=='true'||$(increase_in_pga_more_25)=='true'||$(new_camm_sle)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "<h3 style='color:red'>Severe Flare</h3>"
+            }
+        },
+        "parent": {
+            "4": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

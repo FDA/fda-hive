@@ -1,0 +1,46 @@
+{
+    "315": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "is_obj_action": true,
+        "name": "cast2spectra-lib",
+        "order": 12,
+        "path": "/Convert/To Spectra/cast2spectra-lib",
+        "required_permission": 4,
+        "response": "json",
+        "target": "ajax",
+        "type_name": "u-file",
+        "url": "?cmd=scast&type=spectra-lib&ids=$(ids)",
+        "title": "Spectra Library",
+        "description": "Convert file formatted as CSV to Spectra Library object",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

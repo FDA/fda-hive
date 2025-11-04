@@ -1,0 +1,65 @@
+{
+    "194": {
+        "_id": "$type.svc-align-bowtie",
+        "_type": "type",
+        "name": "svc-align-bowtie",
+        "title": "BowTie Alignment",
+        "description": "// BowTie alignment engine optimized for HIVE\nlocation: hive.app.dna.dna-alignx",
+        "parent": {
+            "1": "$type.svc-align-dnaseq"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "cmdLine",
+                "field_title": "Engine Arguments",
+                "field_type": "string",
+                "field_default_value": "-n 2 -e 1000 -I 0 -X 250 --maxbts 125 --pairtries 100 --chunkmbs 64 -k 1",
+                "field_is_optional_fg": true,
+                "field_description": "Additional Command Line arguments for bowtie engine"
+            },
+            "1.2": {
+                "field_name": "seedSize",
+                "field_title": "Seed Size (-l option)",
+                "field_type": "string",
+                "field_default_value": "28"
+            },
+            "1.3": {
+                "field_name": "version",
+                "field_title": "version",
+                "field_type": "string",
+                "field_default_value": "4.1.2",
+                "field_is_readonly_fg": 2
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

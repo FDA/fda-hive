@@ -1,0 +1,91 @@
+{
+    "1": {
+        "_id": "type.193",
+        "_type": "type",
+        "name": "user_app_base",
+        "title": "User Application Base",
+        "description": "Base type representing user application - tool or workflow",
+        "parent": {
+            "1": "type.67"
+        },
+        "fields": {
+            "1.1": {
+                "field_name": "base_app_name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_is_key_fg": true,
+                "field_constraint": "regexp",
+                "field_constraint_data": "^[\\p{L}][\\p{L}\\p{N}-]{2,}$",
+                "field_description": "User application name",
+                "field_brief": "$_(t): $_(v)"
+            },
+            "1.2": {
+                "field_name": "base_app_description",
+                "field_title": "Description",
+                "field_type": "text",
+                "field_order": 4,
+                "field_description": "User application description"
+            },
+            "1.3": {
+                "field_name": "base_app_version",
+                "field_title": "Version",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_key_fg": true,
+                "field_description": "User application version",
+                "field_brief": "v$_(v)"
+            },
+            "1.4": {
+                "field_name": "base_app_url",
+                "field_title": "Source URL",
+                "field_type": "string",
+                "field_order": 3,
+                "field_description": "URL pointing to source code / page for the tool"
+            },
+            "1.5": {
+                "field_name": "base_app_license",
+                "field_title": "License",
+                "field_type": "string",
+                "field_order": 5,
+                "field_description": "Application licensing terms"
+            },
+            "1.6": {
+                "field_name": "base_app_labels",
+                "field_title": "Labels",
+                "field_type": "string",
+                "field_order": 6,
+                "field_is_multi_fg": true,
+                "field_description": "Labels or tags for app classification"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

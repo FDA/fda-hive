@@ -1,0 +1,24 @@
+{
+    "205": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "NCBI BlastX algorithm",
+        "icon": "?cmd=~dna~svc-align-blast.gif",
+        "title": "NCBI-BlastX",
+        "version": "2.2.30",
+        "name": "svc-align-blastx",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "350": {
+        "_id": "$type.diu_form",
+        "_type": "type",
+        "name": "diu_form",
+        "title": "DIU Form",
+        "parent": {
+            "7": "$type.bio_form"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

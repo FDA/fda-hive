@@ -1,0 +1,11 @@
+{
+    "hiveUrl":"http://bluehive.net/dna.cgi?",
+    "projectName": "HIVE",
+    "projectTitle": "Hive Surveys",
+    "projectKeywords": "Healthcare Operations, Survey, HIVE",
+    "logoImage":"logo-mdepinet.png",
+    "allowDataDownload": true,
+    "userAutoActivation": "1",
+    "administratorGroups" : "",
+    "defaultRegistrationPage" : "register"
+}

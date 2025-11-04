@@ -1,0 +1,29 @@
+{
+    "4730": {
+        "_id": "$type.bio_form",
+        "_type": "type",
+        "name": "bio_form",
+        "title": "Biological Forms",
+        "parent": {
+            "7": "$type.eForm"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

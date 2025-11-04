@@ -1,0 +1,122 @@
+{
+    "563": {
+        "_id": "$type.lup_sc_saliva",
+        "_type": "type",
+        "name": "lup_sc_saliva",
+        "title": "Saliva",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Saliva Kit",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "kit_handed_participant",
+                "field_title": "Was the saliva kit handed to the study participant during the visit?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "kit_not_handed_reason",
+                "field_title": "Please select the reason why the kit was not handed during the visit",
+                "field_type": "string",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Study participant declined|Sample collection kits unavailable|Kit was mailed to the study participant|Other\r\n>is_shown_fg=$(kit_handed_participant)=='false'"
+            },
+            "1.4": {
+                "field_name": "sample_not_collected_reason_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "{\"maxlength\":\"50\"}\r\n>is_shown_fg=$(kit_handed_participant)=='false'&&$(kit_not_handed_reason)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.5": {
+                "field_name": "participant_given_instructions",
+                "field_title": "Was the study participant given instructions on how to use the saliva kit?",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(kit_handed_participant)=='true'"
+            },
+            "1.6": {
+                "field_name": "why_instructions_not_given",
+                "field_title": "Please explain why instructions were not given to the study participant",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_data": "Study participant declined|Other\r\n>is_shown_fg=$(kit_handed_participant)=='true'&&$(participant_given_instructions)=='false'"
+            },
+            "1.7": {
+                "field_name": "why_instructions_not_given_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 6.5,
+                "field_constraint_data": "{\"maxlength\":\"50\"}\r\n>is_shown_fg=$(kit_handed_participant)=='true'&&$(participant_given_instructions)=='false'&&$(why_instructions_not_given)=='Other'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.8": {
+                "field_name": "subtitle_2",
+                "field_title": "Please scan the saliva vial and scan the shipping envelope if shipped during the visit",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(kit_handed_participant)=='true'",
+                "field_constraint_description": "subtitle",
+                "field_description": "Scan the vial's QR code and scan the shipping envelope barcode"
+            },
+            "1.9": {
+                "field_name": "tube_1",
+                "field_title": "Vial ID",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "{\"maxlength\":\"11\"}\r\n>is_shown_fg=$(kit_handed_participant)=='true'",
+                "field_constraint_description": "scanner"
+            },
+            "1.10": {
+                "field_name": "shipped_during_visit",
+                "field_title": "Click here if you shipped the saliva sample during the visit",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=$(kit_handed_participant)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.11": {
+                "field_name": "tracking_no_1",
+                "field_title": "Shipment Tracking Number",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(kit_handed_participant)=='true'&&$(shipped_during_visit)=='true'",
+                "field_constraint_description": "barcode"
+            },
+            "1.12": {
+                "field_name": "shipment_date_1",
+                "field_title": "Shipment Date",
+                "field_type": "date",
+                "field_order": 11,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(kit_handed_participant)=='true'&&$(shipped_during_visit)=='true'"
+            }
+        },
+        "parent": {
+            "3": "$type.lup_sample_collection"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

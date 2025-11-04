@@ -1,0 +1,105 @@
+{
+    "type.349": {
+        "_id": "type.349",
+        "_type": "type",
+        "name": "svc-align-paired-end",
+        "title": "paired end enabled alignments abstract type",
+        "description": "Abstract type for paired end enabled alignments",
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.10": {
+                "field_name": "fragmentLength",
+                "field_title": "Length of the fragment",
+                "field_type": "array",
+                "field_parent": "pairedEnds",
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "fragmentLengthMax",
+                "field_title": "Max",
+                "field_type": "integer",
+                "field_parent": "fragmentLength",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "fragmentLengthMin",
+                "field_title": "Min",
+                "field_type": "integer",
+                "field_parent": "fragmentLength",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.15": {
+                "field_name": "keepPairedOnly",
+                "field_title": "Filter unpaired alignments",
+                "field_type": "bool",
+                "field_parent": "pairedEnds",
+                "field_order": 0,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "keepPairOnOppositeStrand",
+                "field_title": "Filter pairs with wrong strandedness",
+                "field_type": "bool",
+                "field_parent": "pairedEnds",
+                "field_order": 0,
+                "field_is_optional_fg": true
+            },
+            "1.17": {
+                "field_name": "keepPairOnSameSubject",
+                "field_title": "Filter pairs on different subjects",
+                "field_type": "bool",
+                "field_parent": "pairedEnds",
+                "field_order": 0,
+                "field_is_optional_fg": true
+            },
+            "1.26": {
+                "field_name": "pairedEnds",
+                "field_title": "Paired end filters",
+                "field_type": "list"
+            },
+            "1.28": {
+                "field_name": "query_paired",
+                "field_title": "Sequence Read (Pair)",
+                "field_type": "obj",
+                "field_order": 3.05,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read,folder,svc-dna-insilico"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

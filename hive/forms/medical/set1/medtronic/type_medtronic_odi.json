@@ -1,0 +1,133 @@
+{
+    "179": {
+        "_id": "$type.medtronic_odi",
+        "_type": "type",
+        "name": "medtronic_odi",
+        "title": "ODI",
+        "fields": {
+            "1.0": {
+                "field_name": "odi_version_2_1_a",
+                "field_title": "ODI version 2.1a",
+                "field_type": "string",
+                "field_order": "1",
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "section_1_pain_intensity",
+                "field_title": "Section 1 - Pain intensity",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "0///0 I have no pain at the moment.|1///1 The pain is very mild at the moment.|2///2 The pain is moderate at the moment.|3///3 The pain is fairly severe at the moment.|4///4 The pain is very severe at the moment.|5///5 The pain is the worst imaginable at the moment."
+            },
+            "1.3": {
+                "field_name": "section_2_personal_care",
+                "field_title": "Section 2 - Personal care (washing, dressing, etc.)",
+                "field_type": "string",
+                "field_order": "3",
+                "field_constraint_data": "0///0 I can look after myself normally without causing additional pain.|1///1 I can look after myself normally but it is very painful.|2///2 It is painful to look after myself and I am slow and careful.|3///3 I need some help but manage most of my personal care.|4///4 I need help every day in most aspects of my personal care.|5///5 I do not get dressed, I wash with difficulty and stay in bed."
+            },
+            "1.4": {
+                "field_name": "section_3_lifting",
+                "field_title": "Section 3 - Lifting",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_data": "0///0 I can lift heavy weights without additional pain.|1///1 I can lift heavy weights but it gives me additional pain.|2///2 Pain prevents me from lifting heavy weights off the floor but I can manage if they are conveniently positioned, e.g. on a table.| 3///3 Pain prevents me from lifting heavy weights but I can manage light to medium weights if they are conveniently positioned.|4///4 I can only lift very light weights.|5///5 I cannot lift or carry anything at all."
+            },
+            "1.5": {
+                "field_name": "section_4_walking",
+                "field_title": "Section 4 - Walking",
+                "field_type": "string",
+                "field_order": "5",
+                "field_constraint_data": "0///0 Pain does not prevent me from walking any distance.|1///1 Pain prevents me from walking more than one mile.|2///2 Pain prevents me from walking more than a quarter of a mile.|3///3 Pain prevents me from walking more than 100 yards.|4///4 I can only walk using a cane or crutches.|5///5 I am in bed most of the time and have to crawl to the toilet."
+            },
+            "1.6": {
+                "field_name": "section_5_sitting",
+                "field_title": "Section 5 - Sitting",
+                "field_type": "string",
+                "field_order": "6",
+                "field_constraint_data": "0///0 I can sit in any chair as long as I like.|1///1 I can sit in my favorite chair as long as I like.|2///2 Pain prevents me from sitting for more than 1 hour.|3///3 Pain prevents me from sitting for more than half an hour.|4///4 Pain prevents me from sitting for more than 10 minutes.|5///5 Pain prevents me from sitting at all."
+            },
+            "1.7": {
+                "field_name": "section_6_standing",
+                "field_title": "Section 6 - Standing",
+                "field_type": "string",
+                "field_order": "7",
+                "field_constraint_data": "0///0 I can stand as long as I want without additional pain.|1///1 I can stand as long as I want but it gives me additional pain.|2///2 Pain prevents me from standing for more than 1 hour.|3///3 Pain prevents me from standing for more than half an hour.|4///4 Pain prevents me from standing for more than 10 minutes.|5///5 Pain prevents me from standing at all."
+            },
+            "1.8": {
+                "field_name": "section_7_sleeping",
+                "field_title": "Section 7 - Sleeping",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_data": "0///0 My sleep is never interrupted by pain.|1///1 My sleep is occasionally interrupted by pain.|2///2 Because of pain I have less than 6 hours sleep.|3///3 Because of pain I have less than 4 hours sleep.|4///4 Because of pain I have less than 2 hours sleep.|5///5 Pain prevents me from sleeping at all."
+            },
+            "1.9": {
+                "field_name": "section_8_sex_life",
+                "field_title": "Section 8 - Sex life (if applicable)",
+                "field_type": "string",
+                "field_order": "9",
+                "field_constraint_data": "0///0 My sex life is normal and causes no additional pain.|1///1 My sex life is normal but causes some additional pain.|2///2 My sex life is nearly normal but is very painful.|3///3 My sex life is severely restricted by pain.|4///4 My sex life is nearly non existent because of pain.|5///5 Pain prevents me from having any sex life at all."
+            },
+            "1.10": {
+                "field_name": "section_9_social_life",
+                "field_title": "Section 9 - Social life",
+                "field_type": "string",
+                "field_order": "10",
+                "field_constraint_data": "0///0 My social life is normal and causes me no additional pain.|1///1 My social life is normal but increases the degree of pain.|2///2 Pain has no significant effect on my social life apart from limiting my more energetic interests, e.g. sport, etc.|3///3 Pain has restricted my social life and I do not go out as often.|4///4 Pain has restricted my social life to home.|5///5 I have no social life because of pain."
+            },
+            "1.11": {
+                "field_name": "section_10_traveling",
+                "field_title": "Section 10 - Traveling",
+                "field_type": "string",
+                "field_order": "11",
+                "field_constraint_data": "0///0 I can travel anywhere without pain.|1///1 I can travel anywhere but it gives me additional pain.|2///2 Pain is bad but I am able to manage trips over two hours.|3///3 Pain restricts me to trips of less than one hour.|4///4 Pain restricts me to short necessary trips of under 30 minutes.|5///5 Pain prevents me from traveling except to receive treatment."
+            },
+            "1.12": {
+                "field_name": "office_use_only",
+                "field_title": "Office Use Only:",
+                "field_type": "string",
+                "field_order": "12",
+                "field_constraint_description": "subtitle"
+            },
+            "1.13": {
+                "field_name": "preoperative_odi_score",
+                "field_title": "Preoperative ODI Score(%)",
+                "field_type": "integer",
+                "field_order": "13",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-100\n>value_fg=(($(section_1_pain_intensity)+$(section_2_personal_care)+$(section_3_lifting)+$(section_4_walking)+$(section_5_sitting)+$(section_6_standing)+$(section_7_sleeping)+$(section_8_sex_life)+$(section_9_social_life)+$(section_10_traveling))/50)*100"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,216 @@
+{
+    "type.540": {
+        "_id": "type.540",
+        "_type": "type",
+        "name": "svc-pipeline-download-base",
+        "title": "Downloader",
+        "description": "Base downloader",
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.0": {
+                "field_name": "workflow_st1",
+                "field_title": "Step 1 - Download Processor",
+                "field_type": "list",
+                "field_parent": "workflow",
+                "field_role": "state",
+                "field_is_readonly_fg": 0
+            },
+            "1.4": {
+                "field_name": "st1_svc",
+                "field_type": "string",
+                "field_parent": "workflow_st1",
+                "field_default_value": "download-processor",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            },
+            "1.6": {
+                "field_name": "st1_objid",
+                "field_type": "obj",
+                "field_parent": "workflow_st1",
+                "field_default_value": "0",
+                "field_role": "output",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.8": {
+                "field_name": "st1_uri",
+                "field_title": "URLs and/or Identifiers",
+                "field_type": "text",
+                "field_parent": "workflow_st1",
+                "field_order": 0,
+                "field_role": "input",
+                "field_is_multi_fg": false,
+                "field_description": "List URLs, numeric identifiers or accessions, one per line. Use http://, ftp:// prefix in URLs. If the value contains \", double it and surround by quotes."
+            },
+            "1.32": {
+                "field_name": "workflow_st2",
+                "field_title": "Step 2 - Archiver",
+                "field_type": "list",
+                "field_parent": "workflow",
+                "field_role": "state"
+            },
+            "1.34": {
+                "field_name": "st2_datasource",
+                "field_title": "Source",
+                "field_type": "string",
+                "field_parent": "workflow_st2",
+                "field_default_value": "query://return (.st1_objid as obj).datasource;",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.38": {
+                "field_name": "st2_objid",
+                "field_type": "obj",
+                "field_parent": "workflow_st2",
+                "field_default_value": "0",
+                "field_role": "output",
+                "field_is_readonly_fg": 2,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.40": {
+                "field_name": "st2_type",
+                "field_type": "obj",
+                "field_parent": "workflow_st2",
+                "field_default_value": "type.54",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true,
+                "field_weakref": true
+            },
+            "1.44": {
+                "field_name": "st2_svc",
+                "field_type": "string",
+                "field_parent": "workflow_st2",
+                "field_default_value": "dmArchiver",
+                "field_role": "parameter",
+                "field_is_readonly_fg": 2,
+                "field_is_hidden_fg": true
+            },
+            "1.45": {
+                "field_name": "st2_process_opts",
+                "field_title": "Processing",
+                "field_type": "list",
+                "field_parent": "workflow_st2",
+                "field_order": 1
+            },
+            "1.46": {
+                "field_name": "st2_dissect",
+                "field_title": "Automatically process file(s)",
+                "field_type": "integer",
+                "field_parent": "st2_process_opts",
+                "field_order": 0,
+                "field_default_value": "0",
+                "field_role": "parameter",
+                "field_is_hidden_fg": false,
+                "field_constraint": "choice",
+                "field_constraint_data": "-1///All|0///No processing. indexing, screenning, etc|1///Top level only|2///2 levels only"
+            },
+            "1.48": {
+                "field_name": "st2_run_qc",
+                "field_title": "Quality Control",
+                "field_type": "bool",
+                "field_parent": "st2_process_opts",
+                "field_order": 3,
+                "field_default_value": "false",
+                "field_role": "parameter",
+                "field_is_hidden_fg": false
+            },
+            "1.49": {
+                "field_name": "st2_run_screen",
+                "field_title": "Screen",
+                "field_type": "bool",
+                "field_parent": "st2_process_opts",
+                "field_order": 2,
+                "field_default_value": "false",
+                "field_role": "parameter",
+                "field_is_hidden_fg": false
+            },
+            "1.53": {
+                "field_name": "st2_onUserBehalf",
+                "field_title": "On Behalf of The User",
+                "field_type": "integer",
+                "field_parent": "workflow_st2",
+                "field_default_value": "query://return .onUserBehalf;",
+                "field_role": "state",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.55": {
+                "field_name": "st1_onUserBehalf",
+                "field_title": "On Behalf of The User",
+                "field_type": "integer",
+                "field_parent": "workflow_st1",
+                "field_default_value": "query://return .onUserBehalf;",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.56": {
+                "field_name": "st2_inputFile",
+                "field_title": "File",
+                "field_type": "string",
+                "field_parent": "workflow_st2",
+                "field_default_value": "query://return (.st1_objid as obj).output;",
+                "field_role": "input",
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.57": {
+                "field_name": "st1_splitOnFrontEnd",
+                "field_type": "bool",
+                "field_parent": "workflow_st1",
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "8": "type.399",
+            "28": "type.330"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

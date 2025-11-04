@@ -1,0 +1,967 @@
+{
+    "type.51": {
+        "_id": "type.51",
+        "_type": "type",
+        "name": "svc-hiveseq",
+        "title": "Hiveseq Service",
+        "description": "Service to manipulate sequences files",
+        "parent": {
+            "1": "type.331"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "adaptersactive",
+                "field_title": "Use Adapters Filter",
+                "field_type": "bool",
+                "field_parent": "AdaptersFilter",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Use Adapters Filter"
+            },
+            "1.2": {
+                "field_name": "adaptersComplement",
+                "field_title": "Complement",
+                "field_type": "bool",
+                "field_parent": "adaptersOptions",
+                "field_order": 2,
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Consider the Complement of the primers"
+            },
+            "1.3": {
+                "field_name": "AdaptersFilter",
+                "field_title": "Adapters Filter",
+                "field_type": "array",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "Adapters Filter"
+            },
+            "1.4": {
+                "field_name": "adaptersMaxmissmatches",
+                "field_title": "Maximum Missmatches Allowed",
+                "field_type": "integer",
+                "field_parent": "AdaptersFilter",
+                "field_order": 3,
+                "field_default_value": "2",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Number of Missmatches Allowed"
+            },
+            "1.5": {
+                "field_name": "adaptersMinLength",
+                "field_title": "Min Length to be considered as Adapter",
+                "field_type": "integer",
+                "field_parent": "AdaptersFilter",
+                "field_order": 6,
+                "field_default_value": "10",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "adaptersObjId",
+                "field_title": "Choose Adapters",
+                "field_type": "integer",
+                "field_parent": "AdaptersFilter",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:'id', url:'http://?cmd=objList&type=u-hiveseq%2B&raw=1&mode=csv&prop_name=category&prop_val=adapters,primers', inline:'name', outline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}, {name:'created',hidden:false,title:'Created',type:'datetime'}]}"
+            },
+            "1.7": {
+                "field_name": "adaptersOptions",
+                "field_title": "Consider also:",
+                "field_type": "list",
+                "field_parent": "AdaptersFilter",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "adaptersReverse",
+                "field_title": "Reverse",
+                "field_type": "bool",
+                "field_parent": "adaptersOptions",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Consider the Reverse of the adapters"
+            },
+            "1.9": {
+                "field_name": "Algorithms",
+                "field_title": "Algorithms",
+                "field_type": "list",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "AlgorithmsName",
+                "field_title": "Algorithm",
+                "field_type": "integer",
+                "field_parent": "Algorithms",
+                "field_order": 0,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Filters Only|7///Identification Filter|1///Randomizer|2///Contig Extension|3///Paired End Collapse|8///Sequence comparator|9///Sequence ID deduplication",
+                "field_description": "Choose Algorithm to perform in Hiveseq"
+            },
+            "1.11": {
+                "field_name": "appendLength",
+                "field_title": "Append Length to ID line",
+                "field_type": "bool",
+                "field_parent": "FileAttributes",
+                "field_order": 3,
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Append Length value to the ID line"
+            },
+            "1.12": {
+                "field_name": "DenovoExtension",
+                "field_title": "Contig Extension Algorithm",
+                "field_type": "array",
+                "field_order": 15,
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "denovoExtFirstStage",
+                "field_title": "First Stage Only",
+                "field_type": "bool",
+                "field_parent": "DenovoExtension",
+                "field_order": 4,
+                "field_default_value": "true",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "denovoExtRptFilter",
+                "field_title": "Repetition Filter",
+                "field_type": "integer",
+                "field_parent": "DenovoExtension",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.15": {
+                "field_name": "denovoExtSizeFilter",
+                "field_title": "Size Filter",
+                "field_type": "integer",
+                "field_parent": "DenovoExtension",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "denovoExtSizemer",
+                "field_title": "Sizemer",
+                "field_type": "integer",
+                "field_parent": "DenovoExtension",
+                "field_order": 1,
+                "field_default_value": "16",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.17": {
+                "field_name": "denovoMissmatchesPercentage",
+                "field_title": "missmatches percentage",
+                "field_type": "integer",
+                "field_parent": "DenovoExtension",
+                "field_order": 6,
+                "field_default_value": "2",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "0/// No missmatches allowed|2/// 2 percent missmatches|5|10|15"
+            },
+            "1.18": {
+                "field_name": "denovoOutFilterLength",
+                "field_title": "Filter Contig Results (length=)",
+                "field_type": "integer",
+                "field_parent": "DenovoExtension",
+                "field_order": 5,
+                "field_default_value": "1000",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Filter Contigs based on this length"
+            },
+            "1.19": {
+                "field_name": "FileAttributes",
+                "field_title": "Output Attributes",
+                "field_type": "list",
+                "field_order": 21,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.20": {
+                "field_name": "hiveseqQry",
+                "field_title": "Hiveseq Query",
+                "field_type": "text",
+                "field_order": 9,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.21": {
+                "field_name": "IdFilter",
+                "field_title": "Identification Filter",
+                "field_type": "array",
+                "field_order": 8,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.22": {
+                "field_name": "idfilteractive",
+                "field_title": "Use Identification Filter",
+                "field_type": "bool",
+                "field_parent": "IdFilter",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "idlistObjId",
+                "field_title": "Id List File",
+                "field_type": "integer",
+                "field_parent": "IdFilter",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file"
+            },
+            "1.24": {
+                "field_name": "InputAttributes",
+                "field_title": "Input Attributes",
+                "field_type": "list",
+                "field_order": 21,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.25": {
+                "field_name": "inputMode",
+                "field_title": "Mode",
+                "field_type": "integer",
+                "field_parent": "InputAttributes",
+                "field_order": 1,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Short Mode|1///Long Mode"
+            },
+            "1.26": {
+                "field_name": "isFastQFile",
+                "field_title": "Use Phred Quality Scores",
+                "field_type": "bool",
+                "field_parent": "FileAttributes",
+                "field_order": 1,
+                "field_default_value": "true",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.27": {
+                "field_name": "isHiveseq",
+                "field_title": "Create Hiveseq (advanced use only)",
+                "field_type": "bool",
+                "field_parent": "FileAttributes",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_description": "val = true if a Hiveseq has to be created"
+            },
+            "1.28": {
+                "field_name": "isRevComp",
+                "field_title": "Print in Reverse and/or Complement",
+                "field_type": "integer",
+                "field_parent": "FileAttributes",
+                "field_order": 5,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Forward|1///Reverse|2///Complement|3///Reverse and Complement"
+            },
+            "1.29": {
+                "field_name": "keepOriginalID",
+                "field_title": "Keep Original Sequence ID Lines",
+                "field_type": "bool",
+                "field_parent": "FileAttributes",
+                "field_order": 2,
+                "field_default_value": "true",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.30": {
+                "field_name": "lengthSeqFilter",
+                "field_title": "Length Sequence Filter",
+                "field_type": "array",
+                "field_order": 7,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.31": {
+                "field_name": "listExclusion",
+                "field_title": "Use the list to ____ the Original File",
+                "field_type": "integer",
+                "field_parent": "IdFilter",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Include them only on|1///Exclude them from"
+            },
+            "1.32": {
+                "field_name": "lowcomplexityactive",
+                "field_title": "Use Low Complexity Filter",
+                "field_type": "bool",
+                "field_parent": "LowComplexityFilter",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.33": {
+                "field_name": "lowcomplexityEntropy",
+                "field_title": "Entropy Value",
+                "field_type": "integer",
+                "field_parent": "LowComplexityFilter",
+                "field_order": 4,
+                "field_default_value": "1",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "0///0 - permissive|1.///1 - lenient|1.2 - reluctant|1.6 - strict",
+                "field_description": "Low complexity entropy value"
+            },
+            "1.34": {
+                "field_name": "LowComplexityFilter",
+                "field_title": "Low Complexity Filter",
+                "field_type": "array",
+                "field_order": 2,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.35": {
+                "field_name": "lowcomplexityOption",
+                "field_title": "Action to perform",
+                "field_type": "integer",
+                "field_parent": "LowComplexityFilter",
+                "field_order": 5,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Do not keep the Read|1///Keep the Read and cut at the Beginning|2///Keep the Read and cut at the end|3///Keep the Read and cut at both ends (start and end)"
+            },
+            "1.36": {
+                "field_name": "lowcomplexityWindow",
+                "field_title": "Window Size",
+                "field_type": "integer",
+                "field_parent": "LowComplexityFilter",
+                "field_order": 3,
+                "field_default_value": "15",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "10|15|20|30|40|60",
+                "field_description": "Low complexity region filtering window size"
+            },
+            "1.37": {
+                "field_name": "maxNumberQueryForHiveseq",
+                "field_title": "Process this many random queries",
+                "field_type": "integer",
+                "field_order": 16,
+                "field_default_value": "-1",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.38": {
+                "field_name": "minimumSeqLength",
+                "field_title": "Minimum Sequence Length",
+                "field_type": "integer",
+                "field_parent": "lengthSeqFilter",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "0///0-No Filter Sequence Active",
+                "field_description": "It filters all sequences under this value"
+            },
+            "1.39": {
+                "field_name": "parEndCol",
+                "field_title": "Paired End Collapser",
+                "field_type": "array",
+                "field_order": 11,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.40": {
+                "field_name": "pecKeepAlignments",
+                "field_title": "Generate Alignments",
+                "field_type": "bool",
+                "field_parent": "parEndCol",
+                "field_order": 6,
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.41": {
+                "field_name": "pecMinMatchLen",
+                "field_title": "Minimum Match Length",
+                "field_type": "integer",
+                "field_parent": "parEndCol",
+                "field_order": 2,
+                "field_default_value": "15",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.42": {
+                "field_name": "pecPairEndFile",
+                "field_title": "Paired End File",
+                "field_type": "obj",
+                "field_parent": "parEndCol",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read"
+            },
+            "1.43": {
+                "field_name": "pecQualities",
+                "field_title": "Quality Treatment",
+                "field_type": "integer",
+                "field_parent": "parEndCol",
+                "field_order": 4,
+                "field_default_value": "1",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Average the Quality|1///Use maximum Quality value|2///Use minimum Quality value"
+            },
+            "1.44": {
+                "field_name": "primersactive",
+                "field_title": "Use Primers Filter",
+                "field_type": "bool",
+                "field_parent": "PrimersFilter",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.45": {
+                "field_name": "primersComplement",
+                "field_title": "Complement",
+                "field_type": "bool",
+                "field_parent": "primersOptions",
+                "field_order": 2,
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Consider the Complement of the primers"
+            },
+            "1.46": {
+                "field_name": "PrimersFilter",
+                "field_title": "Primers Filter",
+                "field_type": "array",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.47": {
+                "field_name": "primersKeep",
+                "field_title": "If Primers are found at the end",
+                "field_type": "integer",
+                "field_parent": "PrimersFilter",
+                "field_order": 4,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Do not keep the Read|1///Keep the Read and cut in the middle  only|2///Keep the Read and cut in the end only|3///Keep the Read and always cut",
+                "field_description": "Option to cut the read from the primer or not"
+            },
+            "1.48": {
+                "field_name": "primersMaxmissmatches",
+                "field_title": "Maximum mismatches allowed",
+                "field_type": "integer",
+                "field_parent": "PrimersFilter",
+                "field_order": 6,
+                "field_default_value": "2",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Primers: number of missmatches allowed"
+            },
+            "1.49": {
+                "field_name": "primersMinLength",
+                "field_title": "Minimum Length",
+                "field_type": "integer",
+                "field_parent": "PrimersFilter",
+                "field_order": 7,
+                "field_default_value": "100",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Primers: minimum Length allowed"
+            },
+            "1.50": {
+                "field_name": "primersObjId",
+                "field_title": "Choose Primers",
+                "field_type": "integer",
+                "field_parent": "PrimersFilter",
+                "field_order": 2,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "search",
+                "field_constraint_data": "{fetch:'id', url:'http://?cmd=objList&type=u-hiveseq%2B&raw=1&mode=csv&prop_name=category&prop_val=primers', inline:'name', outline:[{name:'id',hidden:false,title:'ID'}, {name:'name',hidden:false,title:'name'}, {name:'created',hidden:false,title:'Created',type:'datetime'}]}"
+            },
+            "1.51": {
+                "field_name": "primersOptions",
+                "field_title": "Consider also:",
+                "field_type": "list",
+                "field_parent": "PrimersFilter",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.52": {
+                "field_name": "primersReverse",
+                "field_title": "Reverse",
+                "field_type": "bool",
+                "field_parent": "primersOptions",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Consider the Reverse of the primers"
+            },
+            "1.53": {
+                "field_name": "qualityactive",
+                "field_title": "Use Quality Filter",
+                "field_type": "bool",
+                "field_parent": "QualityFilter",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.54": {
+                "field_name": "QualityFilter",
+                "field_title": "Quality Filter",
+                "field_type": "array",
+                "field_order": 5,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.55": {
+                "field_name": "qualityPercentage",
+                "field_title": "Minimum Percentage value of quality bases above the threshold value",
+                "field_type": "integer",
+                "field_parent": "QualityFilter",
+                "field_order": 3,
+                "field_default_value": "100",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "100///do not filter by percentage |20|40|50|60|70|80|90|100",
+                "field_description": "Set percentage of bases in sequence that mus have quality higher than threshold"
+            },
+            "1.56": {
+                "field_name": "qualityThreshold",
+                "field_title": "Threshold value to select sequences above the Phred Score",
+                "field_type": "integer",
+                "field_parent": "QualityFilter",
+                "field_order": 3,
+                "field_default_value": "50",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Set value to keep sequences with quality average value above threshold"
+            },
+            "1.57": {
+                "field_name": "randLengthNorm",
+                "field_title": "Ratio Normalization",
+                "field_type": "bool",
+                "field_parent": "Randomizer",
+                "field_order": 10,
+                "field_default_value": "true",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Normalize ratio of number of reads generated per refernce based on sequence length"
+            },
+            "1.58": {
+                "field_name": "Randomizer",
+                "field_title": "Randomizer (Algorithm)",
+                "field_type": "list",
+                "field_order": 8,
+                "field_is_optional_fg": true
+            },
+            "1.59": {
+                "field_name": "randomizerMaxLength",
+                "field_title": "Maximum Length of Random Sequence",
+                "field_type": "integer",
+                "field_parent": "Randomizer",
+                "field_order": 5,
+                "field_default_value": "100",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Keep the Length of the Original Read",
+                "field_description": "Randomizer: Maximum Length to generate"
+            },
+            "1.60": {
+                "field_name": "randomizerMinLength",
+                "field_title": "Minimum Length of Random Sequence",
+                "field_type": "integer",
+                "field_parent": "Randomizer",
+                "field_order": 4,
+                "field_default_value": "100",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_description": "Randomizer: Minimum Length to generate"
+            },
+            "1.61": {
+                "field_name": "randomizerMutations",
+                "field_title": "Optional Mutations",
+                "field_type": "string",
+                "field_parent": "Randomizer",
+                "field_order": 8,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Mutation variables to generate Random short reads"
+            },
+            "1.62": {
+                "field_name": "randomizerNoise",
+                "field_title": "Random Noise (in percent)",
+                "field_type": "real",
+                "field_parent": "Randomizer",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "0/// no errors | 0.01 /// 1% error rate | 0.05 /// 5 % error rate | 0.1 /// 10% error rate",
+                "field_description": "Randomizer: Uniform noise to add to the sequence"
+            },
+            "1.63": {
+                "field_name": "randomizerNumValue",
+                "field_title": "Number of Short Reads to Randomly Generate",
+                "field_type": "integer",
+                "field_parent": "Randomizer",
+                "field_order": 0,
+                "field_default_value": "100",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Number of Short Reads to be Generated by Randomizer"
+            },
+            "1.64": {
+                "field_name": "randomizerRevComp",
+                "field_title": "Use Reverse Complement",
+                "field_type": "bool",
+                "field_parent": "Randomizer",
+                "field_order": 9,
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Randomizer: Use Reverse Complement"
+            },
+            "1.65": {
+                "field_name": "randomizerSettings",
+                "field_title": "Optional Settings",
+                "field_type": "string",
+                "field_parent": "Randomizer",
+                "field_order": 7,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_description": "Additional settings to use by Randomizer"
+            },
+            "1.66": {
+                "field_name": "removeMax",
+                "field_title": "End Position",
+                "field_type": "integer",
+                "field_parent": "Removing",
+                "field_order": 2,
+                "field_default_value": "-1",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1"
+            },
+            "1.67": {
+                "field_name": "removeMin",
+                "field_title": "Start Position",
+                "field_type": "integer",
+                "field_parent": "Removing",
+                "field_order": 1,
+                "field_default_value": "-1",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1"
+            },
+            "1.68": {
+                "field_name": "removeSet",
+                "field_title": "Remove Regions",
+                "field_type": "list",
+                "field_order": 6,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.69": {
+                "field_name": "Removing",
+                "field_title": "Region to Remove",
+                "field_type": "array",
+                "field_parent": "removeSet",
+                "field_order": 6,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.70": {
+                "field_name": "seqExclusion",
+                "field_title": "Sequence Exclusion",
+                "field_type": "list",
+                "field_order": 8
+            },
+            "1.71": {
+                "field_name": "seqExclusionOption",
+                "field_title": "Use the file to ________ the Main File",
+                "field_type": "integer",
+                "field_parent": "seqExclusion",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Include them on|1///Exclude them from"
+            },
+            "1.72": {
+                "field_name": "seqExclusionRevComp",
+                "field_title": "Check Reverse Complement",
+                "field_type": "bool",
+                "field_parent": "seqExclusion",
+                "field_order": 3,
+                "field_default_value": "false",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Consider the Reverse of the primers"
+            },
+            "1.73": {
+                "field_name": "seqExcObjId",
+                "field_title": "Select Object",
+                "field_type": "obj",
+                "field_parent": "seqExclusion",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome,nuc-read"
+            },
+            "1.74": {
+                "field_name": "trimMaximum",
+                "field_title": "End Position",
+                "field_type": "integer",
+                "field_parent": "Trimming",
+                "field_order": 2,
+                "field_default_value": "-1",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Do not trim on the right side|65///Trim after 65th position|100///Trim after 100th position"
+            },
+            "1.75": {
+                "field_name": "Trimming",
+                "field_title": "Trim Sequence To",
+                "field_type": "array",
+                "field_order": 6,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.76": {
+                "field_name": "trimMinimum",
+                "field_title": "Start Position",
+                "field_type": "integer",
+                "field_parent": "Trimming",
+                "field_order": 1,
+                "field_default_value": "-1",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Do not trim on the left side|10 bases|35 bases"
+            },
+            "1.78": {
+                "field_name": "negateOutput",
+                "field_title": "Filter In / Out Selected Reads",
+                "field_type": "integer",
+                "field_parent": "FileAttributes",
+                "field_order": 4,
+                "field_default_value": "false",
+                "field_constraint": "choice",
+                "field_constraint_data": "false///Filter Out Selected Reads|true///Filter In Selected Reads"
+            },
+            "1.80": {
+                "field_name": "pairEndColFilterNs",
+                "field_title": "Filter Low Quality Reads (N's percentage)",
+                "field_type": "integer",
+                "field_parent": "parEndCol",
+                "field_order": 5,
+                "field_default_value": "50",
+                "field_constraint": "choice+",
+                "field_constraint_data": "-1///Do not filter N's|0///Do not allow any N's in the reads|50///Filter reads with 50 percent of N's|100///Filter reads with 100 percent of N's"
+            },
+            "1.82": {
+                "field_name": "pairEndColExtendReads",
+                "field_title": "If a pair of reads don't collapse, then...",
+                "field_type": "integer",
+                "field_parent": "parEndCol",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Discard them out|1///Concatenate them"
+            },
+            "1.84": {
+                "field_name": "archivingFlags",
+                "field_title": "Archiving",
+                "field_type": "list",
+                "field_order": 30,
+                "field_default_value": "0"
+            },
+            "1.86": {
+                "field_name": "launchScreening",
+                "field_title": "Launch qc process",
+                "field_type": "bool",
+                "field_parent": "archivingFlags",
+                "field_order": 2,
+                "field_default_value": "1"
+            },
+            "1.87": {
+                "field_name": "launchQC",
+                "field_title": "Launch screening process",
+                "field_type": "bool",
+                "field_parent": "archivingFlags",
+                "field_order": 3,
+                "field_default_value": "1"
+            },
+            "1.88": {
+                "field_name": "filterNsArray",
+                "field_title": "Filter reads with Ns ",
+                "field_type": "array",
+                "field_order": 15,
+                "field_default_value": "0",
+                "field_is_optional_fg": true
+            },
+            "1.89": {
+                "field_name": "filternsactive",
+                "field_title": "Remove Reads with Ns",
+                "field_type": "bool",
+                "field_parent": "filterNsArray",
+                "field_order": 1,
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.90": {
+                "field_name": "filterseqns",
+                "field_title": "Percentage of bases with Ns Allowed",
+                "field_type": "integer",
+                "field_parent": "filterNsArray",
+                "field_order": 2,
+                "field_default_value": "50",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.91": {
+                "field_name": "objQry",
+                "field_title": "Object Id of the Query",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome,nuc-read",
+                "field_description": "Select Objects to launch in batch mode"
+            },
+			"1.92": {
+                "field_name": "IdDeduplication",
+                "field_title": "Identification Deduplication",
+                "field_type": "array",
+                "field_order": 8,
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.93": {
+                "field_name": "iddeduplicationactive",
+                "field_title": "Use Identification Deduplication",
+                "field_type": "bool",
+                "field_parent": "IdDeduplication",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true
+            },
+            "1.94": {
+                "field_name": "iddeduplicationlistObjId",
+                "field_title": "Id List File",
+                "field_type": "integer",
+                "field_parent": "IdDeduplication",
+                "field_order": 2,
+                "field_default_value": "0",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read,genome"
+            },
+            "1.95": {
+                "field_name": "deduplicationlistExclusion",
+                "field_title": "Use the list to ____ the Original File",
+                "field_type": "integer",
+                "field_parent": "IdDeduplication",
+                "field_order": 3,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///Include them only on|1///Exclude them from|2///Merge unique Id's"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

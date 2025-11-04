@@ -1,0 +1,178 @@
+{
+    "218": {
+        "_id": "$type.svc-dna-annot-mapper",
+        "_type": "type",
+        "name": "svc-dna-annot-mapper",
+        "title": "Annotation Mapper",
+        "description": "// Maps 2 or more annotations to each other\nlocatiojn: hive.app.dna.dna-annot-mapper",
+        "parent": {
+            "1": "$type.svc-dna"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "annot",
+                "field_title": "Annotation File",
+                "field_type": "obj",
+                "field_parent": "annotList",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-annot,u-ionAnnot,svc-profiler,special",
+                "field_description": "Required.  This is the annotation file selected.  This file should be either a Heptagon Profile or a HIVE annotation object (if you have a CSV, VCF, etc., see Annotation Converter in order to create a HIVE annotation objecct)."
+            },
+            "1.2": {
+                "field_name": "annotList",
+                "field_title": "Annotation Files",
+                "field_type": "array",
+                "field_parent": "annotListList",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_description": "Group of annotation files."
+            },
+            "1.3": {
+                "field_name": "annotListList",
+                "field_title": "Annotation Cross-Mapping Groups",
+                "field_type": "list",
+                "field_order": 6,
+                "field_description": "Full annotation cross mapping set of files."
+            },
+            "1.4": {
+                "field_name": "crossMapMode",
+                "field_title": "Cross Mapping Mode",
+                "field_type": "integer",
+                "field_order": 5,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///present in 1st AND 2nd sets|1/// present in 1st NOT 2nd set|2///present in 2nd NOT in 1st set|3///present in ONLY ONE set"
+            },
+            "1.5": {
+                "field_name": "filterColumn",
+                "field_title": "Column",
+                "field_type": "string",
+                "field_parent": "filterList",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_description": "Optional.  This is the column in the annotation file that the filter value should be applied to.  If you consider your annotation file as a spreadsheet, this will be a list of your column names.  If you do not want any filters, this field can be ignored."
+            },
+            "1.6": {
+                "field_name": "filterList",
+                "field_title": "Filters",
+                "field_type": "array",
+                "field_parent": "annotList",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_description": "list of filter"
+            },
+            "1.7": {
+                "field_name": "filterLogic",
+                "field_title": "Logic",
+                "field_type": "integer",
+                "field_parent": "filterList",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///OR|1///AND",
+                "field_description": "Optional.  This is the filter logic that should be used for this specific filter.  OR means that the system will take an entry that meets the requirement put in regardless of other requirements that are required.  OR is saying that you want to consider any entry that meets the specific criteria entered for that file, regardless of any other criteria.  AND means that you want multiple criteria to be considered before taking an entry in the file in question.  The default is OR and if no filters are desired this field can be ignored."
+            },
+            "1.8": {
+                "field_name": "filterValue",
+                "field_title": "Value",
+                "field_type": "string",
+                "field_parent": "filterList",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_description": "Optional.  This is the value that the value in the column selected previously should be checked against.  For example, if you selected Nucleotide for your column and entered in A here, you would match any adenosine in your annotation file.  This field is case sensitive to what you entered into the annotation when you created it.  If you do not want any filters, this field can be ignored."
+            },
+            "1.9": {
+                "field_name": "profilerCoverageThreshold",
+                "field_title": "Positional Coverage Threshold",
+                "field_type": "real",
+                "field_parent": "profilerParams",
+                "field_order": 2,
+                "field_default_value": "5",
+                "field_is_optional_fg": true,
+                "field_description": "Optional.  The coverage threshold required at a specific position in a profile before it is considered for mapping.  The default is 5, and this field only functions if one or more Heptagon profiles are selected below."
+            },
+            "1.10": {
+                "field_name": "profilerFreqThreshold",
+                "field_title": "Variant Frequency Threshold (%)",
+                "field_type": "real",
+                "field_parent": "profilerParams",
+                "field_order": 1,
+                "field_default_value": "5",
+                "field_is_optional_fg": true,
+                "field_description": "Optional.  The frequency threshold of SNPs found in a profile that should be considered for mapping.  This is in percent (30 = 0.30 or 30%), and default is 5%.  This field only functions if one or more Heptagon profiles are selected below."
+            },
+            "1.11": {
+                "field_name": "profilerParams",
+                "field_title": "Heptagon Profiler Specific Parameters",
+                "field_type": "list",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_description": "Profiler Parameters"
+            },
+            "1.12": {
+                "field_name": "reference",
+                "field_title": "Reference Sequence (Optional)",
+                "field_type": "list",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome",
+                "field_description": "Optional.  A reference genome if you would like to restrict mapping to chromosomes or sub-sequences."
+            },
+            "1.13": {
+                "field_name": "referenceSubID",
+                "field_title": "Sequences Annotated",
+                "field_type": "list",
+                "field_parent": "reference",
+                "field_order": 3,
+                "field_default_value": "all",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "all",
+                "field_description": "Optional.  A list of chromosomes or sub-sequences that you would like to restrict your mapping to.  This is populated based on the file in the above field, 'Refence Sequence'"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

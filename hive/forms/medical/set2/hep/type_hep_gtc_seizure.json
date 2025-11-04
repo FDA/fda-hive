@@ -1,0 +1,136 @@
+{
+    "488": {
+        "_id": "$type.hep_gtc_seizure",
+        "_type": "type",
+        "name": "hep_gtc_seizure",
+        "title": "GTC Seizure",
+        "fields": {
+            "1.1": {
+                "field_name": "seizure",
+                "field_title": "Did you have a seizure in the last 48 hours?",
+                "field_type": "bool",
+                "field_order": 1
+            },
+            "1.2": {
+                "field_name": "miss_any_prescribed_anti_seizure",
+                "field_title": "Did you miss any prescribed anti-seizure medication in the last 72 hours?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "please_describe",
+                "field_title": "Please Describe",
+                "field_type": "text",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(miss_any_prescribed_anti_seizure)=='true'"
+            },
+            "1.4": {
+                "field_name": "alcoholic_beverage",
+                "field_title": "Did you drink any alcoholic beverage in the last 72 hours?",
+                "field_type": "bool",
+                "field_order": 4
+            },
+            "1.5": {
+                "field_name": "subtitle_1",
+                "field_title": "How many drinks (1 drink is equivalent to 12 oz. of beer, 5 oz. of wine, 1.5 oz. of hard alcohol) did you have on:",
+                "field_type": "string",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.6": {
+                "field_name": "how_many_drinks_day1",
+                "field_title": "Day 1 (72 hours ago)",
+                "field_type": "string",
+                "field_order": 5.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'"
+            },
+            "1.7": {
+                "field_name": "how_many_drinks_day2",
+                "field_title": "Day 2 (48 hours ago)",
+                "field_type": "string",
+                "field_order": 5.2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'"
+            },
+            "1.8": {
+                "field_name": "how_many_drinks_day3",
+                "field_title": "Day 3 (24 hours ago)",
+                "field_type": "string",
+                "field_order": 5.3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'"
+            },
+            "1.9": {
+                "field_name": "sleep_at_least",
+                "field_title": "Did you sleep at least 2 hours less than usual any of the last 3 nights?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_is_optional_fg": false
+            },
+            "1.10": {
+                "field_name": "subtitle_2",
+                "field_title": "If yes, how many hours of sleep did you get:",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sleep_at_least)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.11": {
+                "field_name": "how_many_hours_sleep_night1",
+                "field_title": "Night 1 (72 hours ago)",
+                "field_type": "string",
+                "field_order": 7.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sleep_at_least)=='true'"
+            },
+            "1.12": {
+                "field_name": "how_many_hours_sleep_night2",
+                "field_title": "Night 2 (48 hours ago)",
+                "field_type": "string",
+                "field_order": 7.2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sleep_at_least)=='true'"
+            },
+            "1.13": {
+                "field_name": "how_many_hours_sleep_night3",
+                "field_title": "Night 3 (24 hours ago)",
+                "field_type": "string",
+                "field_order": 7.3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sleep_at_least)=='true'"
+            },
+            "1.14": {
+                "field_name": "stress",
+                "field_title": "Did you feel that you has stress “more than usual” in the last 72 hours?",
+                "field_type": "bool",
+                "field_order": 8
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,61 @@
+{
+    "type.450": {
+        "_id": "type.450",
+        "_type": "type",
+        "name": "svc-align-blast-base",
+        "title": "Blast Alignment common fields",
+        "description": "Blast alignment engine optimized for HIVE performance",
+        "parent": {
+            "1": "type.90"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.3": {
+                "field_name": "evalueFilter",
+                "field_title": "E-value Filter",
+                "field_type": "real",
+                "field_default_value": "1e-4",
+                "field_is_optional_fg": true,
+                "field_description": "Alignments with smaller scores are discarded and not reported. If 'none' is specified: all alignments are reported which satisfy the other criteria."
+            },
+            "1.4": {
+                "field_name": "num_alignments",
+                "field_title": "Number of Alignments to Keep ",
+                "field_type": "integer",
+                "field_default_value": "10",
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number",
+                "field_description": "Show alignments for this number of database sequences."
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

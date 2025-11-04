@@ -1,0 +1,74 @@
+{
+    "328": {
+        "_id": "$type.ci3_imaging",
+        "_type": "type",
+        "name": "ci3_imaging",
+        "title": "Imaging",
+        "fields": {
+            "1.1": {
+                "field_name": "mrn",
+                "field_title": "Patient MRN",
+                "field_type": "string",
+                "field_order": 1,
+                "field_brief": "$_(v)"
+            },
+            "1.2": {
+                "field_name": "imaging_type",
+                "field_title": "Imaging type",
+                "field_type": "string",
+                "field_order": 2.1,
+                "field_constraint_data": "CT|MRI|Ultra-sound|Fluoroscopy|Immunofluorescence|Optical|Video recording",
+                "field_constraint_description": "dropdown",
+                "field_brief": "<b>$_(v) Image</b>"
+            },
+            "1.3": {
+                "field_name": "files",
+                "field_title": "Upload Imaging Files",
+                "field_type": "file",
+                "field_order": 2.2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(imaging_type)!='Video recording'"
+            },
+            "1.4": {
+                "field_name": "video_capture",
+                "field_title": "Video recording",
+                "field_type": "string",
+                "field_order": 2.3,
+                "field_constraint_data": "is_shown_fg=$(imaging_type)=='Video recording'",
+                "field_constraint_description": "video"
+            },
+            "1.5": {
+                "field_name": "slicer_widget",
+                "field_title": "3D Image",
+                "field_type": "string",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "is_shown_fg=$(imaging_type)!=''&&$(imaging_type)!='Video recording'&&$(imaging_type)!='Optical'",
+                "field_constraint_description": "vnc"
+            }
+        },
+        "parent": {
+            "3": "$type.ci3"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

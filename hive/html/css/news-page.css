@@ -1,0 +1,249 @@
+/*
+ *  ::718604!
+ * 
+ * Copyright(C) November 20, 2014 U.S. Food and Drug Administration
+ * Authors: Dr. Vahan Simonyan (1), Dr. Raja Mazumder (2), et al
+ * Affiliation: Food and Drug Administration (1), George Washington University (2)
+ * 
+ * All rights Reserved.
+ * 
+ * The MIT License (MIT)
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+ */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: inherit;
+}
+
+html {
+    box-sizing: border-box;
+}
+
+body {
+    /*            padding: 6rem 4rem 10rem;*/
+    line-height: 1.7;
+    font-family: 'Titillium Web', sans-serif;
+    color: #334061;
+    min-height: 100vh;
+    background: #fefefe;
+}
+
+.news__container {
+    border-radius: 4px;
+/*    background-color: white;*/
+    width: 855px;
+    margin: 0px auto;
+    padding: 45px 30px;
+/*    box-shadow: 0 0rem 2rem 0rem rgba(132,129, 128, 0.2);*/
+}
+
+.news__item {
+    padding: 10px 30px;
+    border-bottom: 1px dotted #cccccc;
+    position: relative;
+    border-radius: 4px;
+}
+
+.news__item.unread {
+    background-color: #ffffff;
+    box-shadow: 0px 3px 10px 0rem rgba(163, 217, 255, 0.5);
+    transition: all 0.3s ease-in;
+}
+.news__item.unread:hover {
+    background-color: #ffffff;
+    box-shadow: 0px 2px 5px 0px rgba(163, 217, 255, 0.75);
+    transition: all 0.3s ease-in;
+}
+
+/*
+.news__item:hover i.view__description {
+    color: #169BD5;
+}
+*/
+
+.news__item .news__title {
+    font-size: 16px;
+    display: inline-block;
+}
+.unread .news__title{
+    color: #0074df;
+}
+.unread .news__title.high{
+    color:#c3313c;
+}
+.news__item h4.high {
+/*    color: #CA3944;*/
+ 
+}
+
+
+p.news__date {
+    display: inline-block;
+    margin-top: 2px;
+    font-size: 12px;
+    position: relative;
+    color: #999999;
+}
+
+p.news__date:hover {
+    color: #333333;
+}
+
+i.view__description {
+    display: inline-block;
+    font-size: 13px;
+    margin-left: 30px;
+    color: #90aab5;
+}
+
+i.view__description:hover{
+    color: #0089ff;
+    cursor: pointer;
+}
+
+i.view__description:after {
+    text-transform: uppercase;
+    font-family: 'Titillium Web', sans-serif;
+    font-size: 10px;
+    margin-left: 3px;
+    line-height: 0em;
+    padding-bottom: 1px;
+}
+
+i.view__description.null{
+    display: none;
+}
+
+.news__description {
+    display: none;
+    margin: 25px 0px 20px 0px;
+    font-size: 15px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+.news__container .rv-eye-no:after {
+    content: ' view less';
+}
+
+.news__container .rv-eye:after {
+    content: ' view more';
+}
+
+/*Release Styling*/
+.news__columns {
+    column-count: 2;
+}
+.news__category-sections ul,.news__category-sections li{
+    list-style: none;
+}
+
+.news__category-sections ul{
+    padding-left: 0px;
+}
+
+.news__category-sections li{
+    padding-left: 15px;
+    font-size:14px;
+        margin: 10px 0px;
+    line-height: 1.1em;
+}
+
+.news__category-sections li i, 
+.news__category-sections ul i{
+    font-family: TitilliumWeb !important;
+    font-style: italic;
+/*    color: #0275d8;*/
+    color: #6a83a0;
+    display: block;
+}
+
+.news__category-sections li i::before {
+    content: "- ";
+}
+
+.news__category-sections li i.details,
+.news__category-sections ul i.details{
+    display: inline; 
+}
+.news__category-sections li i.details::before {
+    content:"";
+}
+
+.news__category-sections ul{
+    margin-top: 0px;
+}
+.news__category-sections ul p{
+    font-size:14px;
+    margin-top: 0px;
+    margin-bottom:0px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.news__category-sections {
+    display: block;
+    orphans: 1;
+    widows: 1;
+}
+
+.news__category-section {
+    vertical-align: top;
+    position: relative;
+    display: inline-block;
+    padding-left: 0px;
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+.highlight{
+    position:relative;
+    z-index: 0;
+}
+.highlight::after{
+    content: "";
+    position: absolute;
+    width: calc(100% + 15px);
+    height: 18px;
+    bottom: 7px;
+    left: -7px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+            border-radius: 3px;
+    z-index: -1;
+    background-color: rgba(243, 189, 25, 0.5);
+    background-color: rgba(25, 151, 243, 0.25);
+}
+
+.highlight__red::after{
+    background-color:  rgba(255, 0, 0, 0.12);
+}
+.news__item .highlight::after{
+    bottom: 3px;
+}
+.news__none    {
+    font-size: 24px;
+    color: #334061;
+    text-align: center;
+}   

@@ -1,0 +1,24 @@
+{
+    "204": {
+        "_id": "$upsert()",
+        "_type": "algorithm-alignment-dnaseq",
+        "description": "NCBI Blast Algorithm",
+        "icon": "?cmd=~dna~svc-align-blast.gif",
+        "title": "NCBI-blast",
+        "version": "2.2.30",
+        "name": "svc-align-blast",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

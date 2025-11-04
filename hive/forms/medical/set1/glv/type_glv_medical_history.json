@@ -1,0 +1,562 @@
+{
+    "8890": {
+        "_id": "$type.glv_medical_history",
+        "_type": "type",
+        "name": "glv_medical_history",
+        "title": "Medical History",
+        "parent": {
+            "3": "$type.glv_forms"
+        },
+        "fields": {
+            "3.1": {
+                "field_name": "smk_status",
+                "field_title": "Smoking Status",
+                "field_type": "string",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Current|Former|Never|Unknown"
+            },
+            "3.2": {
+                "field_name": "med_hx",
+                "field_title": "Does subject have any pertinent medical history?",
+                "field_type": "bool",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_is_summary_fg": false
+            },
+            "3.3": {
+                "field_name": "med_hx_ent",
+                "field_title": "Does subject have any medical history related to following body system: ears, nose, and throat?",
+                "field_type": "bool",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.4": {
+                "field_name": "med_hx_ent_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "4",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_ent)=='true'&&$(med_hx)=='true'"
+            },
+            "3.5": {
+                "field_name": "med_hx_ent_cond",
+                "field_title": "ENT-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_ent_list",
+                "field_order": "4.1",
+                "field_is_optional_fg": true
+            },
+            "3.6": {
+                "field_name": "med_hx_ent_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_ent_list",
+                "field_order": "4.2",
+                "field_is_optional_fg": true
+            },
+            "3.7": {
+                "field_name": "med_hx_resp",
+                "field_title": "Does subject have any medical history related to following body system: respiratory?",
+                "field_type": "bool",
+                "field_order": "5",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.8": {
+                "field_name": "med_hx_resp_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "6",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_resp)=='true'&&$(med_hx)=='true'"
+            },
+            "3.9": {
+                "field_name": "med_hx_resp_cond",
+                "field_title": "Respiratory-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_resp_list",
+                "field_order": "6.1",
+                "field_is_optional_fg": true
+            },
+            "3.10": {
+                "field_name": "med_hx_resp_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_resp_list",
+                "field_order": "6.2",
+                "field_is_optional_fg": true
+            },
+            "3.11": {
+                "field_name": "med_hx_ht",
+                "field_title": "Does subject have any medical history related to: hypertension?",
+                "field_type": "bool",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.12": {
+                "field_name": "med_hx_ht_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "8",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_ht)=='true'&&$(med_hx)=='true'"
+            },
+            "3.13": {
+                "field_name": "med_hx_ht_cond",
+                "field_title": "Hypertension-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_ht_list",
+                "field_order": "8.1",
+                "field_is_optional_fg": true
+            },
+            "3.14": {
+                "field_name": "med_hx_ht_ongoing",
+                "field_title": "Does subject have any other medical history related to following body system: cardiovascular?",
+                "field_type": "bool",
+                "field_parent": "med_hx_ht_list",
+                "field_order": "8.2",
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": false
+            },
+            "3.15": {
+                "field_name": "med_hx_cvd",
+                "field_title": "Does subject have any other medical history related to following body system: cardiovascular?",
+                "field_type": "bool",
+                "field_order": "9",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.16": {
+                "field_name": "med_hx_cvd_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "10",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_cvd)=='true'&&$(med_hx)=='true'"
+            },
+            "3.17": {
+                "field_name": "med_hx_cvd_cond",
+                "field_title": "CVD-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_cvd_list",
+                "field_order": "10.1",
+                "field_is_optional_fg": true
+            },
+            "3.18": {
+                "field_name": "med_hx_cvd_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_cvd_list",
+                "field_order": "10.2",
+                "field_is_optional_fg": true
+            },
+            "3.19": {
+                "field_name": "med_hx_gi",
+                "field_title": "Does subject have any medical history related to following body system: gastrointestinal?",
+                "field_type": "bool",
+                "field_order": "11",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.20": {
+                "field_name": "med_hx_gi_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "12",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_gi)=='true'&&$(med_hx)=='true'"
+            },
+            "3.21": {
+                "field_name": "med_hx_gi_cond",
+                "field_title": "GI-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_gi_list",
+                "field_order": "12.1",
+                "field_is_optional_fg": true
+            },
+            "3.22": {
+                "field_name": "med_hx_gi_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_gi_list",
+                "field_order": "12.2",
+                "field_is_optional_fg": true
+            },
+            "3.23": {
+                "field_name": "med_hx_endocrine",
+                "field_title": "Does subject have any medical history related to following body system: endocrine?",
+                "field_type": "bool",
+                "field_order": "13",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.24": {
+                "field_name": "med_hx_endocrine_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "14",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_endocrine)=='true'&&$(med_hx)=='true'"
+            },
+            "3.25": {
+                "field_name": "med_hx_endocrine_cond",
+                "field_title": "Endocrine-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_endocrine_list",
+                "field_order": "14.1",
+                "field_is_optional_fg": true
+            },
+            "3.26": {
+                "field_name": "med_hx_endocrine_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_endocrine_list",
+                "field_order": "14.2",
+                "field_is_optional_fg": true
+            },
+            "3.27": {
+                "field_name": "med_hx_msk",
+                "field_title": "Does subject have any medical history related to following body system: musculoskeletal?",
+                "field_type": "bool",
+                "field_order": "15",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.28": {
+                "field_name": "med_hx_msk_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "16",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_msk)=='true'&&$(med_hx)=='true'"
+            },
+            "3.29": {
+                "field_name": "med_hx_msk_cond",
+                "field_title": "MSK-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_msk_list",
+                "field_order": "16.1",
+                "field_is_optional_fg": true
+            },
+            "3.30": {
+                "field_name": "med_hx_msk_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_msk_list",
+                "field_order": "16.2",
+                "field_is_optional_fg": true
+            },
+            "3.31": {
+                "field_name": "med_hx_derm",
+                "field_title": "Does subject have any medical history related to following body system: dermatological?",
+                "field_type": "bool",
+                "field_order": "17",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.32": {
+                "field_name": "med_hx_derm_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "18",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_derm)=='true'&&$(med_hx)=='true'"
+            },
+            "3.33": {
+                "field_name": "med_hx_derm_cond",
+                "field_title": "Derm-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_derm_list",
+                "field_order": "18.1",
+                "field_is_optional_fg": true
+            },
+            "3.34": {
+                "field_name": "med_hx_derm_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_derm_list",
+                "field_order": "18.2",
+                "field_is_optional_fg": true
+            },
+            "3.35": {
+                "field_name": "med_hx_immun",
+                "field_title": "Does subject have any medical history related to following body system: allergy/immunological?",
+                "field_type": "bool",
+                "field_order": "19",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.36": {
+                "field_name": "med_hx_immun_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "20",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_immun)=='true'&&$(med_hx)=='true'"
+            },
+            "3.37": {
+                "field_name": "med_hx_immun_cond",
+                "field_title": "Allergy/immuno-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_immun_list",
+                "field_order": "20.1",
+                "field_is_optional_fg": true
+            },
+            "3.38": {
+                "field_name": "med_hx_immun_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_immun_list",
+                "field_order": "20.2",
+                "field_is_optional_fg": true
+            },
+            "3.39": {
+                "field_name": "med_hx_neuro",
+                "field_title": "Does subject have any medical history related to following body system: neurological?",
+                "field_type": "bool",
+                "field_order": "21",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.40": {
+                "field_name": "med_hx_neuro_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "22",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_neuro)=='true'&&$(med_hx)=='true'"
+            },
+            "3.41": {
+                "field_name": "med_hx_neuro_cond",
+                "field_title": "Neuro-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_neuro_list",
+                "field_order": "22.1",
+                "field_is_optional_fg": true
+            },
+            "3.42": {
+                "field_name": "med_hx_neuro_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_neuro_list",
+                "field_order": "22.2",
+                "field_is_optional_fg": true
+            },
+            "3.43": {
+                "field_name": "med_hx_heme",
+                "field_title": "med_hx_heme\tDoes subject have any medical history related to following body system: hematological?",
+                "field_type": "bool",
+                "field_order": "23",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.44": {
+                "field_name": "med_hx_heme_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "24",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_heme)=='true'&&$(med_hx)=='true'"
+            },
+            "3.45": {
+                "field_name": "med_hx_heme_cond",
+                "field_title": "Heme-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_heme_list",
+                "field_order": "24.1",
+                "field_is_optional_fg": true
+            },
+            "3.46": {
+                "field_name": "med_hx_heme_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_heme_list",
+                "field_order": "24.2",
+                "field_is_optional_fg": true
+            },
+            "3.47": {
+                "field_name": "med_hx_hep",
+                "field_title": "Does subject have any medical history related to following body system: hepatobiliary?",
+                "field_type": "bool",
+                "field_order": "25",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.48": {
+                "field_name": "med_hx_hep_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "26",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_hep)=='true'&&$(med_hx)=='true'"
+            },
+            "3.49": {
+                "field_name": "med_hx_hep_cond",
+                "field_title": "Hepatobiliary-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_hep_list",
+                "field_order": "26.1",
+                "field_is_optional_fg": true
+            },
+            "3.50": {
+                "field_name": "med_hx_hep_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_hep_list",
+                "field_order": "26.2",
+                "field_is_optional_fg": true
+            },
+            "3.51": {
+                "field_name": "med_hx_neo",
+                "field_title": "Does subject have any medical history related to following body system: neoplasm?",
+                "field_type": "bool",
+                "field_order": "27",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.52": {
+                "field_name": "med_hx_neo_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "28",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_neo)=='true'&&$(med_hx)=='true'"
+            },
+            "3.53": {
+                "field_name": "med_hx_neo_cond",
+                "field_title": "Neoplasm-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_neo_list",
+                "field_order": "28.1",
+                "field_is_optional_fg": true
+            },
+            "3.54": {
+                "field_name": "med_hx_neo_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_neo_list",
+                "field_order": "28.2",
+                "field_is_optional_fg": true
+            },
+            "3.55": {
+                "field_name": "med_hx_other",
+                "field_title": "Does subject have any medical history related to following body system: other?",
+                "field_type": "bool",
+                "field_order": "29",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx)=='true'"
+            },
+            "3.56": {
+                "field_name": "med_hx_other_list",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "30",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(med_hx_other)=='true'&&$(med_hx)=='true'"
+            },
+            "3.57": {
+                "field_name": "med_hx_other_cond",
+                "field_title": "Other-related condition/abnormality",
+                "field_type": "text",
+                "field_parent": "med_hx_other_list",
+                "field_order": "30.1",
+                "field_is_optional_fg": true
+            },
+            "3.58": {
+                "field_name": "med_hx_other_ongoing",
+                "field_title": "Is condition/abnormality ongoing at time of PEF procedure?",
+                "field_type": "bool",
+                "field_parent": "med_hx_other_list",
+                "field_order": "30.2",
+                "field_is_optional_fg": true
+            },
+            "3.59": {
+                "field_name": "implant_device_yn",
+                "field_title": "Does the subject have an implantable electronic device?",
+                "field_type": "bool",
+                "field_order": "31",
+                "field_is_optional_fg": true
+            },
+            "3.60": {
+                "field_name": "implant_device_list",
+                "field_title": "What implantable electronic device does subject have? (List all)",
+                "field_type": "text",
+                "field_order": "32",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(implant_device_yn)=='true'"
+            },
+            "3.61": {
+                "field_name": "other_local_treatment_yn",
+                "field_title": "Prior to the day of PEF procedure, did the subject receive other local therapies for the disease for which the PEF energy was delivered?",
+                "field_type": "bool",
+                "field_order": "33",
+                "field_is_optional_fg": true
+            },
+            "3.62": {
+                "field_name": "other_local_treatment",
+                "field_title": "Please list",
+                "field_type": "array",
+                "field_order": "34",
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other_local_treatment_yn)=='true'"
+            },
+            "3.63": {
+                "field_name": "other_local_treatment_type",
+                "field_title": "Type of local therapy received prior to PEF procedures",
+                "field_type": "string",
+                "field_parent": "other_local_treatment",
+                "field_order": "34.1",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Ablation|Surgery|Radiation|Embolization|Other"
+            },
+            "3.64": {
+                "field_name": "other_local_treatment_type_other",
+                "field_title": "Please specify",
+                "field_type": "text",
+                "field_parent": "other_local_treatment",
+                "field_order": "34.2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(other_local_treatment_type)=='Other'"
+            },
+            "3.65": {
+                "field_name": "other_local_treatment_ablation",
+                "field_title": "If ablation was received prior to PEF, please specify",
+                "field_type": "string",
+                "field_parent": "other_local_treatment",
+                "field_order": "34.3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Microwave|Cryoablation|Radiofrequency|Other\r\n>is_shown_fg=$(other_local_treatment_type)=='Ablation'"
+            },
+            "3.66": {
+                "field_name": "other_local_treatment_area",
+                "field_title": "Was local therapy delivered to same area as PEF?",
+                "field_type": "bool",
+                "field_parent": "other_local_treatment",
+                "field_order": "34.4",
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

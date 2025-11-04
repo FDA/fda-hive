@@ -1,0 +1,60 @@
+{
+    "4762": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "CI3_FU_3M",
+        "readable_name": "3 Months Follow-up",
+        "sl_order": 5,
+        "survey": {
+            "12": {
+                "12.1": {
+                    "name": "$type.ci3_po_3m",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "13": {
+                "13.1": {
+                    "name": "$type.ci3_eqol_3m",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "26": {
+                "26.1": {
+                    "name": "$type.ci3_symptoms_3m",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

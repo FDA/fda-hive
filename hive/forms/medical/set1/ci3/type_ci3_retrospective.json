@@ -1,0 +1,39 @@
+{
+    "357": {
+        "_id": "$type.ci3_retrospective",
+        "_type": "type",
+        "name": "ci3_retrospective",
+        "title": "CI3 Retrospective",
+        "fields": {
+            "1.1": {
+                "field_name": "empty",
+                "field_title": "Empty",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "3": "$type.med_set1"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

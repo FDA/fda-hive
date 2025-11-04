@@ -1,0 +1,53 @@
+{
+    "type.67": {
+        "_id": "type.67",
+        "_type": "type",
+        "name": "base_user_type",
+        "title": "Base type for all user types",
+        "description": "Type from which all visible user types are inherited",
+        "parent": {
+            "1": "type.13"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "base_tag",
+                "field_title": "Tag",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_hidden_fg": false,
+                "field_description": "A tag, keyword, anything to mark an object"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,56 @@
+{
+    "279576": {
+        "_id": "$type.argos_uniprot",
+        "_type": "type",
+        "name": "argos_uniprot",
+        "title": "UniProt Data",
+        "parent": {
+            "7": "$type.argos_Base_Data"
+        },
+        "fields": {
+            "11.0": {
+                "field_name": "representative_proteome_uniprot_acc",
+                "field_title": "representative uniprot proteome accession",
+                "field_type": "string",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "11.2": {
+                "field_name": "representative_genome_org",
+                "field_title": "representative genome organism",
+                "field_type": "string",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "11.3": {
+                "field_name": "representative_genome_acc",
+                "field_title": "representative genome accession",
+                "field_type": "string",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            }
+        },
+        "singleton": 0,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

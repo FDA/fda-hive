@@ -1,0 +1,43 @@
+{
+    "126": {
+        "_id": "$type.tsv-table",
+        "_type": "type",
+        "name": "tsv-table",
+        "title": "Tab separated table file",
+        "description": "//\nlocation: hive.app.dm.dmArchiver",
+        "parent": {
+            "1": "$type.u-file",
+            "16": "$type.core-table"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

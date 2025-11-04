@@ -1,0 +1,422 @@
+{
+    "550": {
+        "_id": "$type.lup_full_medical_history",
+        "_type": "type",
+        "name": "lup_full_medical_history",
+        "title": "Full Medical History",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "PAST MEDICAL HISTORY",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "participant_ever_had",
+                "field_title": "Does the participant now have or ever had: (check if \"yes\")",
+                "field_type": "string",
+                "field_order": 2,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Cancer|Goiter|Cataracts|Nervous breakdown|Bad headaches|Kidney disease|Anemia|Emphysema|Heart problems|Leukemia|Diabetes|Stomach ulcers|Jaundice|Pneumonia|HIV/AIDS|Glaucoma|Asthma|Stroke|Epilepsy|Rheumatic fever|Colitis|Psoriasis|High blood pressure|Tuberculosis|No illnesses|Doesn't know|Other significant illness\r\n>$(this);let nonval='No illnesses';let triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else if(triggeredVal){surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}nonval=\"Doesn't know\";triggeredVal=surveyState.triggeredAnswer?surveyState.question.answers.filter(y=>y.id==surveyState.triggeredAnswer)[0].value : null;if(triggeredVal==nonval){value_fg=nonval;surveyState.answer=[surveyState.question.answers.filter(y=>y.value ==nonval)[0].id];}else if(triggeredVal){surveyState.answer=surveyState.answer.filter(x=>x!=surveyState.question.answers.filter(y=>y.value==nonval)[0].id);}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.3": {
+                "field_name": "participant_ever_had_other",
+                "field_title": "Please list",
+                "field_type": "text",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(participant_ever_had)=='Other significant illness'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.4": {
+                "field_name": "therapies",
+                "field_title": "Natural or Alternative Therapies (chiropractic, magnets, massage, over-the-counter preparations, etc.):",
+                "field_type": "text",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\"maxlength\":\"100\"}"
+            },
+            "1.5": {
+                "field_name": "subtitle_2",
+                "field_title": "LUPUS MANIFESTATIONS HISTORY",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_description": "subtitle"
+            },
+            "1.6": {
+                "field_name": "constitutional_title",
+                "field_title": "Constitutional",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_description": "description",
+                "field_description": "Constitutional"
+            },
+            "1.7": {
+                "field_name": "constitutional_weight_gain",
+                "field_title": "Recent weight gain",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=true;if($(constitutional_weight_loss)=='true' && $(this)=='true'){value_fg=false};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.8": {
+                "field_name": "constitutional_weight_gain_amount",
+                "field_title": "amount",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(constitutional_weight_gain)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.9": {
+                "field_name": "constitutional_weight_loss",
+                "field_title": "Recent weight loss",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_constraint_data": "is_shown_fg=true;if($(constitutional_weight_gain)=='true' && $(this)=='true'){value_fg=false};",
+                "field_constraint_description": "checkbox"
+            },
+            "1.10": {
+                "field_name": "constitutional_weight_loss_amount",
+                "field_title": "amount",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(constitutional_weight_loss)=='true'",
+                "field_constraint_description": "subquestion"
+            },
+            "1.11": {
+                "field_name": "constitutional_fatigue",
+                "field_title": "Fatigue",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_constraint_description": "checkbox"
+            },
+            "1.12": {
+                "field_name": "constitutional_weakness",
+                "field_title": "Weakness",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_constraint_description": "checkbox"
+            },
+            "1.13": {
+                "field_name": "constitutional_fever",
+                "field_title": "Fever",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_description": "checkbox"
+            },
+            "1.14": {
+                "field_name": "constitutional_eyes",
+                "field_title": "Eyes",
+                "field_type": "string",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Pain|Redness|Loss of vision|Double or blurred vision|Dryness|Feels like something in eye|Itching eyes",
+                "field_constraint_description": "checkbox"
+            },
+            "1.15": {
+                "field_name": "constitutional_enmt",
+                "field_title": "Ears-Nose-Mouth-Throat",
+                "field_type": "string",
+                "field_order": 15,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Ringing in ears|Loss of hearing|Nosebleeds|Loss of smell|Dryness in nose|Runny nose|Sore tongue|Bleeding gums|Sores in mouth|Loss of taste|Dryness of mouth|Frequent sore throats|Hoarseness|Difficulty swallowing",
+                "field_constraint_description": "checkbox"
+            },
+            "1.16": {
+                "field_name": "constitutional_cardiovascular",
+                "field_title": "Cardiovascular",
+                "field_type": "string",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Chest pain|Irregular heart beat|Sudden changes in heart beat|High blood pressure|Heart murmurs",
+                "field_constraint_description": "checkbox"
+            },
+            "1.17": {
+                "field_name": "constitutional_respiratory",
+                "field_title": "Respiratory",
+                "field_type": "string",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Shortness of breath|Difficulty breathing at night|Swollen legs or feet|Cough|Coughing of blood|Wheezing (asthma)",
+                "field_constraint_description": "checkbox"
+            },
+            "1.18": {
+                "field_name": "constitutional_gastrointestinal",
+                "field_title": "Gastrointestinal",
+                "field_type": "string",
+                "field_order": 18,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Nausea|Vomiting of blood or coffee ground material|Stomach pain relieved by food or milk|Jaundice|Increasing constipation|Persistent diarrhea|Blood in stools|Black stools|Heartburn",
+                "field_constraint_description": "checkbox"
+            },
+            "1.19": {
+                "field_name": "constitutional_genitourinary",
+                "field_title": "Genitourinary",
+                "field_type": "string",
+                "field_order": 19,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Difficult urination|Pain or burning on urination|Blood in urine|Cloudy, “smoky” urine|Pus in urine|Discharge from penis/vagina|Getting up at night to pass urine|Vaginal dryness|Rash/ulcers|Sexual difficulties|Prostate trouble",
+                "field_constraint_description": "checkbox"
+            },
+            "1.20": {
+                "field_name": "subtitle_3",
+                "field_title": "For Women Only",
+                "field_type": "string",
+                "field_order": 20,
+                "field_constraint_description": "subtitle"
+            },
+            "1.21": {
+                "field_name": "periods_age",
+                "field_title": "Age when periods began:",
+                "field_type": "integer",
+                "field_order": 21,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1-99"
+            },
+            "1.22": {
+                "field_name": "periods_regular",
+                "field_title": "Periods regular?",
+                "field_type": "bool",
+                "field_order": 22,
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "periods_days_apart",
+                "field_title": "How many days apart?",
+                "field_type": "integer",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1-365"
+            },
+            "1.24": {
+                "field_name": "last_period_date",
+                "field_title": "Date of last period?",
+                "field_type": "date",
+                "field_order": 24,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\"startDate\":\"1900\",\"endDate\":\"now\"}"
+            },
+            "1.25": {
+                "field_name": "last_pap_date",
+                "field_title": "Date of last pap?",
+                "field_type": "integer",
+                "field_order": 25,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-2023"
+            },
+            "1.26": {
+                "field_name": "bleeding_after_menopause",
+                "field_title": "Bleeding after menopause?",
+                "field_type": "string",
+                "field_order": 26,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|Not Applicable"
+            },
+            "1.27": {
+                "field_name": "pregnancies_number",
+                "field_title": "Number of pregnancies?",
+                "field_type": "integer",
+                "field_order": 27,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-20"
+            },
+            "1.28": {
+                "field_name": "miscarriages_number",
+                "field_title": "Number of miscarriages?",
+                "field_type": "integer",
+                "field_order": 28,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-20"
+            },
+            "1.29": {
+                "field_name": "musculoskeletal_title",
+                "field_title": "Musculoskeletal",
+                "field_type": "string",
+                "field_order": 29,
+                "field_constraint_description": "description",
+                "field_description": "Musculoskeletal"
+            },
+            "1.30": {
+                "field_name": "ms_morning_stiffness",
+                "field_title": "Morning stiffness",
+                "field_type": "bool",
+                "field_order": 30,
+                "field_constraint_description": "checkbox"
+            },
+            "1.31": {
+                "field_name": "ms_morning_stiffness_how_long_title",
+                "field_title": "Lasting how long?",
+                "field_type": "string",
+                "field_order": 30,
+                "field_constraint_data": "is_shown_fg=$(ms_morning_stiffness)=='true';",
+                "field_constraint_description": "description,subquestion",
+                "field_description": "Lasting how long?"
+            },
+            "1.32": {
+                "field_name": "stiffness_minutes",
+                "field_title": "Minutes",
+                "field_type": "integer",
+                "field_order": 32,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-59\r\n>is_shown_fg=$(ms_morning_stiffness)=='true';",
+                "field_constraint_description": "subquestion"
+            },
+            "1.33": {
+                "field_name": "stiffness_hours",
+                "field_title": "Hours",
+                "field_type": "integer",
+                "field_order": 33,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "0-24\r\n>is_shown_fg=$(ms_morning_stiffness)=='true';",
+                "field_constraint_description": "subquestion"
+            },
+            "1.34": {
+                "field_name": "ms_joint_pain",
+                "field_title": "Joint pain",
+                "field_type": "bool",
+                "field_order": 34,
+                "field_constraint_description": "checkbox"
+            },
+            "1.35": {
+                "field_name": "ms_muscle_weakness",
+                "field_title": "Muscle weakness",
+                "field_type": "bool",
+                "field_order": 35,
+                "field_constraint_description": "checkbox"
+            },
+            "1.36": {
+                "field_name": "ms_muscle_tenderness",
+                "field_title": "Muscle tenderness",
+                "field_type": "bool",
+                "field_order": 36,
+                "field_constraint_description": "checkbox"
+            },
+            "1.37": {
+                "field_name": "ms_joint_swelling",
+                "field_title": "Joint swelling",
+                "field_type": "bool",
+                "field_order": 37,
+                "field_constraint_description": "checkbox"
+            },
+            "1.38": {
+                "field_name": "ms_joint_swelling_list",
+                "field_title": "List joints affected in the last 6 months",
+                "field_type": "string",
+                "field_order": 38,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Finger|Wrist|Elbow|Knee|Ankle|Toe|Other\r\n>is_shown_fg=$(ms_joint_swelling)=='true';",
+                "field_constraint_description": "subquestion,checkbox"
+            },
+            "1.39": {
+                "field_name": "ms_joint_swelling_list_other",
+                "field_title": "Please specify",
+                "field_type": "string",
+                "field_order": 39,
+                "field_constraint_data": "is_shown_fg=$(ms_joint_swelling_list)=='Other'&&$(ms_joint_swelling)=='true';",
+                "field_constraint_description": "subquestion"
+            },
+            "1.40": {
+                "field_name": "integumentary",
+                "field_title": "Integumentary (skin and/or breast)",
+                "field_type": "string",
+                "field_order": 40,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Easy bruising|Redness|Rash|Hives|Sun sensitive (sun allergy)|Tightness|Nodules/bumps|Hair loss|Color changes of hands or feet in the cold",
+                "field_constraint_description": "checkbox"
+            },
+            "1.41": {
+                "field_name": "neurological_system",
+                "field_title": "Neurological System",
+                "field_type": "string",
+                "field_order": 41,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Headaches|Dizziness|Fainting|Muscle spasm|Loss of consciousness|Sensitivity or pain of hands and/or feet|Memory loss|Night sweats",
+                "field_constraint_description": "checkbox"
+            },
+            "1.42": {
+                "field_name": "psychiatric",
+                "field_title": "Psychiatric",
+                "field_type": "string",
+                "field_order": 42,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Excessive worries|Anxiety|Easily losing temper|Depression|Agitation|Difficulty falling asleep|Difficulty staying asleep",
+                "field_constraint_description": "checkbox"
+            },
+            "1.43": {
+                "field_name": "endocrine_title",
+                "field_title": "Endocrine",
+                "field_type": "string",
+                "field_order": 43,
+                "field_constraint_description": "description",
+                "field_description": "Endocrine"
+            },
+            "1.44": {
+                "field_name": "excessive_thirst",
+                "field_title": "Excessive thirst",
+                "field_type": "bool",
+                "field_order": 44,
+                "field_constraint_description": "checkbox"
+            },
+            "1.45": {
+                "field_name": "hematologic_lymphatic",
+                "field_title": "Hematologic/Lymphatic",
+                "field_type": "string",
+                "field_order": 45,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Swollen glands|Tender glands|Anemia|Bleeding tendency|Transfusion",
+                "field_constraint_description": "checkbox"
+            },
+            "1.46": {
+                "field_name": "hematologic_lymphatic_when",
+                "field_title": "When",
+                "field_type": "date",
+                "field_order": 46,
+                "field_constraint_data": "{\"startDate\":\"1900\",\"endDate\":\"now\"}\r\n>is_shown_fg=$(hematologic_lymphatic)=='Transfusion';",
+                "field_constraint_description": "subquestion"
+            },
+            "1.47": {
+                "field_name": "allergic_immunologic",
+                "field_title": "Allergic/Immunologic",
+                "field_type": "string",
+                "field_order": 47,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Frequent sneezing|Increased susceptibility to infection",
+                "field_constraint_description": "checkbox"
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

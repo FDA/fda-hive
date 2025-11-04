@@ -1,0 +1,10 @@
+{
+    "colors":{
+        "primary-color": "#033C5A",
+        "lighter-primary-color": "#134e6d",
+        "lighter-lighter-primary-color":"#0a5b80"
+    },
+    "logos":{
+        "monogram_2c_h100": "gw_monogram_2c_process_rev_h100.png"
+    }
+}

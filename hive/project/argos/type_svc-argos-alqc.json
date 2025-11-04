@@ -1,0 +1,229 @@
+{
+    "336": {
+        "_id": "$type.svc-argos-alqc",
+        "_type": "type",
+        "name": "svc-argos-alqc",
+        "title": "Argos Assembly QC",
+        "description": "//\nlocation:hive.project.argos",
+        "parent": {
+            "1": "$type.svc-wflo-base",
+            "26": "$type.project-base",
+            "27": "$type.core-cflow"
+        },
+        "fields": {
+            "1.0": {
+                "field_name": "ngs",
+                "field_title": "Reads",
+                "field_type": "string",
+                "field_parent": "ngs-list",
+                "field_order": 1,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///SRR accession|2///HIVE ID"
+            },
+            "1.2": {
+                "field_name": "references",
+                "field_title": "Reference",
+                "field_type": "string",
+                "field_parent": "ref-list",
+                "field_order": 1,
+                "field_default_value": "1",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Reference Accession|2///Assembly ID|3///HIVE ID"
+            },
+            "1.3": {
+                "field_name": "wflow-srr",
+                "field_title": "SRR IDs",
+                "field_type": "string",
+                "field_parent": "ngs-list",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint_data": "is_hidden_fg=$(ngs)==2"
+            },
+            "1.4": {
+                "field_name": "wflow-nucreads",
+                "field_title": "HIVE reads",
+                "field_type": "obj",
+                "field_parent": "ngs-list",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "nuc-read\n>is_hidden_fg=$(ngs)==1"
+            },
+            "1.5": {
+                "field_name": "wflow-ref",
+                "field_title": "Reference IDs",
+                "field_type": "string",
+                "field_parent": "ref-list",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint_data": "is_hidden_fg=$(references)!=1"
+            },
+            "1.7": {
+                "field_name": "wflow-asm",
+                "field_title": "Assembly IDs",
+                "field_type": "string",
+                "field_parent": "ref-list",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint_data": "is_hidden_fg=$(references)!=2"
+            },
+            "1.8": {
+                "field_name": "wflow-genome",
+                "field_title": "HIVE genomes",
+                "field_type": "obj",
+                "field_parent": "ref-list",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_is_batch_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome\n>is_hidden_fg=$(references)!=3"
+            },
+            "1.10": {
+                "field_name": "externalQC",
+                "field_title": "External QC",
+                "field_type": "list",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "wflow-asmQC",
+                "field_title": "Assembly QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "wflow-ngsQC",
+                "field_title": "NGS QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "wflow-posQC",
+                "field_title": "Positional QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "wflow-posAnnot",
+                "field_title": "Positional Annotations",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "wflow-codingTable",
+                "field_title": "Coding Table",
+                "field_type": "string",
+                "field_default_value": "Standard",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "Standard|Vertebrate Mitochondrial|Yeast Mitochondrial|Mold,Protozoan and Coelenterate Mitochondrial and Mycoplasma/Spiroplasma|Invertebrate Mitochonrial|Ciliate, Dasycladacean and Hexamita Nuclear|Echinoderm and Flatworm Mitochondrial|Euplotid Nuclear|Bacterial, Archael and Plant Plastid|Alternative Yeast Nuclear|Ascidian Mitochondrial|Alternative Flatworm Mitochondrial|Chlorophycean Mitochondrial|Trematode Mitochondrial|Scenedesmus Obliquus Mitochondrial|Thraustochytrium Mitochondrial|Pterobranchia Mitochondrial|Candidate Division SR1 and Gracilibacteria|Pachysolen tannophilus Nuclear"
+            },
+            "1.18": {
+                "field_name": "metadata",
+                "field_title": "Metadata",
+                "field_type": "list",
+                "field_order": 1
+            },
+            "1.19": {
+                "field_name": "wflow-biosampleAcc",
+                "field_title": "BioSample Accessions",
+                "field_type": "string",
+                "field_parent": "metadata",
+                "field_is_optional_fg": true,
+                "field_is_batch_fg": true
+            },
+            "1.20": {
+                "field_name": "wflow-bioSampleQC",
+                "field_title": "BioSample QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.21": {
+                "field_name": "ngs-list",
+                "field_title": "NGS",
+                "field_type": "list",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.22": {
+                "field_name": "ref-list",
+                "field_title": "References",
+                "field_type": "list",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.24": {
+                "field_name": "hive_assembly",
+                "field_title": "Hive Template Assembly",
+                "field_type": "list"
+            },
+            "1.25": {
+                "field_name": "hive_asm_ref",
+                "field_title": "Template References",
+                "field_type": "obj",
+                "field_parent": "hive_assembly",
+                "field_constraint_data": "genome",
+                "field_constraint": "type",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.27": {
+                "field_name": "asm_pipeline",
+                "field_title": "Pipeline Object",
+                "field_type": "obj",
+                "field_parent": "hive_assembly",
+                "field_constraint": "type",
+                "field_constraint_data": "workflow"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

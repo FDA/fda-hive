@@ -1,0 +1,109 @@
+{
+    "552": {
+        "_id": "$type.lup_inclusion_exclusion",
+        "_type": "type",
+        "name": "lup_inclusion_exclusion",
+        "title": "Inclusion/Exclusion Criteria",
+        "fields": {
+            "1.1": {
+                "field_name": "inclusion_criteria_title",
+                "field_title": "Inclusion Criteria",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "ic_1",
+                "field_title": "Is the participant able to understand and comply with study procedures and voluntarily sign a written informed consent document?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "ic_2",
+                "field_title": "Is the participant 18 years or older at the time of enrollment?",
+                "field_type": "bool",
+                "field_order": 3
+            },
+            "1.4": {
+                "field_name": "ic_3",
+                "field_title": "Does the participant fulfill criteria for SLE or is Lupus present per clinical assessment?",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_description": "Based on one or more of the following classifications systems: Systemic Lupus Erythematosus International Collaborating Clinic (SLICC) 2012 criteria, European Alliance of Associations for Rheumatology (EULAR)/American College of Rheumatology (ACR) 2019 criteria, 1997 revised ACR criteria"
+            },
+            "1.5": {
+                "field_name": "ic_not_eligible",
+                "field_title": "One or more 'No' is marked, the patient is not eligible to participate.",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=($(ic_1)=='false'||$(ic_2)=='false'||$(ic_3)=='false');",
+                "field_constraint_description": "description",
+                "field_description": "<h2 style=\"color: red;\">One or more 'No' is marked, the patient is not eligible to participate. </h2>"
+            },
+            "1.6": {
+                "field_name": "exclusion_criteria_title",
+                "field_title": "Exclusion Criteria",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "ec_1",
+                "field_title": "Is the participant unable to consent?",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_is_optional_fg": false,
+                "field_is_multi_fg": false,
+                "field_is_hidden_fg": true
+            },
+            "1.8": {
+                "field_name": "ec_2",
+                "field_title": "Is the participant not able to meet protocol visit requirements?",
+                "field_type": "bool",
+                "field_order": 9
+            },
+            "1.9": {
+                "field_name": "ec_3",
+                "field_title": "Is the participant pregnant at the time of enrollment?",
+                "field_type": "bool",
+                "field_order": 10
+            },
+            "1.10": {
+                "field_name": "ec_not_eligible",
+                "field_title": "One or more 'Yes' is marked, the patient is not eligible to participate.",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=($(ec_1)=='true'||$(ec_2)=='true'||$(ec_3)=='true');",
+                "field_constraint_description": "description",
+                "field_description": "<h2 style=\"color: red;\">One or more 'Yes' is marked, the patient is not eligible to participate. </h2>"
+            },
+            "1.11": {
+                "field_is_optional_fg": false
+            },
+            "1.12": {
+                "field_is_optional_fg": false
+            }
+        },
+        "parent": {
+            "3": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

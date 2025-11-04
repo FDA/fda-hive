@@ -1,0 +1,76 @@
+
+"hosts" : {
+
+	"descr" : "hosts branch",
+
+	"QPrideSrv" : {
+	 
+		"_type" : "hc_host",
+		"_id" : "$newid()",
+		
+		"name" : "QPrideSrv",
+		"title" : "HIVE orchestrator server",
+		"descr" : "QPrideSrv is the main unit of HIVE orchestration",
+		
+		"ip4" : "eval-shell(uname -n)",
+		"category" : ["system","worker","storage"],
+		"os" : "Linux-x86_64",
+		"active" : "true",
+		"cores" : "32",
+		"memory" :  "512GB",
+		"storage" : "4TB",
+		"capacity" : "16"
+	},
+	
+	"bee" : { 
+	
+		"_type" : "hc_host",
+		"_id" : "$newid()",
+		
+		"name" : "eval-shell(uname -n)",
+		"title" : "HIVE default workstation",
+		"descr" : "Basic type of a HIVE workstation",
+		
+		"ip4" : "eval-shell(nslookup comb | grep Server | awk '{print $2}')",
+		"category" : ["worker","storage"],
+		"os" : "Linux-x86_64",
+		"active" : "true",
+		"cores" : "48",
+		"memory" :  "256GB",
+		"storage" : "2TB",
+		"capacity" : "48"
+	},
+	
+	"comb" : {
+	 
+		"_type" : "hc_host",
+		"_id" : "$newid()",
+		
+		//"_borrow" : "$root.hosts.bee",
+	
+		"name" : "$root.hosts.bee.name",
+		"title" : "HIVE development unit",
+		"descr" : "Development workstation with debugger, compiler and other developmental tools",
+		
+		"cores" : "24",
+		"memory" :  "256GB",
+		"storage" : "24TB",
+		"capacity" : "16"
+	},
+	
+	
+	"workstations" : {
+		
+		"_type" : "hc_hostgroup",
+		"_id" : "$newid()",
+		
+		"members" : [
+			"$root.hosts.comb._id",
+			"$root.hosts.bee._id"
+		],
+		
+		"name" : "Workstations",
+		"title" : "Workstations group type"
+	}
+	
+}

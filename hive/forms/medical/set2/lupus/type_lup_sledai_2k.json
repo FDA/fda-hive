@@ -1,0 +1,241 @@
+{
+    "572": {
+        "_id": "$type.lup_sledai_2k",
+        "_type": "type",
+        "name": "lup_sledai_2k",
+        "title": "SLEDAI-2K",
+        "description": "<h5>Check box: if descriptor is present at the time of visit or in the preceding 10 days</h5> <br />  The number in parenthesis is the weight of the descriptor.",
+        "fields": {
+            "1.1": {
+                "field_name": "date_completed",
+                "field_title": "Date completed",
+                "field_type": "date",
+                "field_order": 0.1,
+                "field_is_hidden_fg": false,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}"
+            },
+            "1.2": {
+                "field_name": "seizure",
+                "field_title": "Seizure (8)",
+                "field_type": "bool",
+                "field_order": 1,
+                "field_constraint_description": "checkbox",
+                "field_description": "Recent onset, exclude metabolic, infectious, or drug causes."
+            },
+            "1.3": {
+                "field_name": "psychosis",
+                "field_title": "Psychosis (8)",
+                "field_type": "bool",
+                "field_order": 2,
+                "field_constraint_description": "checkbox",
+                "field_description": "Altered ability to function in normal activity due to severe disturbance in the perception of reality. Include hallucinations, incoherence, marked loose associations, impoverished thought content, marked illogical thinking, bizarre, disorganized, or catatonic behavior. Exclude uremia and drug causes."
+            },
+            "1.4": {
+                "field_name": "obs",
+                "field_title": "Organic brain syndrome (8)",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_constraint_description": "checkbox",
+                "field_description": "Altered mental function with impaired orientation, memory, or other intellectual function, with rapid onset and fluctuating clinical features, inability to sustain attention to environment, plus at least 2 of the following: perceptual disturbance, incoherent speech, insomnia or daytime drowsiness, or increased or decreased psychomotor activity. Exclude metabolic, infectious, or drug causes."
+            },
+            "1.5": {
+                "field_name": "visual_disturbance",
+                "field_title": "Visual disturbance (8)",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_constraint_description": "checkbox",
+                "field_description": "Retinal changes of SLE. Include cytoid bodies, retinal hemorrhages, serous exudate or hemorrhages in the choroid, or optic neuritis. Exclude hypertension, infection, or drug causes."
+            },
+            "1.6": {
+                "field_name": "cnd",
+                "field_title": "Cranial nerve disorder (8)",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_constraint_description": "checkbox",
+                "field_description": "New onset of sensory or motor neuropathy involving cranial nerves."
+            },
+            "1.7": {
+                "field_name": "lupus_headache",
+                "field_title": "Lupus headache (8)",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_description": "checkbox",
+                "field_description": "Severe, persistent headache; may be migrainous, but must be nonresponsive to narcotic analgesia."
+            },
+            "1.8": {
+                "field_name": "cva",
+                "field_title": "CVA (8)",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_constraint_description": "checkbox",
+                "field_description": "New onset of cerebrovascular accident(s). Exclude arteriosclerosis."
+            },
+            "1.9": {
+                "field_name": "vasculitis",
+                "field_title": "Vasculitis (8)",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_description": "checkbox",
+                "field_description": "Ulceration, gangrene, tender finger nodules, periungual infarction, splinter hemorrhages, or biopsy or angiogram proof of vasculitis."
+            },
+            "1.10": {
+                "field_name": "arthritis",
+                "field_title": "Arthritis (4)",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_constraint_description": "checkbox",
+                "field_description": "≥2 joints with pain and signs of inflammation (ie, tenderness, swelling or effusion)."
+            },
+            "1.11": {
+                "field_name": "myositis",
+                "field_title": "Myositis (4)",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_constraint_description": "checkbox",
+                "field_description": "Proximal muscle aching/ weakness, associated with elevated creatine phosphokinase/aldolase or electromyogram changes or a biopsy showing myositis."
+            },
+            "1.12": {
+                "field_name": "urinary_casts",
+                "field_title": "Urinary casts (4)",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_constraint_description": "checkbox",
+                "field_description": "Heme-granular or red blood cell casts."
+            },
+            "1.13": {
+                "field_name": "hematuria",
+                "field_title": "Hematuria (4)",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_constraint_description": "checkbox",
+                "field_description": ">5 red blood cells/high power field. Exclude stone, infection or other cause."
+            },
+            "1.14": {
+                "field_name": "proteinuria",
+                "field_title": "Proteinuria (4)",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_description": "checkbox",
+                "field_description": ">0.5 gram/24 hours."
+            },
+            "1.15": {
+                "field_name": "pyuria",
+                "field_title": "Pyuria (4)",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_constraint_description": "checkbox",
+                "field_description": ">5 white blood cells/high power field. Exclude infection."
+            },
+            "1.16": {
+                "field_name": "rash",
+                "field_title": "Rash (2)",
+                "field_type": "bool",
+                "field_order": 15,
+                "field_constraint_description": "checkbox",
+                "field_description": "Inflammatory type rash."
+            },
+            "1.17": {
+                "field_name": "alopecia",
+                "field_title": "Alopecia (2)",
+                "field_type": "bool",
+                "field_order": 16,
+                "field_constraint_description": "checkbox",
+                "field_description": "Abnormal, patchy or diffuse loss of hair."
+            },
+            "1.18": {
+                "field_name": "mucosal_ulcers",
+                "field_title": "Mucosal ulcers (2)",
+                "field_type": "bool",
+                "field_order": 17,
+                "field_constraint_description": "checkbox",
+                "field_description": "Oral or nasal ulcerations."
+            },
+            "1.19": {
+                "field_name": "pleurisy",
+                "field_title": "Pleurisy (2)",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_constraint_description": "checkbox",
+                "field_description": "Pleuritic chest pain with pleural rub or effusion, or pleural thickening."
+            },
+            "1.20": {
+                "field_name": "pericarditis",
+                "field_title": "Pericarditis (2)",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_constraint_description": "checkbox",
+                "field_description": "Pericardial pain with at least 1 of the following: rub, effusion, or electrocardiogram or echocardiogram confirmation."
+            },
+            "1.21": {
+                "field_name": "low_complement",
+                "field_title": "Low complement (2)",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_constraint_description": "checkbox",
+                "field_description": "Decrease in CH50, C3 or C4 below the lower limit of normal for testing laboratory."
+            },
+            "1.22": {
+                "field_name": "idb",
+                "field_title": "Increased DNA binding (2)",
+                "field_type": "bool",
+                "field_order": 21,
+                "field_constraint_description": "checkbox",
+                "field_description": "Increased DNA binding by Farr assay above normal range for testing laboratory."
+            },
+            "1.23": {
+                "field_name": "fever",
+                "field_title": "Fever (1)",
+                "field_type": "bool",
+                "field_order": 22,
+                "field_constraint_description": "checkbox",
+                "field_description": ">38°C. Exclude infectious cause."
+            },
+            "1.24": {
+                "field_name": "thrombocytopenia",
+                "field_title": "Thrombocytopenia (1)",
+                "field_type": "bool",
+                "field_order": 23,
+                "field_constraint_description": "checkbox",
+                "field_description": "<100,000 platelets/ x 10<sup>9</sup> /L, exclude drug causes."
+            },
+            "1.25": {
+                "field_name": "leukopenia",
+                "field_title": "Leukopenia (1)",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_description": "checkbox",
+                "field_description": "<3,000 white blood cells/10<sup>9</sup>/L, exclude drug causes."
+            },
+            "1.26": {
+                "field_name": "total_score",
+                "field_title": "TOTAL SCORE",
+                "field_type": "string",
+                "field_order": 25,
+                "field_constraint_data": "is_shown_fg=true;is_disabled_fg=true;value_fg=($(seizure)=='true'?8:0)+($(psychosis)=='true'?8:0)+($(obs)=='true'?8:0)+($(visual_disturbance)=='true'?8:0)+($(cnd)=='true'?8:0)+($(lupus_headache)=='true'?8:0)+($(cva)=='true'?8:0)+($(vasculitis)=='true'?8:0)+($(arthritis)=='true'?4:0)+($(myositis)=='true'?4:0)+($(urinary_casts)=='true'?4:0)+($(hematuria)=='true'?4:0)+($(proteinuria)=='true'?4:0)+($(pyuria)=='true'?4:0)+($(rash)=='true'?2:0)+($(alopecia)=='true'?2:0)+($(mucosal_ulcers)=='true'?2:0)+($(pleurisy)=='true'?2:0)+($(pericarditis)=='true'?2:0)+($(low_complement)=='true'?2:0)+($(idb)=='true'?2:0)+($(fever)=='true'?1:0)+($(thrombocytopenia)=='true'?1:0)+($(leukopenia)=='true'?1:0);",
+                "field_constraint_description": "floating-score,{'omop_concept_id':'4158768','omop_vocabulary_id':'SNOMED','omop_concept_code':'273863009'}",
+                "field_description": "Sum of weights next to descriptors marked present"
+            }
+        },
+        "parent": {
+            "4": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

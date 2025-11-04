@@ -1,0 +1,261 @@
+{
+    "122": {
+        "_id": "$type.tblqryx4",
+        "_type": "type",
+        "name": "tblqryx4",
+        "title": "Table Query X4",
+        "description": "// \nlocation: hive.app.system.tblqryx4",
+        "parent": {
+            "1": "$type.sysqry"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "abscissaCol",
+                "field_title": "Abscissa (position) column for resolution sampling",
+                "field_type": "integer",
+                "field_parent": "colsGroup",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.2": {
+                "field_name": "cnt",
+                "field_title": "Output rows",
+                "field_type": "integer",
+                "field_parent": "rowsGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "cols",
+                "field_title": "Output columns",
+                "field_type": "string",
+                "field_parent": "colsGroup",
+                "field_order": 0,
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "colsep",
+                "field_title": "Column separator",
+                "field_type": "string",
+                "field_parent": "inputGroup",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "colsGroup",
+                "field_title": "Columns spec",
+                "field_type": "list",
+                "field_order": 3
+            },
+            "1.6": {
+                "field_name": "commentPrefix",
+                "field_title": "Comment prefix",
+                "field_type": "string",
+                "field_parent": "inputGroup",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "dataCmd",
+                "field_title": "dna.cgi command",
+                "field_type": "string",
+                "field_parent": "inputGroup",
+                "field_order": 7,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "hdr",
+                "field_title": "Header off",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "inputGroup",
+                "field_title": "Input data",
+                "field_type": "list",
+                "field_order": 1
+            },
+            "1.10": {
+                "field_name": "minmaxCols",
+                "field_title": "Min/Max columns",
+                "field_type": "string",
+                "field_parent": "colsGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "minmaxMainCol",
+                "field_title": "Min/Max main column",
+                "field_type": "integer",
+                "field_parent": "colsGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "objQry",
+                "field_title": "Object query",
+                "field_type": "text",
+                "field_parent": "inputGroup",
+                "field_order": 6,
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "objs",
+                "field_title": "Input object ID",
+                "field_type": "obj",
+                "field_parent": "inputGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "parseCnt",
+                "field_title": "Parse limit",
+                "field_type": "integer",
+                "field_parent": "inputGroup",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.15": {
+                "field_name": "parseStart",
+                "field_title": "Rows to skip before parsing",
+                "field_type": "integer",
+                "field_parent": "inputGroup",
+                "field_order": 5.5,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "resolution",
+                "field_title": "Resolution",
+                "field_type": "integer",
+                "field_parent": "rowsGroup",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.17": {
+                "field_name": "rowsGroup",
+                "field_title": "Rows spec",
+                "field_type": "list",
+                "field_order": 2
+            },
+            "1.18": {
+                "field_name": "search",
+                "field_title": "Search string",
+                "field_type": "string",
+                "field_parent": "searchGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.19": {
+                "field_name": "searchCols",
+                "field_title": "Search columns",
+                "field_type": "string",
+                "field_parent": "searchGroup",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.20": {
+                "field_name": "searchGroup",
+                "field_title": "Search",
+                "field_type": "list",
+                "field_order": 3
+            },
+            "1.21": {
+                "field_name": "searchRegExp",
+                "field_title": "As regular expression",
+                "field_type": "bool",
+                "field_parent": "searchGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.22": {
+                "field_name": "start",
+                "field_title": "Start output row",
+                "field_type": "integer",
+                "field_parent": "rowsGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "tbl",
+                "field_title": "Table name",
+                "field_type": "string",
+                "field_parent": "inputGroup",
+                "field_order": 2,
+                "field_default_value": "_.csv"
+            },
+            "1.24": {
+                "field_name": "tqs",
+                "field_title": "TQS query",
+                "field_type": "text",
+                "field_parent": "tqsGroup",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.25": {
+                "field_name": "tqsCnt",
+                "field_title": "Count",
+                "field_type": "integer",
+                "field_parent": "tqsGroup",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.26": {
+                "field_name": "tqsGroup",
+                "field_title": "Table query",
+                "field_type": "list",
+                "field_order": 5
+            },
+            "1.27": {
+                "field_name": "tqsId",
+                "field_title": "TQS file",
+                "field_type": "obj",
+                "field_parent": "tqsGroup",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "u-file"
+            },
+            "1.28": {
+                "field_name": "missing-tbl",
+                "field_title": "Missing input table",
+                "field_type": "string",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "fatal|nonfatal"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

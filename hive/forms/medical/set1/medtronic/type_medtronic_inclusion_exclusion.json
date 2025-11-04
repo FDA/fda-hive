@@ -1,0 +1,100 @@
+{
+    "173": {
+        "_id": "$type.medtronic_inclusion_exclusion",
+        "_type": "type",
+        "name": "medtronic_inclusion_exclusion",
+        "title": "Inclusion/Exclusion",
+        "fields": {
+            "1.0": {
+                "field_name": "ie_criteria",
+                "field_title": "Inclusion/Exclusion Criteria",
+                "field_type": "array",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(all_eligibility_criteria_met)=='NO'"
+            },
+            "1.2": {
+                "field_name": "criterion_type",
+                "field_title": "Criterion Type",
+                "field_type": "string",
+                "field_parent": "ie_criteria",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "INCLUSION|EXCLUSION"
+            },
+            "1.3": {
+                "field_name": "criterion_id_not_met_inc",
+                "field_title": "Criterion ID Not Met",
+                "field_type": "string",
+                "field_parent": "ie_criteria",
+                "field_order": "2",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "INC1///HAS RADIOGRAPHIC EVIDENCE (I.E. CT OR MRI WITHIN 12 MONTHS OF ENROLLMENT*) OF DEGENERATIVE DISEASE OF THE LUMBOSACRAL SPINE IN ONE OR TWO ADJACENT LEVELS (L2 TO S1) THAT RESULTS IN RADICULOPATHY...|INC2///HAS A HISTORY OF LOW BACK PAIN|INC3///HAS RADIOGRAPHIC EVIDENCE (I.E. CT OR MRI WITHIN 12 MONTHS OF ENROLLMENT*) OF DEGENERATIVE DISEASE OF THE LUMBOSACRAL SPINE INCLUDING AT LEAST ONE OF THE FOLLOWING: A. INSTABILITY UP TO AND...|INC4///HAS PREOPERATIVE OSWESTRY DISABILITY INDEX SCORE > = 40|INC5///HAS PREOPERATIVE BACK PAIN SCORE OF > = 4 BASED ON THE PREOPERATIVE BACK AND LEG PAIN QUESTIONNAIRE|INC6///HAS PREOPERATIVE LEG PAIN SCORE OF > = 4 BASED ON THE PREOPERATIVE BACK AND LEG PAIN QUESTIONNAIRE|INC7///IS AT LEAST 18 YEARS OF AGE AND SKELETALLY MATURE AT THE TIME OF SURGERY|INC8///HAS NOT RESPONDED TO NON-OPERATIVE TREATMENT (E.G., BED REST, PHYSICAL THERAPY, MEDICATIONS,SPINAL INJECTIONS, MANIPULATION, AND/OR TENS) FOR A PERIOD OF SIX MONTHS|INC9///IS WILLING AND ABLE TO COMPLY WITH THE STUDY PLAN AND ABLE TO UNDERSTAND AND SIGN THE SUBJECT INFORMED CONSENT FORM\n>is_shown_fg=$(criterion_type)=='INCLUSION'"
+            },
+            "1.5": {
+                "field_name": "criterion_id_not_met_exc",
+                "field_title": "Criterion ID Not Met",
+                "field_type": "string",
+                "field_parent": "ie_criteria",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "EXC1///PRIOR SURGICAL PROCEDURE AT THE INVOLVED OR ADJACENT SPINAL LEVELS (E.G. BONY DECOMPRESSION, FUSION, ARTHROPLASTY, AND/OR OTHER NON-FUSION PROCEDURES). PRIOR DISCECTOMY AT THE TARGET OR ADJACENT...|EXC2///SIGNIFICANT LUMBAR INSTABILITY DEFINED AS SAGITTAL LISTHESIS GREATER THAN GRADE 2 AT ANY INVOLVED LEVEL USING THE MEYERDING CLASSIFICATION OR LATERAL LISTHESIS GREATER THAN 3 MM AT ANY INVOLVED...|EXC3///PLANNED USE OF AN INTERNAL OR EXTERNAL BONE GROWTH STIMULATOR|EXC4///LUMBAR SCOLIOSIS > 30 DEGREES|EXC5///PATIENTS WHO HAD A PREVIOUS DIAGNOSIS OF OSTEOPOROSIS WITH A T-SCORE OF -2.5 OR BELOW IN THE LAST 12 MONTHS EXISTING TOGETHER WITH A PREVALENT FRAGILITY FRACTURE. (IF SUBJECT HAS A PREVALENT...|EXC6///MORBIDLY OBESE, AS DEFINED BY A BODY MASS INDEX (BMI) > 40|EXC7///PRESENCE OF ACTIVE MALIGNANCY OR PRIOR HISTORY OF MALIGNANCY (NON-INVASIVE BASAL CELL CARCINOMA OF THE SKIN IS ALLOWED)|EXC8///OVERT OR ACTIVE BACTERIAL INFECTION, EITHER LOCAL TO SURGICAL SPACE OR SYSTEMIC|EXC9///HAS UNDERGONE ADMINISTRATION OF ANY TYPE OF CORTICOSTEROID, ANTI-NEOPLASTIC, IMMUNOSTIMULATING, OR IMMUNOSUPPRESSIVE AGENTS, OR MEDICATIONS KNOWN TO INTERFERE WITH THE HEALING OF BONE OR SOFT...|EXC10///CO-MORBIDITIES, WHICH IN THE INVESTIGATOR'S OPINION, PRECLUDES THE SUBJECT FROM BEING A SURGICAL CANDIDATE|EXC11///AUTOIMMUNE DISEASE, WHICH IN THE INVESTIGATOR'S OPINION, IS KNOWN TO AFFECT BONE METABOLISM OR THE SPINE (E.G., SPONDYLOARTHROPATHIES, JUVENILE ARTHRITIS, RHEUMATOID ARTHRITIS, GRAVES' DISEASE...|EXC12///ANY ENDOCRINE OR METABOLIC DISORDER, WHICH IN THE INVESTIGATOR'S OPINION, IS KNOWN TO AFFECT OSTEOGENESIS (E.G., PAGET'S DISEASE, RENAL OSTEODYSTROPHY, EHLERS-DANLOS SYNDROME, OR OSTEOGENESIS...|EXC13///KNOWN EXPOSURE TO ANY RECOMBINANT PROTEINS USED FOR BONE FORMATION (E.G., INFUSE(TM) BONE GRAFT, OP-1 PUTTY, OP-1 IMPLANT, AUGMENT BONE GRAFT, GEM21S, I-FACTOR PEPTIDE ENHANCED BONE GRAFT, OR...|EXC14///KNOWN HYPERSENSITIVITY OR ALLERGY TO ANY COMPONENTS OF THE STUDY TREATMENTS INCLUDING, BUT NOT LIMITED TO BONE MORPHOGENETIC PROTEINS (BMPS); INJECTABLE COLLAGEN; PROTEIN PHARMACEUTICALS...|EXC15///HISTORY OF ANY ALLERGY RESULTING IN ANAPHYLAXIS|EXC16///IS A PRISONER|EXC17///IS MENTALLY INCOMPETENT. IF QUESTIONABLE, OBTAIN PSYCHIATRIC CONSULT|EXC18///TREATMENT WITH AN INVESTIGATIONAL THERAPY (DRUG, DEVICE, AND/OR BIOLOGIC) TARGETING SPINAL CONDITIONS WITHIN 3 MONTHS PRIOR TO IMPLANTATION SURGERY, TREATMENT WITH ANY OTHER INVESTIGATIONAL...|EXC19///PREGNANT OR NURSING. FEMALES OF CHILD-BEARING POTENTIAL MUST AGREE NOT TO BECOME PREGNANT FOR 12 MONTHS FOLLOWING SURGERY|EXC20///A DOCUMENTED DIAGNOSIS OF SUBSTANCE USE DISORDER AS DEFINED BY THE DSM-5|EXC21///PURSUING WORKER'S COMPENSATION OR ACTIVE LITIGATION FOR SPINAL FUSION PROCEDURE|EXC22///ANY CONDITION, WHICH IN THE INVESTIGATOR'S OPINION, WOULD INTERFERE WITH THE SUBJECT'S ABILITY TO COMPLY WITH STUDY INSTRUCTIONS, WHICH MIGHT CONFOUND DATA INTERPRETATION\n>is_shown_fg=$(criterion_type)=='EXCLUSION'"
+            },
+            "1.7": {
+                "field_name": "criterion_description",
+                "field_title": "Criterion Description",
+                "field_type": "text",
+                "field_parent": "ie_criteria",
+                "field_order": "4",
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "Qualifying Value",
+                "field_title": "qualifying_value",
+                "field_type": "string",
+                "field_order": "4",
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.10": {
+                "field_name": "all_eligibility_criteria_met",
+                "field_title": "Were all eligibility criteria met?",
+                "field_type": "string",
+                "field_order": "2",
+                "field_constraint_data": "NO|YES"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

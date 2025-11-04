@@ -1,0 +1,98 @@
+{
+    "185": {
+        "_id": "$type.medtronic_subject_satisfaction",
+        "_type": "type",
+        "name": "medtronic_subject_satisfaction",
+        "title": "Subject Satisfaction",
+        "fields": {
+            "1.0": {
+                "field_name": "spine_subject_satisfaction",
+                "field_title": "Spine Subject Satisfaction",
+                "field_type": "string",
+                "field_order": "1",
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "date_of_exam",
+                "field_title": "What was the date of exam?",
+                "field_type": "date",
+                "field_order": "2"
+            },
+            "1.3": {
+                "field_name": "subject_satisfaction",
+                "field_title": "A. Subject Satisfaction",
+                "field_type": "string",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "subtitle"
+            },
+            "1.4": {
+                "field_name": "satisfied_with_treatment",
+                "field_title": "I am satisfied with the results of my treatment",
+                "field_type": "string",
+                "field_order": "4",
+                "field_constraint_data": "DEFINITELY TRUE|MOSTLY TRUE|DON'T KNOW|MOSTLY FALSE|DEFINITELY FALSE"
+            },
+            "1.5": {
+                "field_name": "helped_by_treatment",
+                "field_title": "I was helped as much as I thought I would be by my treatment",
+                "field_type": "string",
+                "field_order": "5",
+                "field_constraint_data": "DEFINITELY TRUE|MOSTLY TRUE|DON'T KNOW|MOSTLY FALSE|DEFINITELY FALSE"
+            },
+            "1.6": {
+                "field_name": "considered_condition",
+                "field_title": "All things considered, I would have the treatment again for the same condition",
+                "field_type": "string",
+                "field_order": "6",
+                "field_constraint_data": "DEFINITELY TRUE|MOSTLY TRUE|DON'T KNOW|MOSTLY FALSE|DEFINITELY FALSE"
+            },
+            "1.7": {
+                "field_name": "perceived_effect_of_surgical_treatment",
+                "field_title": "B. Perceived Effect of Surgical Treatment",
+                "field_type": "string",
+                "field_order": "7",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "subtitle"
+            },
+            "1.9": {
+                "field_name": "perceived_treatment",
+                "field_title": "What was the perceived effect of treatment?",
+                "field_type": "string",
+                "field_order": "8",
+                "field_constraint_data": "COMPLETELY RECOVERED|MUCH IMPROVED|SLIGHTLY IMPROVED|NO CHANGE|SLIGHTLY WORSENED|MUCH WORSENED|VASTLY WORSENED"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

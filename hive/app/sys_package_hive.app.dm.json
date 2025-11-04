@@ -1,0 +1,25 @@
+{
+    "135": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dm",
+                "dir": "$(HIVE.repo)/hive/app/dm",
+                "deploy_package": "echo \"importing DATA MANAGEMENT packages\"",
+                "prepare_package": "echo \"exporting DATA MANAGEMENT packages\""
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dm",
+        "description": "DM data management packages list",
+        "dependencies": {
+            "12": "hive.app.dm.dmAnnot,hive.app.dm.dmDownloader,hive.app.dm.dmArchiver"
+        },
+        "authors": {
+            "14": "V.Simonyan",
+            "27": "A.Golikov",
+            "28": "L.Santana-Quinterro"
+        }
+    }
+}

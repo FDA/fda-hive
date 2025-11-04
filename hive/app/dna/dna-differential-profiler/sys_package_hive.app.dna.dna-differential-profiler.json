@@ -1,0 +1,24 @@
+{
+    "225": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "differential-profiler",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-differential-profiler",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-differential-profiler",
+        "description": "DIFFERENTIAL-PROFILER provides a view to differences between multiple NGS based reference profiles",
+        "related": {
+            "8": "59118"
+        },
+        "authors": {
+            "10": "L.Santana-Quinterro",
+            "23": "V.Simonyan"
+        }
+    }
+}

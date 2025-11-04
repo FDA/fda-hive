@@ -1,0 +1,43 @@
+{
+    "type.251": {
+        "_id": "type.251",
+        "_type": "type",
+        "name": "prot-seq",
+        "title": "Protein",
+        "description": "Protein sequences",
+        "parent": {
+            "1": "type.19"
+        },
+        "prefetch": true,
+        "fields": {
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

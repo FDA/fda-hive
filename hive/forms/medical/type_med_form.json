@@ -1,0 +1,29 @@
+{
+    "341": {
+        "_id": "$type.med_form",
+        "_type": "type",
+        "name": "med_form",
+        "title": "Medical Forms",
+        "parent": {
+            "7": "$type.eForm"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

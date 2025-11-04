@@ -1,0 +1,238 @@
+{
+    "466": {
+        "_id": "$type.hep_classification_of_etiology",
+        "_type": "type",
+        "name": "hep_classification_of_etiology",
+        "title": "Classification of Etiology",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Etiology Classification",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "genetic",
+                "field_title": "Genetic or presumed genetic",
+                "field_type": "bool",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.3": {
+                "field_name": "unknown",
+                "field_title": "Epilepsy of unknown cause",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.4": {
+                "field_name": "structural",
+                "field_title": "Structural",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.5": {
+                "field_name": "metabolic",
+                "field_title": "Metabolic",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.6": {
+                "field_name": "subtitle_2",
+                "field_title": "Specific Etiologies",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "specific_etiologies_a",
+                "field_title": "a) Viral, bacterial and parasitic infections",
+                "field_type": "string",
+                "field_order": 7,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.8": {
+                "field_name": "specific_etiologies_b",
+                "field_title": "b) Traumatic brain injury",
+                "field_type": "string",
+                "field_order": 8,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.9": {
+                "field_name": "specific_etiologies_c",
+                "field_title": "c) Stroke",
+                "field_type": "string",
+                "field_order": 9,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.10": {
+                "field_name": "specific_etiologies_d",
+                "field_title": "d) Intraventricular hemorrhage",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.11": {
+                "field_name": "specific_etiologies_e",
+                "field_title": "e) Hypoxic-ischemic encephalopathy",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.12": {
+                "field_name": "specific_etiologies_f",
+                "field_title": "f) Other metabolic or toxic insults",
+                "field_type": "string",
+                "field_order": 12,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.13": {
+                "field_name": "specific_etiologies_g",
+                "field_title": "g) Neurocutaneous syndromes",
+                "field_type": "string",
+                "field_order": 13,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.14": {
+                "field_name": "specific_etiologies_h",
+                "field_title": "h) Inborn errors of metabolism",
+                "field_type": "string",
+                "field_order": 14,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.15": {
+                "field_name": "specific_etiologies_i",
+                "field_title": "i) Genetic and chromosomal development encephalopathies",
+                "field_type": "string",
+                "field_order": 15,
+                "field_constraint_data": "Definite|Possible|No",
+                "field_description": "E.g., Rett, Down, Angelman, and Fragile X syndromes."
+            },
+            "1.16": {
+                "field_name": "specific_etiologies_j",
+                "field_title": "j) Developmental encephalopathy of unknown cause as evidenced by the presence of mental retardation, cerebral palsy, or autism with no evidence of a specific insult of disorder to which cause can be attributed preceding the onset of epilepsy",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.17": {
+                "field_name": "specific_etiologies_k",
+                "field_title": "k) Malformations of cortical or other brain development with or without known genetic determinants",
+                "field_type": "string",
+                "field_order": 17,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.18": {
+                "field_name": "specific_etiologies_l",
+                "field_title": "l) Neoplasia",
+                "field_type": "string",
+                "field_order": 18,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.19": {
+                "field_name": "specific_etiologies_m",
+                "field_title": "m) Mesial temporal sclerosis",
+                "field_type": "string",
+                "field_order": 19,
+                "field_constraint_data": "Definite|Possible|No",
+                "field_description": "Where evidence is lacking that the structural pathology precedes the onset of epilepsy, it is not assumed that such pathology causes epilepsy."
+            },
+            "1.20": {
+                "field_name": "specific_etiologies_n",
+                "field_title": "n) Dementia",
+                "field_type": "string",
+                "field_order": 20,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.21": {
+                "field_name": "specific_etiologies_o",
+                "field_title": "o) Other degenerative neurologic diseases",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.22": {
+                "field_name": "specific_etiologies_p",
+                "field_title": "p) Genetic or presumed genetic",
+                "field_type": "string",
+                "field_order": 22,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.23": {
+                "field_name": "specific_etiologies_p_spec",
+                "field_title": "If known specify",
+                "field_type": "text",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subquestion"
+            },
+            "1.24": {
+                "field_name": "specific_etiologies_q",
+                "field_title": "q) Epilepsy of unknown cause, without relevant abnormalities on examination, cognition, history, or imaging",
+                "field_type": "string",
+                "field_order": 24,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.25": {
+                "field_name": "specific_etiologies_r",
+                "field_title": "r) Other",
+                "field_type": "string",
+                "field_order": 25,
+                "field_constraint_data": "Definite|Possible|No"
+            },
+            "1.26": {
+                "field_name": "specific_etiologies_r_spec",
+                "field_title": "Specify",
+                "field_type": "text",
+                "field_order": 26,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "subquestion"
+            },
+            "1.27": {
+                "field_name": "primary_cause",
+                "field_title": "If more than one specific etiology is selected, please specify the most likely primary cause of epilepsy. Primary Cause",
+                "field_type": "string",
+                "field_order": 27,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r",
+                "field_constraint_description": "checkbox"
+            },
+            "1.28": {
+                "field_name": "comments",
+                "field_title": "Comments",
+                "field_type": "text",
+                "field_order": 28,
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,218 @@
+ <script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script src="js-obj-new/svc-alignment.js"></script>
+<script src='js/vjDataSeries.js'></script>
+<script src="js/vjTableViewX2.js" ></script>
+<script  src='js/vjPluggableToolbar.js'> </script>
+
+<script>
+    google.load("visualization", "1", {
+        packages : [ "corechart" ]
+    });
+    
+    setLocationTitle("DI Profiler: HIVE");
+    
+    var algoProcess=new valgoProcess(docLocValue("id"),  "dna-diprofiler", "svc-diprofiler" );
+    algoProcess.visibleParameters = ["name", "alignmentID", "overlap", "minPeakCov", "minReadCov"];
+    algoProcess.submitButtonName="Analyze All References";
+    algoProcess.docLocsToBorrow=["id"];
+    algoProcess.recViewerName = 'DV_Parameter_view';
+    
+    var alignID=docLocValue("parent_proc_ids"); if(isok(alignID))alignID=alignID.split(",");
+    var process_showParentList = 1;
+    var dna_hexagonHitList, dna_diProfile;
+    var curStat = 0;
+
+    valgoToolbarWaitingList = "type,align,order,name,title,icon,path,url,description\n"
+            + "html,left,0,next,<b>what can you do next (?) &rarr;</b>,,/next,,Choose what would you like to do next\n"
+            + ",left,1,home,Home Page,img/home.png,home,?cmd=home,Jump to Home Page\n"
+            + ",left,1,modresubmit,Modify and Resubmit,img-algo/svc-diprofiler.gif,/resubmit,"+urlExchangeParameter(document.location,"id","-"+docLocValue("id"))+",Modify parameters and resubmit this computation using the same template\n"
+            + ",left,1,dna-hexagon,Back to Alignment,img-algo/svc-align-hexagon.gif,/hexagon,?cmd=dna-hexagon&id=$(::alignID),Review Alignment Process";
+
+    function load_genomeID(redirect)
+    {
+        if (!alignID)
+            return;
+
+        linkCmd('objQry&raw=1&qry=("' + alignID.join(",") + '"%20as%20objlist).map({.subject}).reduce(function(x,y){x.append(y)})',
+            "",
+            function(param, text) {
+                try {
+                    genomeID = JSON.parse(text);
+                    if (genomeID.join) {
+                        genomeID = genomeID.join();
+                    }
+                    if (!genomeID) {
+                        genomeID = 0;
+                    }
+                    if(redirect) {
+                        linkSelf('dna-clust&profileID='+docLocValue("id")+'&referenceID='+genomeID,true);
+                    }
+                } catch (e) {
+                    genomeID = 0; 
+                }
+            }
+        );
+    }
+    
+
+    function setInitialName() {
+        linkCmd("objQry&raw=1&qry="+vjDS.escapeQueryLanguage("a=[" + alignID + "] as objlist ;return a[0].name;"), "", 
+        function(param, text) {
+            var title = "DI profile based on alignment :";
+            if (text) {
+                title += " "+text;
+            }
+            title += " ("+alignID+")"
+            algoProcess.setValue("name", title);
+        });
+    }
+    
+    function loadAlignment() {
+        alignID = algoProcess.getValue('alignmentID', "array");
+
+        function isNewAlignID() {
+            if ( ( typeof(prev_alignID) == "undefined" ) || !prev_alignID || !prev_alignID.length ) {
+                return alignID && alignID.length;
+            } else {
+                return prev_alignID && prev_alignID.length && (!alignID || !alignID.length || alignID[0] != prev_alignID[0])
+            } 
+        }
+        
+        var detailsTogether = (curStat >= 5) ? true: false;
+        if ( isNewAlignID() ) {
+            var node = {
+                _type : 'svc-align2',
+                id : alignID.length?alignID[0]:"",
+                profiler: docLocValue("id"),
+                addTo: ["parameters", "1", "alignment", "Alignment"],
+                moveNext: false,
+                checkable: (algoProcess.modeActive) ? true : false, 
+                isInput: true,
+                detailsTogether: detailsTogether,
+                algoProc: algoProcess,
+                openTabsOnRefresh: false,
+                autoOpen: {general:"preSubmit", hitList:["preSubmit", "computed"], alignment:["preSubmit", "computed"]}
+            };
+            if( typeof(dna_hexagonHitList) == "undefined") {
+                dna_hexagonHitList = vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.parameters);
+            } else {
+                dna_hexagonHitList.reload(alignID[0]);
+            }
+            $(".preSubmit").children("ul").children("li").children("ul").toggle();
+        }
+        prev_alignID = alignID;
+    }
+    algoProcess.inputLoaded = function(viewer) 
+    {
+        var par =docLocValue("parent_proc_ids");
+        var nam = algoProcess.getValue("name");
+        if( !alignID ) {
+            alignID = algoProcess.getValue('parent_proc_ids', "array");
+        }
+        if (alignID && alignID.length) {
+            algoProcess.setValue('alignmentID', alignID);
+        } else {
+            alignID = algoProcess.getValue('alignmentID', "array");
+            load_genomeID();
+        }
+        var okToSubmit = isok(alignID) && algoProcess.modeActive;
+
+        if (algoProcess.modeActive) {
+            if (!nam) setInitialName();
+            algoProcess.setValue("scissors", "hiveal");
+            algoProcess.setValue("split", "");
+        }
+        
+        loadAlignment();
+    }
+    
+    algoProcess.inputChanged = function(viewer,elem)
+    {
+        if (elem.fld.name == "alignmentID") {
+            loadAlignment();
+        }
+
+    }
+
+    algoProcess.doneComputing = function(viewer, reqid, stat) {
+        curStat = stat;
+        if (stat >= 5) {
+            var par = docLocValue("parent_proc_ids");
+            var nam = algoProcess.getValue("name");
+
+            if (alignID && alignID.length) {
+                algoProcess.setValue('alignmentID', alignID);
+            } else {
+                alignID = algoProcess.getValue('alignmentID', "array");
+                load_genomeID();
+            }
+
+            var node = {
+                _type : 'svc-diprofiler',
+                id : docLocValue("id"),
+                parentProc : alignID ? alignID[0] : ""
+            };
+            currentCompletionState = "computed";
+            algoWidgetObj.iterateAlgoJSON(algoWidgetObj.optionsForPage.subTabs,
+                    "algoMenu");
+
+            if (!algoProcess.isMode("batch")) {
+                dna_diProfile = vjHO
+                        .fullview(
+                                node._type,
+                                node,
+                                $.getAlgoViewManager().options.jsonForPage.subTabs.results);
+                dna_diProfile.algoProc = algoProcess;
+                vjDS["ds" + toolBar].reload("innerText:
+                        + "DoneDV", true);
+                visibool("resultBlock", true);
+            }
+            return true;
+        }
+    }
+
+    gInitList += "diProfInit();";
+    function diProfInit() {
+        var topVal = $("#header").height() + 45;
+        $(".content").attr("style", "top: " + topVal + "px; ");
+
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj : algoProcess,
+            svcType : "svc-diprofiler",
+            algoTitle : "HIVE Genome Alteration Detection",
+            paramsPos : {
+                posId : 'minimal',
+                top : '0',
+                bottom : '30%',
+                left : '20%',
+                right : '75%'
+            }
+        });
+
+        $("#jumpNewPage").on(
+                "click",
+                function(eventData) {
+                    var url = window.location.href;
+                    setCookie("jumpNewPageHeptagon", "false", 7);
+
+                    if (url.indexOf("&") >= 0)
+                        linkURL("?cmd=dna-diprofiler"
+                                + url.substring(url.indexOf("&")));
+                    else
+                        linkURL("?cmd=dna-diprofiler");
+
+                    eventData.preventDefault();
+                });
+    };
+</script>
+
+

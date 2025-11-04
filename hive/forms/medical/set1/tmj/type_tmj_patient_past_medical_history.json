@@ -1,0 +1,1623 @@
+{
+    "356": {
+        "_id": "$type.tmj_patient_past_medical_history",
+        "_type": "type",
+        "name": "tmj_patient_past_medical_history",
+        "title": "Patient Past Medical History",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Past Medical History",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "coronary_artery_disease",
+                "field_title": "History of Coronary Artery Disease?",
+                "field_type": "bool",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.3": {
+                "field_name": "artificial_heart_valve",
+                "field_title": "History of Artificial Heart Valve?",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.4": {
+                "field_name": "congenital_heart_defect",
+                "field_title": "History of Congenital Heart Defect?",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.5": {
+                "field_name": "heart_murmur",
+                "field_title": "History of Heart Murmur?",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.6": {
+                "field_name": "high_blood_pressure",
+                "field_title": "History of High blood pressure?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.7": {
+                "field_name": "low_blood_pressure",
+                "field_title": "History of Low blood pressure?",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.8": {
+                "field_name": "infective_endocarditis",
+                "field_title": "History of Infective Endocarditis?",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.9": {
+                "field_name": "mitral_valve_prolapse",
+                "field_title": "History of Mitral Valve Prolapse?",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "rheumatic_fever",
+                "field_title": "History of Rheumatic Fever?",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "abnormal_heart_rhythm",
+                "field_title": "History of Abnormal Heart Rhythm?",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_is_optional_fg": true
+            },
+            "1.12": {
+                "field_name": "raynauds_phenomenon",
+                "field_title": "History of Raynaud's Phenomenon?",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_is_optional_fg": true
+            },
+            "1.13": {
+                "field_name": "vasculitis",
+                "field_title": "History of Vasculitis?",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_is_optional_fg": true
+            },
+            "1.14": {
+                "field_name": "aneurysm",
+                "field_title": "History of Aneurysm?",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_is_optional_fg": true
+            },
+            "1.15": {
+                "field_name": "pots",
+                "field_title": "History of POTS?",
+                "field_type": "bool",
+                "field_order": 15,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "headaches",
+                "field_title": "History of headaches?",
+                "field_type": "string",
+                "field_order": 16,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Headache-Cluster|Headache-Migraine|Headache-Sinus|Headache-Tension Type"
+            },
+            "1.17": {
+                "field_name": "chronic_fatigue_syndrome",
+                "field_title": "History of chronic fatigue syndrome?",
+                "field_type": "bool",
+                "field_order": 17,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.18": {
+                "field_name": "teeth",
+                "field_title": "History of Teeth - missing, damaged, decayed, loose, root resorption?",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_is_virtual_fg": false,
+                "field_constraint_description": "checkbox"
+            },
+            "1.19": {
+                "field_name": "failed_dental_treatment",
+                "field_title": "Failed Dental treatment (fillings, orthodontia, wisdom teeth removal, crown work, restorations, Grinding down teeth, splints etc)",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.20": {
+                "field_name": "malocclusion",
+                "field_title": "History of Malocclusion?",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.21": {
+                "field_name": "frenulum",
+                "field_title": "History of Frenulum developed from scar tissue?",
+                "field_type": "bool",
+                "field_order": 21,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.22": {
+                "field_name": "gum_recession",
+                "field_title": "History of Gum recession?",
+                "field_type": "bool",
+                "field_order": 22,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.23": {
+                "field_name": "dental_conditions",
+                "field_title": "History of Dental conditions: (Caries (dental decay), Cracked tooth,Dry socket)?",
+                "field_type": "bool",
+                "field_order": 23,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.24": {
+                "field_name": "adrenal_disorders",
+                "field_title": "History of Adrenal Disorders?",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.25": {
+                "field_name": "diabetes",
+                "field_title": "History of Diabetes?",
+                "field_type": "bool",
+                "field_order": 25,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.26": {
+                "field_name": "thyroid_disorders",
+                "field_title": "History of Thyroid Disorders?",
+                "field_type": "bool",
+                "field_order": 26,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.27": {
+                "field_name": "sexual_dysfunction",
+                "field_title": "History of Sexual Dysfunction?",
+                "field_type": "bool",
+                "field_order": 27,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.28": {
+                "field_name": "hormone_disorders",
+                "field_title": "History of Hormone disorders (PCOS,Infertility) , male hormone disorders, female hormone  Low serum level 17 estradiol) disorders?",
+                "field_type": "bool",
+                "field_order": 28,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.29": {
+                "field_name": "menopause",
+                "field_title": "History of Menopause?",
+                "field_type": "bool",
+                "field_order": 29,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.30": {
+                "field_name": "painful_menstrual_periods",
+                "field_title": "History of Painful Menstrual Periods?",
+                "field_type": "bool",
+                "field_order": 30,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.31": {
+                "field_name": "endometriosis",
+                "field_title": "History of Endometriosis?",
+                "field_type": "bool",
+                "field_order": 31,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.32": {
+                "field_name": "premenstrual_syndrome",
+                "field_title": "History of Premenstrual Syndrome (PMS)?",
+                "field_type": "bool",
+                "field_order": 32,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.33": {
+                "field_name": "clenching_bruxism",
+                "field_title": "History of clenching and Bruxism?",
+                "field_type": "bool",
+                "field_order": 33,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.34": {
+                "field_name": "salivary_stone",
+                "field_title": "History of Salivary stone?",
+                "field_type": "bool",
+                "field_order": 34,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.35": {
+                "field_name": "sinusitis",
+                "field_title": "History of sinusitis?",
+                "field_type": "bool",
+                "field_order": 35,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.36": {
+                "field_name": "glasses_contacts",
+                "field_title": "History of glasses or contacts?",
+                "field_type": "bool",
+                "field_order": 36,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.37": {
+                "field_name": "acid_reflux",
+                "field_title": "History of Acid Reflux/GERD/Heartburn/hiatal hernia?",
+                "field_type": "bool",
+                "field_order": 37,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.38": {
+                "field_name": "ulcerative_colitis",
+                "field_title": "History of Ulcerative Colitis/ Crohns?",
+                "field_type": "bool",
+                "field_order": 38,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.39": {
+                "field_name": "gastritis",
+                "field_title": "History of Gastritis?",
+                "field_type": "bool",
+                "field_order": 39,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.40": {
+                "field_name": "intestinal_stomach_ulcers",
+                "field_title": "History of Intestinal/Stomach Ulcers?",
+                "field_type": "bool",
+                "field_order": 40,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.41": {
+                "field_name": "irritable_bowel_syndrome",
+                "field_title": "History of Irritable Bowel Syndrome?",
+                "field_type": "bool",
+                "field_order": 41,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.42": {
+                "field_name": "malnutrition",
+                "field_title": "History of Malnutrition, weight fluctuation?",
+                "field_type": "bool",
+                "field_order": 42,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.43": {
+                "field_name": "liver_disease",
+                "field_title": "History of Liver disease/Jaundice/Hepatitis?",
+                "field_type": "bool",
+                "field_order": 43,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.44": {
+                "field_name": "pancreatic_disease",
+                "field_title": "History of Pancreatic disease?",
+                "field_type": "bool",
+                "field_order": 44,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.45": {
+                "field_name": "bladder",
+                "field_title": "History of Bladder infections/ bladder dysfunction/incontinence?",
+                "field_type": "bool",
+                "field_order": 45,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.46": {
+                "field_name": "cystitis",
+                "field_title": "History of Interstitial Cystitis or Chronic Cystitis?",
+                "field_type": "bool",
+                "field_order": 46,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.47": {
+                "field_name": "prostatitis",
+                "field_title": "History of Prostatitis?",
+                "field_type": "bool",
+                "field_order": 47,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.48": {
+                "field_name": "nephroptosis",
+                "field_title": "History of Nephroptosis?",
+                "field_type": "bool",
+                "field_order": 48,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.49": {
+                "field_name": "urolithiasis",
+                "field_title": "History of Urolithiasis?",
+                "field_type": "bool",
+                "field_order": 49,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.50": {
+                "field_name": "pyelonephritis",
+                "field_title": "History of Pyelonephritis?",
+                "field_type": "bool",
+                "field_order": 50,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.51": {
+                "field_name": "testicular_disorders",
+                "field_title": "Hisotry of Testicular Tumors/Disorders?",
+                "field_type": "bool",
+                "field_order": 51,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.52": {
+                "field_name": "vulvadynia",
+                "field_title": "Hisotry of Vulvar vestibulitis syndrome/vulvadynia?",
+                "field_type": "bool",
+                "field_order": 52,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.53": {
+                "field_name": "anemia",
+                "field_title": "History of Anemia?",
+                "field_type": "bool",
+                "field_order": 53,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.54": {
+                "field_name": "swollen_lymph_nodes",
+                "field_title": "History of Chronic swollen Lymph Nodes?",
+                "field_type": "bool",
+                "field_order": 54,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.55": {
+                "field_name": "hemophilia",
+                "field_title": "History of Hemophilia?",
+                "field_type": "bool",
+                "field_order": 55,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.56": {
+                "field_name": "sexually_transmitted_disease",
+                "field_title": "History of Sexually Transmitted Disease?",
+                "field_type": "bool",
+                "field_order": 56,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.57": {
+                "field_name": "insect_borne_diseases",
+                "field_title": "History of Lyme/Tick/or insect borne diseases or infections?",
+                "field_type": "bool",
+                "field_order": 57,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.58": {
+                "field_name": "mrsa",
+                "field_title": "History of MRSA or other chronic infection (staph, strep)?",
+                "field_type": "bool",
+                "field_order": 58,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.59": {
+                "field_name": "arthritis",
+                "field_title": "History of Arthritis - Infectious?",
+                "field_type": "bool",
+                "field_order": 59,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.60": {
+                "field_name": "osteoporosis",
+                "field_title": "History of Osteoporosis?",
+                "field_type": "bool",
+                "field_order": 60,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.61": {
+                "field_name": "metabolic_bone_disease",
+                "field_title": "History of Metabolic bone disease, bone remodeling?",
+                "field_type": "bool",
+                "field_order": 61,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.62": {
+                "field_name": "muscular_dystrophy",
+                "field_title": "History of Muscular Dystrophy?",
+                "field_type": "bool",
+                "field_order": 62,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.63": {
+                "field_name": "osteochondritis_dissecans",
+                "field_title": "History of Osteochondritis dissecans?",
+                "field_type": "bool",
+                "field_order": 63,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.64": {
+                "field_name": "eagle_syndrome",
+                "field_title": "History of Eagle Syndrome?",
+                "field_type": "bool",
+                "field_order": 64,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.65": {
+                "field_name": "fibromylagia",
+                "field_title": "History of Fibromylagia?",
+                "field_type": "bool",
+                "field_order": 65,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.66": {
+                "field_name": "congenital_disorders",
+                "field_title": "History of Congenital/Craniofacial Disorders (e.g.Hemifacial Microsomia/Goldenhar Syndrome, hyperplasia etc)?",
+                "field_type": "bool",
+                "field_order": 66,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.67": {
+                "field_name": "bronjj",
+                "field_title": "History of BRONJJ?",
+                "field_type": "bool",
+                "field_order": 67,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.68": {
+                "field_name": "mronj",
+                "field_title": "History of MRONJ?",
+                "field_type": "bool",
+                "field_order": 68,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.69": {
+                "field_name": "facial_paralysis",
+                "field_title": "History of Eyebrow/Eyelid/Facial paralysis & Numbness?",
+                "field_type": "bool",
+                "field_order": 69,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.70": {
+                "field_name": "bells_palsy",
+                "field_title": "History of Bell's Palsy?",
+                "field_type": "bool",
+                "field_order": 70,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.71": {
+                "field_name": "burning_mouth_syndrome",
+                "field_title": "History of Burning Mouth Syndrome, burning tongue?",
+                "field_type": "bool",
+                "field_order": 71,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.72": {
+                "field_name": "cerebral_palsy",
+                "field_title": "History of Cerebral palsy?",
+                "field_type": "bool",
+                "field_order": 72,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.73": {
+                "field_name": "epilepsy",
+                "field_title": "History of Epilepsy/ Seizures/ Convulsions?",
+                "field_type": "bool",
+                "field_order": 73,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.74": {
+                "field_name": "ernest_syndrome",
+                "field_title": "History of Ernest Syndrome?",
+                "field_type": "bool",
+                "field_order": 74,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.75": {
+                "field_name": "first_bite_syndrome",
+                "field_title": "History of First bite syndrome/ Frey Syndrome?",
+                "field_type": "bool",
+                "field_order": 75,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.76": {
+                "field_name": "sleep_disorders",
+                "field_title": "History of Sleep Disorders/Fatigue /Obstructive Sleep Apnea/ Central Sleep apnea?",
+                "field_type": "bool",
+                "field_order": 76,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.77": {
+                "field_name": "movement_disorders",
+                "field_title": "History of Movement Disorders/ Oromandibular dystonia/dystonic tremor/cervical dystonia?",
+                "field_type": "bool",
+                "field_order": 77,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.78": {
+                "field_name": "trigeminal_neuralgia",
+                "field_title": "History of Trigeminal Neuralgia?",
+                "field_type": "bool",
+                "field_order": 78,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.79": {
+                "field_name": "trigeminal_neuropathy",
+                "field_title": "History of Trigeminal Neuropathy?",
+                "field_type": "bool",
+                "field_order": 79,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.80": {
+                "field_name": "vertigo",
+                "field_title": "History of Vertigo/ dizziness/ spaciness?",
+                "field_type": "bool",
+                "field_order": 80,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.81": {
+                "field_name": "multiple_sclerosis",
+                "field_title": "History of Multiple Sclerosis?",
+                "field_type": "bool",
+                "field_order": 81,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.82": {
+                "field_name": "migraine",
+                "field_title": "History of Migraine, Cluster, tension, Premenstrual migraine?",
+                "field_type": "bool",
+                "field_order": 82,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.83": {
+                "field_name": "myasthenia_gravis",
+                "field_title": "History of Myasthenia Gravis?",
+                "field_type": "bool",
+                "field_order": 83,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.84": {
+                "field_name": "stroke",
+                "field_title": "History of Stroke?",
+                "field_type": "bool",
+                "field_order": 84,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.85": {
+                "field_name": "trgeminocardiac_reflex",
+                "field_title": "History of Trgeminocardiac reflex?",
+                "field_type": "bool",
+                "field_order": 85,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.86": {
+                "field_name": "cancer",
+                "field_title": "History of Cancer?",
+                "field_type": "string",
+                "field_order": 86,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Bone|Breast|GI|Leukemia|Lymphoma|Lung|Prostate|Mandibular|Oral"
+            },
+            "1.87": {
+                "field_name": "n_pregnancies",
+                "field_title": "Number of pregnancies?",
+                "field_type": "integer",
+                "field_order": 87,
+                "field_is_optional_fg": true,
+                "field_constraint": "undefined",
+                "field_constraint_data": "1-20"
+            },
+            "1.88": {
+                "field_name": "n_births",
+                "field_title": "Number of births?",
+                "field_type": "integer",
+                "field_order": 88,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1-20"
+            },
+            "1.89": {
+                "field_name": "arthritis_traumatic",
+                "field_title": "History of Arthritis - Traumatic?",
+                "field_type": "bool",
+                "field_order": 89,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.90": {
+                "field_name": "arthritis_rheumatoid",
+                "field_title": "History of Arthritis - Rheumatoid?",
+                "field_type": "bool",
+                "field_order": 90,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.91": {
+                "field_name": "arthritis_osteoarthritis",
+                "field_title": "History of Arthritis - Osteoarthritis/Degenerative?",
+                "field_type": "bool",
+                "field_order": 91,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.92": {
+                "field_name": "arthritis_psoriatic",
+                "field_title": "History of Arthritis - Psoriatic?",
+                "field_type": "bool",
+                "field_order": 92,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.93": {
+                "field_name": "arthritis_gouty",
+                "field_title": "History of Arthritis - Gouty?",
+                "field_type": "bool",
+                "field_order": 93,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.94": {
+                "field_name": "arthritis_seronegative",
+                "field_title": "History of Arthritis - Seronegative?",
+                "field_type": "bool",
+                "field_order": 94,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.95": {
+                "field_name": "mcas",
+                "field_title": "History of Mast cell activation syndrome (MCAS)?",
+                "field_type": "bool",
+                "field_order": 95,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.96": {
+                "field_name": "chronic_fatigue_syndrome",
+                "field_title": "History of chronic fatigue syndrome?",
+                "field_type": "bool",
+                "field_order": 96,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.97": {
+                "field_name": "fibromylagia",
+                "field_title": "History of fibromylagia?",
+                "field_type": "bool",
+                "field_order": 97,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.98": {
+                "field_name": "sleep_disorder",
+                "field_title": "History of a sleep disorder?",
+                "field_type": "bool",
+                "field_order": 98,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.99": {
+                "field_name": "tick_borne_illness",
+                "field_title": "History of Lyme disease or other tick-borne illness?",
+                "field_type": "bool",
+                "field_order": 99,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.100": {
+                "field_name": "chronic_staph",
+                "field_title": "History of chronic staph or strep infection?",
+                "field_type": "bool",
+                "field_order": 100,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.101": {
+                "field_name": "estrogen_therapy",
+                "field_title": "Have you had estrogen-based Hormone Replacement Therapy (including hormonal birth control)?",
+                "field_type": "bool",
+                "field_order": 101,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.102": {
+                "field_name": "head_injury",
+                "field_title": "Have you sustained traumatic injury to the head or neck? (e.g. whiplash, accident, severe blow to face/head)",
+                "field_type": "bool",
+                "field_order": 102,
+                "field_is_optional_fg": true
+            },
+            "1.103": {
+                "field_name": "blood_transfusion",
+                "field_title": "Have you ever received a blood transfusion?",
+                "field_type": "bool",
+                "field_order": 103,
+                "field_is_optional_fg": true
+            },
+            "1.104": {
+                "field_name": "craniofacial_syndrome",
+                "field_title": "Do you have a congenital craniofacial syndrome? (e.g.hemifacial microsomia, goldenhar syndrome / hyperplasia, etc)",
+                "field_type": "bool",
+                "field_order": 104,
+                "field_constraint_description": "checkbox"
+            },
+            "1.105": {
+                "field_name": "subtitle_2",
+                "field_title": "Conditions that Mimic TMJ",
+                "field_type": "string",
+                "field_order": 105,
+                "field_constraint_description": "subtitle"
+            },
+            "1.106": {
+                "field_name": "dental_misdiagnosed_tmjd",
+                "field_title": "Have you had dental conditions that were misdiagnosed as TMJD?",
+                "field_type": "string",
+                "field_order": 106,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "No|Caries (dental decay)|Cracked tooth|Dry socket"
+            },
+            "1.107": {
+                "field_name": "tmjd_misdiagnosed_dental",
+                "field_title": "Have you had TMJD misdiagnosed as dental conditions?",
+                "field_type": "bool",
+                "field_order": 107,
+                "field_is_optional_fg": true
+            },
+            "1.108": {
+                "field_name": "headaches_misdiagnosed_tmjd",
+                "field_title": "Have you had headaches that were misdiagnosed as TMJD?",
+                "field_type": "string",
+                "field_order": 108,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "No|Migraine headache|Tension Type Headache (TTH)|Cluster Headache|Anxiety Headache|Headache caused by digestive problems"
+            },
+            "1.109": {
+                "field_name": "tmjd_misdiagnosed_headache",
+                "field_title": "Have you had TMJD misdiagnosed as headaches?",
+                "field_type": "bool",
+                "field_order": 109,
+                "field_is_optional_fg": true
+            },
+            "1.110": {
+                "field_name": "arteritis_misdiagnosed_tmjd",
+                "field_title": "Have you had temporal arteritis that was misdiagnosed as TMD?",
+                "field_type": "bool",
+                "field_order": 110,
+                "field_is_optional_fg": true
+            },
+            "1.111": {
+                "field_name": "tmjd_misdiagnosed_arteritis",
+                "field_title": "Have you had TMJD misdiagnosed as temporal arteritis?",
+                "field_type": "bool",
+                "field_order": 111,
+                "field_is_optional_fg": true
+            },
+            "1.112": {
+                "field_name": "neuropathic_misdiagnosed_tmjd",
+                "field_title": "Have you had neuropathic conditions that were misdiagnosed as TMJD?",
+                "field_type": "string",
+                "field_order": 112,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "No|Glossopharyngeal Neauralgia|Postherpetic Neuralgia|Hyperalgesia|Trigeminal Neuralgia"
+            },
+            "1.113": {
+                "field_name": "tmjd_misdiagnosed_neuropathic",
+                "field_title": "Have you had TMJD misdiagnosed as neuropathic conditions?",
+                "field_type": "bool",
+                "field_order": 113,
+                "field_is_optional_fg": true
+            },
+            "1.114": {
+                "field_name": "salivary_stones_misdiagnosed_tmjd",
+                "field_title": "Have you had salivary stones that were misdiagnosed as TMJD?",
+                "field_type": "bool",
+                "field_order": 114,
+                "field_is_optional_fg": true
+            },
+            "1.115": {
+                "field_name": "tmjd_misdiagnosed_salivary_stones",
+                "field_title": "Have you had TMJD misdiagnosed  as salivary stones?",
+                "field_type": "bool",
+                "field_order": 115,
+                "field_is_optional_fg": true
+            },
+            "1.116": {
+                "field_name": "sinusitis_misdiagnosed_tmjd",
+                "field_title": "Have you had sinusitis that was misdiagnosed as TMJD?",
+                "field_type": "string",
+                "field_order": 116,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "No|Acute|Chronic"
+            },
+            "1.117": {
+                "field_name": "tmjd_misdiagnosed_sinusitis",
+                "field_title": "Have you had TMJD misdiagnosed as sinusitis?",
+                "field_type": "bool",
+                "field_order": 117,
+                "field_is_optional_fg": true
+            },
+            "1.118": {
+                "field_name": "angina_misdiagnosed_tmjd",
+                "field_title": "Have you had Angina that was misdiagnosed as TMJD?",
+                "field_type": "string",
+                "field_order": 118,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "No|Stable|Unstable|Variant"
+            },
+            "1.119": {
+                "field_name": "tmjd_misdiagnosed_angina",
+                "field_title": "Have you had TMJD misdiagnosed as angina?",
+                "field_type": "bool",
+                "field_order": 119,
+                "field_is_optional_fg": true
+            },
+            "1.120": {
+                "field_name": "arthritis_misdiagnosed_tmjd",
+                "field_title": "Have you had arthritic conditions that were misdiagnosed as TMJD?",
+                "field_type": "string",
+                "field_order": 120,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "No|Rheumatoid|Traumatic|Osteoarthritis/Degenerative|Psoriatic|Seronegative|Gouty"
+            },
+            "1.121": {
+                "field_name": "tmjd_misdiagnosed_arthritis",
+                "field_title": "Have you had TMJD misdiagnosed as arthritic conditions?",
+                "field_type": "bool",
+                "field_order": 121,
+                "field_is_optional_fg": true
+            },
+            "1.122": {
+                "field_name": "lyme_misdiagnosed_tmjd",
+                "field_title": "Have you had lyme/tick or insect borne diseases or infections that were misdiagnosed as TMJD?",
+                "field_type": "bool",
+                "field_order": 122,
+                "field_is_optional_fg": true
+            },
+            "1.123": {
+                "field_name": "tmjd_misdiagnosed_lyme",
+                "field_title": "Have you had TMJD misdiagnosed as lyme/tick or insect borne diseases or infections?",
+                "field_type": "bool",
+                "field_order": 123,
+                "field_is_optional_fg": true
+            },
+            "1.124": {
+                "field_name": "subtitle_3",
+                "field_title": "Social History",
+                "field_type": "string",
+                "field_order": 124,
+                "field_constraint_description": "subtitle"
+            },
+            "1.125": {
+                "field_name": "tobacco_use",
+                "field_title": "Do you use tobacco in any form?",
+                "field_type": "bool",
+                "field_order": 125,
+                "field_is_optional_fg": false
+            },
+            "1.126": {
+                "field_name": "tobacco_use_select",
+                "field_title": "If you use tobacco, select all conditions that apply",
+                "field_type": "bool",
+                "field_order": 126,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Use tobacco to manage TMJ pain|smoke tobacco|chew tobacco|vape\r\n>is_shown_fg=$(tobacco_use)=='true'"
+            },
+            "1.127": {
+                "field_name": "alcohol_use",
+                "field_title": "Do you drink any alcoholic beverages (e.g., whiskey or gin, beer, wine, wine coolers, etc)?",
+                "field_type": "bool",
+                "field_order": 127
+            },
+            "1.128": {
+                "field_name": "alcohol_use_select",
+                "field_title": "If you use alcoholic beverages, select all conditions that apply",
+                "field_type": "string",
+                "field_order": 128,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Use alcohol beverages to manage TMJ pain|Drink Once a Month|Drink Once a Week|Drink multiple times a week|Drink Daily|Other (specify)\r\n>is_shown_fg=$(alcohol_use)=='true'"
+            },
+            "1.129": {
+                "field_name": "recreational_drug_use",
+                "field_title": "Do you use recreational drugs to reduce your TMJ pain?",
+                "field_type": "bool",
+                "field_order": 129
+            },
+            "1.130": {
+                "field_name": "recreational_drug_use_select",
+                "field_title": "If you use recreational drugs, select all conditions that apply",
+                "field_type": "string",
+                "field_order": 130,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Use recreational drugs to manage TMJ pain|Use Once a Month|Use Once a Week|Use multiple times a week|Use Daily|Other (specify)\r\n>is_shown_fg=$(recreational_drug_use)=='true'"
+            },
+            "1.131": {
+                "field_name": "subtitle_4",
+                "field_title": "Family History",
+                "field_type": "string",
+                "field_order": 131,
+                "field_constraint_description": "subtitle"
+            },
+            "1.132": {
+                "field_name": "family_tmj",
+                "field_title": "Do you have family members with history of TMJ?",
+                "field_type": "bool",
+                "field_order": 132
+            },
+            "1.133": {
+                "field_name": "subtitle_5",
+                "field_title": "Previous Device Implant",
+                "field_type": "string",
+                "field_order": 133,
+                "field_constraint_description": "subtitle"
+            },
+            "1.134": {
+                "field_name": "prior_tmj_implant",
+                "field_title": "Provide information if you have experienced prior toTMJ implant.",
+                "field_type": "string",
+                "field_order": 134,
+                "field_is_optional_fg": true
+            },
+            "1.135": {
+                "field_name": "improvement_tmj_implant",
+                "field_title": "Provide information if you have experienced improvement since TMJ implant.",
+                "field_type": "string",
+                "field_order": 135,
+                "field_is_optional_fg": true
+            },
+            "1.136": {
+                "field_name": "subtitle_6",
+                "field_title": "Previous TMJ Treatment",
+                "field_type": "string",
+                "field_order": 136,
+                "field_constraint_description": "subtitle"
+            },
+            "1.137": {
+                "field_name": "tmj_past_treatment",
+                "field_title": "Have you received TMJ treatment in the past?",
+                "field_type": "bool",
+                "field_order": 137
+            },
+            "1.138": {
+                "field_name": "time_symptom_diagnosis",
+                "field_title": "What was the time from symptom onset to diagnosis and treatment (specify by month and years)?",
+                "field_type": "string",
+                "field_order": 138,
+                "field_is_optional_fg": true
+            },
+            "1.139": {
+                "field_name": "seen_specialists",
+                "field_title": "Have you ever seen medical or dental specialists about your TMD?",
+                "field_type": "bool",
+                "field_order": 139,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.140": {
+                "field_name": "specialist_type",
+                "field_title": "What types of specialists have you seen?",
+                "field_type": "string",
+                "field_order": 140,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Rheumatology|Neurology|Pain medicine|Sleep Medicine|ENT|OMFS|Immunologist|Opthamologist|Orthopedics|Infectious diesease|Genetics|Functional Medicine|Psychiatrist|Gastroenterologist|Dermatology|Cardiology|General Dentist|Orthodontics|Periodontist|Prosthodotist|Endodontist\r\n>is_shown_fg=$(seen_specialists)=='true'"
+            },
+            "1.141": {
+                "field_name": "specialist_information",
+                "field_title": "List the names of medical or dental specialists that were consulted",
+                "field_type": "text",
+                "field_order": 141,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(seen_specialists)=='true'"
+            },
+            "1.142": {
+                "field_name": "prp_injections",
+                "field_title": "Treated with PRP injections?",
+                "field_type": "bool",
+                "field_order": 142,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.143": {
+                "field_name": "steroid_injections",
+                "field_title": "Treated with steroid injections?",
+                "field_type": "bool",
+                "field_order": 143,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.144": {
+                "field_name": "prolotherapy_injections",
+                "field_title": "Treated with Prolotherapy/ Trigger Point injections/nerve blocks?",
+                "field_type": "bool",
+                "field_order": 144,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.145": {
+                "field_name": "botox_injections",
+                "field_title": "Treated with Botox Injections?",
+                "field_type": "bool",
+                "field_order": 145,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.146": {
+                "field_name": "iontophoresis",
+                "field_title": "Treated with Iontophoresis with Dexamethosone, lidocaine, benzocaine, septacaine and/or others?",
+                "field_type": "bool",
+                "field_order": 146,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.147": {
+                "field_name": "massage_therapy",
+                "field_title": "Treated with Massage Therapy?",
+                "field_type": "bool",
+                "field_order": 147,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.148": {
+                "field_name": "cranial_sacral _therapy",
+                "field_title": "Treated with Cranial Sacral Therapy?",
+                "field_type": "bool",
+                "field_order": 148,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.149": {
+                "field_name": "neuromuscular_massage_therapy",
+                "field_title": "Treated with Myofascial & Precision Neuromuscular massage therapy?",
+                "field_type": "bool",
+                "field_order": 149,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.150": {
+                "field_name": "therapeutic_exercises",
+                "field_title": "Treated with Therapeutic exercises (posture and mechanical training)?",
+                "field_type": "bool",
+                "field_order": 150,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.151": {
+                "field_name": "manual_therapy",
+                "field_title": "Treated with Manual Therapy?",
+                "field_type": "bool",
+                "field_order": 151,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.152": {
+                "field_name": "needling",
+                "field_title": "Treated with Acupuncture/Dry needling?",
+                "field_type": "bool",
+                "field_order": 152,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.153": {
+                "field_name": "myofunctional_therapy",
+                "field_title": "Treated with Myofunctional/Speech Therapy?",
+                "field_type": "bool",
+                "field_order": 153,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.154": {
+                "field_name": "physical_therapy",
+                "field_title": "Treated with Physical Therapy/Phisiotherapy?",
+                "field_type": "bool",
+                "field_order": 154,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.155": {
+                "field_name": "chiropractic_treatment",
+                "field_title": "Treated with Chiropractic Treatment?",
+                "field_type": "bool",
+                "field_order": 155,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.156": {
+                "field_name": "iv_ozone",
+                "field_title": "Treated with IV Ozone?",
+                "field_type": "bool",
+                "field_order": 156,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.157": {
+                "field_name": "shock_wave_therapy",
+                "field_title": "Treated with Shock wave therapy?",
+                "field_type": "bool",
+                "field_order": 157,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.158": {
+                "field_name": "oxygen_therapy",
+                "field_title": "Treated with Hyperbaric oxygen therapy?",
+                "field_type": "bool",
+                "field_order": 158,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.159": {
+                "field_name": "cold_laser_therapy",
+                "field_title": "Treated with Cold laser therapy?",
+                "field_type": "bool",
+                "field_order": 159,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.160": {
+                "field_name": "ultrasound_therapy",
+                "field_title": "Treated with Ultrasound therapy?",
+                "field_type": "bool",
+                "field_order": 160,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.161": {
+                "field_name": "magnetic_therapy",
+                "field_title": "Treated with Magnetic therapy?",
+                "field_type": "bool",
+                "field_order": 161,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.162": {
+                "field_name": "heat_therapy",
+                "field_title": "Treated with Heat therapy?",
+                "field_type": "string",
+                "field_order": 162,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "Hot packs|hot baths|shower and Cold packs|sauna"
+            },
+            "1.163": {
+                "field_name": "breath_work",
+                "field_title": "Treated with Breath Work?",
+                "field_type": "bool",
+                "field_order": 163,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.164": {
+                "field_name": "physical_rehabilitation",
+                "field_title": "Treated with Physical Rehabilitation?",
+                "field_type": "bool",
+                "field_order": 164,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.165": {
+                "field_name": "splint_night_guard",
+                "field_title": "Treated with splint/ orthotic/ mouth guard/ night guard (Custom vs OTC)?",
+                "field_type": "bool",
+                "field_order": 165,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.166": {
+                "field_name": "behavioral_therapy",
+                "field_title": "Received Behavioral Therapy/Counseling  (biofeedback, CBT, Relaxation trainging, hypnosis, stress management, mindfulness)?",
+                "field_type": "bool",
+                "field_order": 166,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.167": {
+                "field_name": "nutrition_counseling",
+                "field_title": "Received Nutrition Counseling?",
+                "field_type": "bool",
+                "field_order": 167,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.168": {
+                "field_name": "subtitle_7",
+                "field_title": "Previous Surgery History",
+                "field_type": "string",
+                "field_order": 168,
+                "field_constraint_description": "subtitle"
+            },
+            "1.169": {
+                "field_name": "full_mouth_restoration",
+                "field_title": "Had a Full mouth restoration?",
+                "field_type": "bool",
+                "field_order": 169,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.170": {
+                "field_name": "athrocentesis_surgery",
+                "field_title": "Had Athrocentesis surgery?",
+                "field_type": "bool",
+                "field_order": 170,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.171": {
+                "field_name": "arthroplasty_surgery",
+                "field_title": "Had Arthroplasty surgery?",
+                "field_type": "bool",
+                "field_order": 171,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.172": {
+                "field_name": "arthroscopy_surgery",
+                "field_title": "Had Arthroscopy surgery?",
+                "field_type": "bool",
+                "field_order": 172,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.173": {
+                "field_name": "orthognathic_surgery",
+                "field_title": "Had Orthognathic surgery?",
+                "field_type": "bool",
+                "field_order": 173,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.174": {
+                "field_name": "total_joint_replacement",
+                "field_title": "Had Total Joint Replacement?",
+                "field_type": "bool",
+                "field_order": 174,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.175": {
+                "field_name": "joint_replacement_vascular",
+                "field_title": "Had Joint Replacement for Tumor, Trauma, Others with Vascular/Bone Fibula Grafts surgery?",
+                "field_type": "bool",
+                "field_order": 175,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.176": {
+                "field_name": "osteotomy",
+                "field_title": "Had Intraoral Vertical Ramus Osteotomy And Intermaxillary Fixation surgery?",
+                "field_type": "bool",
+                "field_order": 176,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.177": {
+                "field_name": "autogenous_reconstruction",
+                "field_title": "Had Autogenous Reconstruction?",
+                "field_type": "bool",
+                "field_order": 177,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.178": {
+                "field_name": "condylectomy_condylotomy",
+                "field_title": "Had Condylectomy/ Condylotomy  (spacer used?)?",
+                "field_type": "bool",
+                "field_order": 178,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.179": {
+                "field_name": "discectomy_reconstruction_repair?",
+                "field_title": "Had Discectomy/ Reconstruction/ Repair?",
+                "field_type": "bool",
+                "field_order": 179,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.180": {
+                "field_name": "disc_replacement",
+                "field_title": "Had disc replacement (material? Silastic, fat, temporalis flap)?",
+                "field_type": "bool",
+                "field_order": 180,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.181": {
+                "field_name": "prp_injections",
+                "field_title": "Treated with PRP injections?",
+                "field_type": "bool",
+                "field_order": 181,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.182": {
+                "field_name": "steroid_injections",
+                "field_title": "Treated with steroid injections?",
+                "field_type": "bool",
+                "field_order": 182,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.183": {
+                "field_name": "prolotherapy",
+                "field_title": "Treated with Prolotherapy/ Trigger Point injections/nerve blocks?",
+                "field_type": "bool",
+                "field_order": 183,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.184": {
+                "field_name": "botox_treatment",
+                "field_title": "Treated with Botox Injections?",
+                "field_type": "bool",
+                "field_order": 184,
+                "field_is_optional_fg": false
+            },
+            "1.185": {
+                "field_name": "iontophoresis",
+                "field_title": "Treated with Iontophoresis with Dexamethosone, lidocaine, benzocaine, septacaine and/or others?",
+                "field_type": "bool",
+                "field_order": 185,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.186": {
+                "field_name": "subtitle_8",
+                "field_title": "Previous TMJ Surgical History",
+                "field_type": "string",
+                "field_order": 186,
+                "field_constraint_description": "subtitle"
+            },
+            "1.187": {
+                "field_name": "previous_tmd_procedure_dates",
+                "field_title": "List previous TMD surgical procedure dates",
+                "field_type": "text",
+                "field_order": 187,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.188": {
+                "field_name": "surgery_type",
+                "field_title": "Identify the type of surgery (include laterality)",
+                "field_type": "string",
+                "field_order": 188,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.189": {
+                "field_name": "previously_failed_surgeries",
+                "field_title": "Did the surgery address the TMJ condition(s)?",
+                "field_type": "string",
+                "field_order": 189,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "success - fixed the issue|resulted in additional issues|no better/no worse"
+            },
+            "1.190": {
+                "field_name": "number_surgeries",
+                "field_title": "Had Condylectomy/ Condylotomy  (spacer used?)?",
+                "field_type": "integer",
+                "field_order": 190,
+                "field_is_optional_fg": true
+            },
+            "1.191": {
+                "field_name": "subtitle_9",
+                "field_title": "Previous TMJ Procedures",
+                "field_type": "string",
+                "field_order": 191,
+                "field_constraint_description": "subtitle"
+            },
+            "1.192": {
+                "field_name": "dental_implant",
+                "field_title": "Do you have a dental implant?",
+                "field_type": "bool",
+                "field_order": 192,
+                "field_is_optional_fg": true
+            },
+            "1.193": {
+                "field_name": "dental_implant_type",
+                "field_title": "If you have a dental implant, provide the type of implant.",
+                "field_type": "text",
+                "field_order": 193,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(dental_implant)=='true'"
+            },
+            "1.194": {
+                "field_name": "dental_implant_removed",
+                "field_title": "If you have had a dental implant(s), have any been removed?",
+                "field_type": "bool",
+                "field_order": 194,
+                "field_is_optional_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(dental_implant)=='true'"
+            },
+            "1.195": {
+                "field_name": "failed_dental_procedure",
+                "field_title": "Have you had a failed (non-surgical) dental procedure?",
+                "field_type": "bool",
+                "field_order": 195,
+                "field_is_optional_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(dental_implant)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.196": {
+                "field_name": "wisdom_tooth_complication",
+                "field_title": "Have you had a complication with a wisdom tooth extraction?",
+                "field_type": "bool",
+                "field_order": 196,
+                "field_is_optional_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(dental_implant)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.197": {
+                "field_name": "dental_implant_complication",
+                "field_title": "Have you had a complication with a dental implant or restoration?",
+                "field_type": "bool",
+                "field_order": 197,
+                "field_is_optional_fg": true,
+                "field_constraint_data": ">is_shown_fg=$(dental_implant)=='true'",
+                "field_constraint_description": "checkbox"
+            },
+            "1.198": {
+                "field_name": "subtitle_10",
+                "field_title": "Alternative TMJ Treatment",
+                "field_type": "string",
+                "field_order": 198,
+                "field_constraint_description": "subtitle"
+            },
+            "1.199": {
+                "field_name": "myofascial_neuromuscular_treatment",
+                "field_title": "Have you had previous Myofascial & Precision Neuromuscular treatment or  muscular electrical stimulation (TENS)?",
+                "field_type": "bool",
+                "field_order": 199,
+                "field_is_optional_fg": true
+            },
+            "1.200": {
+                "field_name": "mandible_manipulation",
+                "field_title": "Have you had a manipulation of the mandible?",
+                "field_type": "bool",
+                "field_order": 200,
+                "field_is_optional_fg": true
+            },
+            "1.201": {
+                "field_name": "history_cardiovascular",
+                "field_title": "Do you have a history of cardiovascular disease?",
+                "field_type": "bool",
+                "field_order": 1.5
+            }
+        },
+        "parent": {
+            "3": "$type.tmj_questionnaires"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/TMJ-Registry/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/HIVE/Projects/TMJ/Administrators/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

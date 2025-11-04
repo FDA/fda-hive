@@ -1,0 +1,30 @@
+{
+    "281": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "dna-screening",
+                "dir": "$(HIVE.repo)/hive/app/dna/dna-screening",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.dna.dna-screening",
+        "description": "SCREENING/CENSUSCOPE performs species representation analysis using NGS sequences.",
+        "authors": {
+            "7": "V.Simonyan",
+            "25": "L.Santana-Quinterro"
+        },
+        "contributors": {
+            "9": "R.Mazumder"
+        },
+        "related": {
+            "18": "59112"
+        },
+        "synonyms": {
+            "21": "Censuscope"
+        }
+    }
+}

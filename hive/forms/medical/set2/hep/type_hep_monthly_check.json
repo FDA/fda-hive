@@ -1,0 +1,556 @@
+{
+    "507": {
+        "_id": "$type.hep_monthly_check",
+        "_type": "type",
+        "name": "hep_monthly_check",
+        "title": "Monthly Check-In",
+        "description": "In order to complete this form, you will need to access the subject seizure diary and medical records. This form requires that you review the subject’s seizure diary with the subject when you make contact.",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Check-In Dates",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint": "choice",
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "check_in_dates",
+                "field_title": "Enter dates this form is used for.  This should cover the date period from the last check-in.",
+                "field_type": "date",
+                "field_order": 1.1,
+                "field_constraint": "range",
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}"
+            },
+            "1.3": {
+                "field_name": "subtitle_2",
+                "field_title": "Patient Contact Information",
+                "field_type": "string",
+                "field_order": 1.2,
+                "field_constraint_description": "subtitle"
+            },
+            "1.4": {
+                "field_name": "patient_contact",
+                "field_title": "Did you contact the patient?",
+                "field_type": "bool",
+                "field_order": 1.3,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "contact_version",
+                "field_title": "How did you contact the patient?",
+                "field_type": "string",
+                "field_order": 1.4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "In-Person|Phone|Other\r\n>is_shown_fg=$(patient_contact)=='true'"
+            },
+            "1.6": {
+                "field_name": "other_specify_contact_type",
+                "field_title": "Other Specify",
+                "field_type": "text",
+                "field_order": 1.5,
+                "field_constraint_data": "is_shown_fg=$(contact_version)=='Other'&&$(patient_contact)=='true'"
+            },
+            "1.7": {
+                "field_name": "not_contacted",
+                "field_title": "Why was the patient not contacted?",
+                "field_type": "string",
+                "field_order": 1.6,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Unable to reach participant|Participant refused contact|Other\r\n>is_shown_fg=$(patient_contact)=='false'"
+            },
+            "1.8": {
+                "field_name": "last_contact_times",
+                "field_title": "check the box for how many months it has been since last contact:",
+                "field_type": "string",
+                "field_order": 1.7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1 month|2 months|3 or more months\r\n>is_shown_fg=$(not_contacted)=='Unable to reach participant'&&$(patient_contact)=='false'"
+            },
+            "1.9": {
+                "field_name": "other_specify_contact_info",
+                "field_title": "Other specify",
+                "field_type": "text",
+                "field_order": 1.8,
+                "field_constraint_data": "is_shown_fg=$(not_contacted)=='Other'&&$(patient_contact)=='false'"
+            },
+            "1.10": {
+                "field_name": "subtitle_3",
+                "field_title": "Section A - Diary Check",
+                "field_type": "string",
+                "field_order": 2,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'||($(last_contact_times)=='3 or more months');",
+                "field_constraint_description": "subtitle",
+                "field_description": "Log into the seizure diary and review the entries with the participant for this period."
+            },
+            "1.11": {
+                "field_name": "does_diary_completely _accurate",
+                "field_title": "Does the subject believe their diary is completely accurate?",
+                "field_type": "bool",
+                "field_order": 2.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'||($(last_contact_times)=='3 or more months');",
+                "field_description": "If the subject is missing seizure(s), the study coordinator should enter this missing data into the participant’s seizure diary and record the discrepancies in the seizure information form from section B."
+            },
+            "1.12": {
+                "field_name": "subtitle_4",
+                "field_title": "Section B - Seizure & Medication Reconciliation (with patient)",
+                "field_type": "string",
+                "field_order": 2.2,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.13": {
+                "field_name": "sectionb_instruction",
+                "field_type": "string",
+                "field_order": 2.3,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'",
+                "field_constraint_description": "description",
+                "field_description": "Review the seizure diary with the participant.<br>\r\nIf there have been no seizures in this reporting period, select Yes for question 1.<br>\r\nIf there have been seizures in this reporting period, confirm that they are correct.<br>\r\n- If the seizures recorded are accurate, you do not need to enter any discrepancies below<br>\r\n- If there are discrepancies: <br>\r\n<div style=\"margin-left: 20px;\">\r\n- If there are missing seizures, click the Add Seizure button and fill the form in. \r\n  (If this is a previously unrecorded seizure type, you will need to complete the Seizure Semiology & Classification and DISCOVER forms before adding)<br>\r\n- If there is a seizure recorded that should be removed, click the Remove seizure button, enter the seizure code and date and click Save.\r\n</div>\r\nAny dates without a seizure will be considered as a seizure-free period."
+            },
+            "1.14": {
+                "field_name": "free_seizure",
+                "field_title": "Seizure free for this check-in period?",
+                "field_type": "bool",
+                "field_order": 2.4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'"
+            },
+            "1.15": {
+                "field_name": "seizure_info_form_parent",
+                "field_title": "Seizure Info Form",
+                "field_type": "array",
+                "field_order": 3,
+                "field_is_multi_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'&&$(free_seizure)=='false'"
+            },
+            "1.16": {
+                "field_name": "seizure_code",
+                "field_title": "Seizure code",
+                "field_type": "string",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\r\n\"fetch\":[\"value\"],\r\n\"fetchProp\":\"seizure_code\",\r\n\"url\":\"?api=0&cmdr=objList&prop=seizure_code,seizure_name,seizure_type,seizure_semiology&mode=csv&type=hep_seizure_semiology_and_classification_form\",\r\n\"groupBy\":\"path\",\r\n\"target_fields\":[\r\n\t{\"source\":\"seizure_name\",\"destination\":\"seizure_name\"},\r\n        {\"source\":\"seizure_type\",\"destination\":\"classification\"},\r\n        {\"source\":\"seizure_semiology\",\"destination\":\"description\"}\r\n],\r\n\"inline\":[\r\n\t{\"name\":\"value\",\"title\":\"value\",\"display\":\"title\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"value\",\"title\":\"value\"}\r\n]\r\n}",
+                "field_constraint_description": "autocomplete"
+            },
+            "1.17": {
+                "field_name": "new_seizures _types",
+                "field_title": "Since the last time we spoke have you had new seizures types that are one minute apart or closer?",
+                "field_type": "bool",
+                "field_order": 3.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false'"
+            },
+            "1.18": {
+                "field_name": "seizure_name",
+                "field_title": "Seizure name",
+                "field_type": "string",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\r\n\"fetch\":[\"value\"],\r\n\"fetchProp\":\"seizure_name\",\r\n\"url\":\"?api=0&cmdr=objList&prop=seizure_code,seizure_name,seizure_type,seizure_semiology&mode=csv&type=hep_seizure_semiology_and_classification_form\",\r\n\"groupBy\":\"path\",\r\n\"target_fields\":[\r\n\t{\"source\":\"seizure_code\",\"destination\":\"seizure_code\"},\r\n        {\"source\":\"seizure_type\",\"destination\":\"classification\"},\r\n        {\"source\":\"seizure_semiology\",\"destination\":\"description\"}\r\n],\r\n\"inline\":[\r\n\t{\"name\":\"value\",\"title\":\"value\",\"display\":\"title\"}\r\n],\r\n\"outline\":[\r\n\t{\"name\":\"value\",\"title\":\"value\"}\r\n]\r\n}",
+                "field_constraint_description": "autocomplete"
+            },
+            "1.19": {
+                "field_name": "new_seizure_type",
+                "field_title": "If yes, please indicate which seizure type, date of occurrence, and duration:",
+                "field_type": "string",
+                "field_order": 3.2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Absence|Myoclonus|Both \r\n>is_shown_fg=$(new_seizures _types)=='true'&& $(free_seizure)=='false'",
+                "field_description": "If clusters were previously unrecorded, you will need to add a letter code to the appropriate Seizure Semiology & Classification form"
+            },
+            "1.20": {
+                "field_name": "classification",
+                "field_title": "Classification",
+                "field_type": "string",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "1. Clearly generalized seizures, but unable to further classify|1.1. Tonic clonic (in any combination)|1.2. Absence|1.2.1. Typical|1.2.2. Eyelid myoclonia|1.3. Myoclonic|2. Clearly focal seizures, but unable to further classify (Exclude)|2.1. Without impairment of consciousness or responsiveness (Exclude)|2.1.1. With observable motor or autonomic component (roughly corresponds to the concept of \"simple partial seizure\") (Exclude)|2.1.2. Involving subjective sensory or psychic phenomena only (corresponds to the concept of \"aura\") (Exclude)|2.2. With impairment of consciousness or responsiveness (roughly corresponds to the concept of \"focal seizures with dyscognitive features\") (Exclude)|2.3. Evolving to a bilateral, convulsive seizure (involving tonic, clonic, or tonic and clonic components; replaces the term \"secondarily generalized seizure\") (Exclude)|3. Seizure type is unclassified (Adjudicate)|4. Unconfirmed seizure type (This category should be used for patients with confirmed epilepsy who have some events for which the Primary Investigator does not have >80% certainty that they are seizures.)"
+            },
+            "1.21": {
+                "field_name": "indicate_date",
+                "field_title": "Date",
+                "field_type": "date",
+                "field_order": 3.3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false' && $(new_seizures _types)=='true'"
+            },
+            "1.22": {
+                "field_name": "description",
+                "field_title": "Description",
+                "field_type": "text",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.23": {
+                "field_name": "indicate_duration",
+                "field_title": "Duration",
+                "field_type": "string",
+                "field_order": 3.4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "<5 min|5-15 min|15-30 min|30 min-1 hour| > 1 hour\r\n>is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false' && $(new_seizures _types)=='true'"
+            },
+            "1.24": {
+                "field_name": "precipitating_factor",
+                "field_title": "Precipitating factor",
+                "field_type": "string",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Missed Meds|Sleep Deprived|Illness|Unknown|Other"
+            },
+            "1.25": {
+                "field_name": "greatest_number_of_seizures_subject",
+                "field_title": "What is the greatest number of seizures subject has had in one day since last check in?",
+                "field_type": "integer",
+                "field_order": 3.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false'"
+            },
+            "1.26": {
+                "field_name": "other_specify",
+                "field_title": "Comments on precipitating factor",
+                "field_type": "string",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 6,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_required_fg=$(precipitating_factor)=='Other'"
+            },
+            "1.27": {
+                "field_name": "daily_myoclonic_seizures",
+                "field_title": "Are you having daily myoclonic seizures?",
+                "field_type": "bool",
+                "field_order": 3.6,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false'"
+            },
+            "1.28": {
+                "field_name": "seizure_count",
+                "field_title": "Seizure count",
+                "field_type": "integer",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 7,
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='false'"
+            },
+            "1.29": {
+                "field_name": "total_estimate_myoclonic_seizures",
+                "field_title": "What is the best estimate of the total # per day?",
+                "field_type": "integer",
+                "field_order": 3.7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(daily_myoclonic_seizures)=='true'&& $(free_seizure)=='false'"
+            },
+            "1.30": {
+                "field_name": "unsure_about_seizure_count",
+                "field_title": "Select this to enter a number range if you are unsure of the exact amount of seizures. ",
+                "field_type": "bool",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 7.5,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.31": {
+                "field_name": "seizures_amount_range",
+                "field_title": "Seizure count range",
+                "field_type": "string",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.32": {
+                "field_name": "seizures_amount_range_from",
+                "field_title": "From ",
+                "field_type": "integer",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 8.2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='true'"
+            },
+            "1.33": {
+                "field_name": "seizures_amount_range_to",
+                "field_title": "To",
+                "field_type": "integer",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 8.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(unsure_about_seizure_count)=='true'"
+            },
+            "1.34": {
+                "field_name": "seizure_count_period",
+                "field_title": "Seizure count period",
+                "field_type": "string",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 9,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "per day|per week|per month|per year\r\n>is_shown_fg=$(unsure_about_seizure_dates)=='true'"
+            },
+            "1.35": {
+                "field_name": "rescue_medication_date",
+                "field_title": "Date",
+                "field_type": "date",
+                "field_parent": "specify_date_and_time",
+                "field_order": 3.93,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": false,
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}"
+            },
+            "1.36": {
+                "field_name": "rescue_medication_type",
+                "field_title": "Type",
+                "field_type": "string",
+                "field_parent": "specify_date_and_time",
+                "field_order": 3.94,
+                "field_is_optional_fg": true
+            },
+            "1.37": {
+                "field_name": "seizure_dates",
+                "field_title": "Seizure date(s)",
+                "field_type": "date",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 10,
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "regexp",
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(unsure_about_seizure_dates)=='false'",
+                "field_description": "Please be as precise as possible. If you do not know the month or day, leave them as Unknown. You must select a year for both From and To."
+            },
+            "1.38": {
+                "field_name": "exact_date_range",
+                "field_title": "Seizure date range",
+                "field_type": "date",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 11,
+                "field_is_optional_fg": true,
+                "field_constraint": "range",
+                "field_constraint_data": "{\r\n\"startDate\":\"1900\",\r\n\"endDate\":\"now\"\r\n}\r\n>is_shown_fg=$(unsure_about_seizure_dates)=='true'"
+            },
+            "1.39": {
+                "field_name": "daily_absence_seizures",
+                "field_title": "Are you having daily absence seizures?",
+                "field_type": "bool",
+                "field_order": 3.8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false'"
+            },
+            "1.40": {
+                "field_name": "total_estimate_absence_seizures",
+                "field_title": "What is the best estimate of the total # per day?",
+                "field_type": "integer",
+                "field_order": 3.9,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(daily_absence_seizures)=='true'&& $(free_seizure)=='false'"
+            },
+            "1.41": {
+                "field_name": "rescue_medication",
+                "field_title": "Did the subject use any rescue medication since last check-in?",
+                "field_type": "bool",
+                "field_order": 3.91,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false'"
+            },
+            "1.42": {
+                "field_name": "specify_date_and_time",
+                "field_title": "Please specify the date and time of the last check-in",
+                "field_type": "array",
+                "field_order": 3.92,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true' && $(free_seizure)=='false'&&$(rescue_medication)=='true'"
+            },
+            "1.43": {
+                "field_name": "subtitle_6",
+                "field_title": "Medication Reconciliation",
+                "field_type": "string",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'||($(last_contact_times)=='3 or more months');",
+                "field_constraint_description": "subtitle"
+            },
+            "1.44": {
+                "field_name": "change_to_epilepsy",
+                "field_title": "Since the last contact, has there been any change in diet, medicines, or implants related to your epilepsy?",
+                "field_type": "string",
+                "field_order": 4.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "Yes|No|N/A\r\n>is_shown_fg=$(patient_contact)=='true'||($(last_contact_times)=='3 or more months');"
+            },
+            "1.45": {
+                "field_name": "if_so_what",
+                "field_title": "If so, what?",
+                "field_type": "text",
+                "field_order": 4.2,
+                "field_constraint_data": "is_shown_fg=$(change_to_epilepsy)=='Yes'&&($(patient_contact)=='true'||$(last_contact_times)=='3 or more months');"
+            },
+            "1.46": {
+                "field_name": "current_doses_of_anti_seizure",
+                "field_title": "Please re-state your current doses of anti seizure and other medications?",
+                "field_type": "text",
+                "field_order": 4.3,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'||($(last_contact_times)=='3 or more months');"
+            },
+            "1.47": {
+                "field_name": "subtitle_7",
+                "field_title": "Additional questions",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.48": {
+                "field_name": "seizure_in_the_last_48_hours",
+                "field_title": "Did you have a seizure in the last 48 hours?",
+                "field_type": "bool",
+                "field_order": 5.1,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'"
+            },
+            "1.49": {
+                "field_name": "miss_prescribed_anti_seizure_medication",
+                "field_title": "Did you miss any prescribed anti-seizure medication in the last 72 hours?",
+                "field_type": "bool",
+                "field_order": 5.2,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'"
+            },
+            "1.50": {
+                "field_name": "describe",
+                "field_title": "If yes, please describe:",
+                "field_type": "text",
+                "field_order": 5.3,
+                "field_constraint_data": "is_shown_fg=$(miss_prescribed_anti_seizure_medication)=='true'"
+            },
+            "1.51": {
+                "field_name": "alcoholic_beverage",
+                "field_title": "Did you drink any alcoholic beverage in the last 72 hours?",
+                "field_type": "bool",
+                "field_order": 5.4,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'"
+            },
+            "1.52": {
+                "field_name": "how_many_drinks",
+                "field_title": "If Yes, how many drinks (1 drink is equivalent to 12 oz. of beer, 5 oz. of wine, or 1.5 oz. of hard alcohol) did you have on:",
+                "field_type": "string",
+                "field_order": 5.5,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'",
+                "field_constraint_description": "description"
+            },
+            "1.53": {
+                "field_name": "alcohol_day1_amount",
+                "field_title": "Day 1 (72 hours ago)",
+                "field_type": "string",
+                "field_order": 5.6,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'"
+            },
+            "1.54": {
+                "field_name": "alcohol_day2",
+                "field_title": "Day 2 (48 hours ago)",
+                "field_type": "string",
+                "field_order": 5.7,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'"
+            },
+            "1.55": {
+                "field_name": "alcohol_day3",
+                "field_title": "Day 3 (24 hours ago)",
+                "field_type": "string",
+                "field_order": 5.8,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(alcoholic_beverage)=='true'"
+            },
+            "1.56": {
+                "field_name": "sleep_last_3_nights",
+                "field_title": "Did you sleep at least 2 hours less than usual any of the last 3 nights?",
+                "field_type": "bool",
+                "field_order": 5.9,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'"
+            },
+            "1.57": {
+                "field_name": "unsure_about_seizure_dates",
+                "field_title": "Select this if you are unsure of the exact date or want to enter a date range.",
+                "field_type": "bool",
+                "field_parent": "seizure_info_form_parent",
+                "field_order": 10.5,
+                "field_is_optional_fg": true,
+                "field_constraint_description": "checkbox"
+            },
+            "1.58": {
+                "field_name": "subtitle_8",
+                "field_title": "If Yes, how many hours of sleep did you get:",
+                "field_type": "string",
+                "field_order": 5.91,
+                "field_constraint_data": "is_shown_fg=$(sleep_last_3_nights)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.59": {
+                "field_name": "sleep_night1",
+                "field_title": "Night 1 (72 hours ago)",
+                "field_type": "string",
+                "field_order": 5.92,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sleep_last_3_nights)=='true'"
+            },
+            "1.60": {
+                "field_name": "sleep_night2",
+                "field_title": "Night 2 (48 hours ago)",
+                "field_type": "string",
+                "field_order": 5.93,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sleep_last_3_nights)=='true'"
+            },
+            "1.61": {
+                "field_name": "sleep_night3",
+                "field_title": "Night 3 (24 hours ago)",
+                "field_type": "string",
+                "field_order": 5.94,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(sleep_last_3_nights)=='true'"
+            },
+            "1.62": {
+                "field_name": "had_stress_in_last_72_hours",
+                "field_title": "Did you feel that you had stress “more than usual” in the last 72 hours?",
+                "field_type": "bool",
+                "field_order": 5.95,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(patient_contact)=='true'",
+                "field_description": "If not seizure free in section B, record details of all seizures on seizure entry form.  Complete one form for each seizure type/date"
+            },
+            "1.63": {
+                "field_name": "forms_prompt",
+                "field_title": "Please fill the Healthcare Utilization Form",
+                "field_type": "string",
+                "field_order": 999,
+                "field_constraint_description": "subtitle"
+            }
+        },
+        "parent": {
+            "4": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

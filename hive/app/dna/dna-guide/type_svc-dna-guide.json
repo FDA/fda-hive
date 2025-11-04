@@ -1,0 +1,204 @@
+{
+    "186": {
+        "_id": "$type.svc-dna-guide",
+        "_type": "type",
+        "name": "svc-dna-guide",
+        "title": "Guide Sequence Mapping Service",
+        "description": "//\nlocation:hive.app.dna",
+        "fields": {
+            "1.0": {
+                "field_name": "guide_sequence",
+                "field_title": "Guide Sequences",
+                "field_type": "obj",
+                "field_order": 1,
+                "field_is_multi_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "u-hiveseq+"
+            },
+            "1.2": {
+                "field_name": "iupac-match-matrix",
+                "field_title": "Match Matrix for IUPAC nucleotides",
+                "field_type": "obj",
+                "field_order": 3,
+                "field_constraint": "type",
+                "field_constraint_data": "csv-table"
+            },
+            "1.3": {
+                "field_name": "pam",
+                "field_title": "PAM",
+                "field_type": "string",
+                "field_order": 2
+            },
+            "1.4": {
+                "field_name": "reference_iupac",
+                "field_title": "No IUPAC wildcards on reference",
+                "field_type": "bool",
+                "field_default_value": "1"
+            },
+            "1.6": {
+                "field_name": "score-severity",
+                "field_title": "Score Severity on Guide",
+                "field_type": "string",
+                "field_parent": "scores",
+                "field_order": 0.5,
+                "field_default_value": "50,50,50,50,50,50,50,50,55,60,65,70,75,80,85,90,95,100,100,100,-1,-1,-1"
+            },
+            "1.8": {
+                "field_name": "scores",
+                "field_title": "Scores",
+                "field_type": "list"
+            },
+            "1.9": {
+                "field_name": "score_match",
+                "field_title": "Matches",
+                "field_type": "integer",
+                "field_parent": "scores",
+                "field_order": 1,
+                "field_default_value": "5"
+            },
+            "1.10": {
+                "field_name": "score_misMatch",
+                "field_title": "Mismatch",
+                "field_type": "integer",
+                "field_parent": "scores",
+                "field_order": 2,
+                "field_default_value": "-4"
+            },
+            "1.11": {
+                "field_name": "score_bulgeDNA",
+                "field_title": "Bulge on DNA",
+                "field_type": "integer",
+                "field_parent": "scores",
+                "field_order": 3,
+                "field_default_value": "-8"
+            },
+            "1.12": {
+                "field_name": "score_bulgeGuide",
+                "field_title": "Bulge on Guide",
+                "field_type": "integer",
+                "field_parent": "scores",
+                "field_order": 4,
+                "field_default_value": "-8"
+            },
+            "1.13": {
+                "field_name": "limits",
+                "field_title": "Limits",
+                "field_type": "list"
+            },
+            "1.14": {
+                "field_name": "maxMisMatches",
+                "field_title": "Maximum Mismatches",
+                "field_type": "integer",
+                "field_parent": "limits",
+                "field_order": 1,
+                "field_default_value": "3"
+            },
+            "1.15": {
+                "field_name": "maxGapsDNA",
+                "field_title": "Maximum bulges on DNA",
+                "field_type": "integer",
+                "field_parent": "limits",
+                "field_order": 2,
+                "field_default_value": "1"
+            },
+            "1.16": {
+                "field_name": "maxGapsGuide",
+                "field_title": "Maximum bulges on Guide",
+                "field_type": "integer",
+                "field_parent": "limits",
+                "field_order": 3,
+                "field_default_value": "1"
+            },
+            "1.17": {
+                "field_name": "maxNsOnRef",
+                "field_title": "Maximum Ns on Reference",
+                "field_type": "integer",
+                "field_parent": "limits",
+                "field_order": 4,
+                "field_default_value": "3"
+            },
+            "1.19": {
+                "field_name": "flanking",
+                "field_title": "Flanking region",
+                "field_type": "integer",
+                "field_default_value": "500"
+            },
+            "1.21": {
+                "field_name": "annotation_source",
+                "field_title": "Gene Annotation Source",
+                "field_type": "obj",
+                "field_parent": "annotations",
+                "field_order": 1,
+                "field_is_optional_fg": false,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.23": {
+                "field_name": "both_strands",
+                "field_title": "Both Strands",
+                "field_type": "bool",
+                "field_default_value": "true"
+            },
+            "1.25": {
+                "field_name": "maxGapsTotal",
+                "field_title": "Maximum total gaps",
+                "field_type": "integer",
+                "field_parent": "limits",
+                "field_order": 1.5,
+                "field_default_value": "3"
+            },
+            "1.27": {
+                "field_name": "info_csv",
+                "field_title": "Information CSV",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "csv-table"
+            },
+            "1.29": {
+                "field_name": "annotation_enrichment",
+                "field_title": "Additional Annotations",
+                "field_type": "obj",
+                "field_parent": "annotations",
+                "field_order": 2,
+                "field_constraint": "type",
+                "field_constraint_data": "u-ionAnnot"
+            },
+            "1.31": {
+                "field_name": "annotaton_terms",
+                "field_title": "Annotation terms to extract",
+                "field_type": "string",
+                "field_parent": "annotations",
+                "field_order": 3,
+                "field_default_value": "rsID,ref,alt,CLNVC,CLNDN,AF_ESP,AF_EXAC,AF_TGP"
+            },
+            "1.33": {
+                "field_name": "annotations",
+                "field_title": "Annotations",
+                "field_type": "list"
+            }
+        },
+        "parent": {
+            "7": "$type.svc-align"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

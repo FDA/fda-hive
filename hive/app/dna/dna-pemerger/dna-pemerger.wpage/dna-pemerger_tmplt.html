@@ -1,0 +1,50 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+
+<script src="js/vjIFrameView.js"></script>
+<script src="?cmd=~^dna~js-obj-new/svc-dna-pemerger.js"></script>
+
+<script type="application/javascript">
+
+    setLocationTitle("Paired End Merger: HIVE");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "dna-pemerger", "svc-dna-pemerger");
+    algoProcess.visibleParameters=["name","fwd","rev","algo"];
+    algoProcess.submitButtonName="Submit";
+    
+    algoProcess.inputLoaded = function (viewer, elem){
+        
+        algoProcess.readFromDocLoc(["pipeline"]);
+        algoProcess.inputChanged(viewer, elem);
+    }
+    algoProcess.inputChanged= function (viewer, elem){
+    }
+    
+    
+    gInitList += "pemergerInit();";
+    function pemergerInit () {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-dna-pemerger',
+            algoTitle: "Paired End Merger Utility"
+        });
+        
+    };
+</script>
+

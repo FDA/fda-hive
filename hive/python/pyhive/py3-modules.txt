@@ -1,0 +1,5 @@
+glymps/glyco/msgf:
+pip3 install --user lxml pymzml xlrd
+
+cart:
+pip3 install --user pandas scipy statsmodels plotly scikit-learn

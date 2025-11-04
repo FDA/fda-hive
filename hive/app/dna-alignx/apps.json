@@ -1,0 +1,2304 @@
+{
+    "78781": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BWA-(Transcriptome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bwa-human-transcriptome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BWA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "69211": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie2-(Distant-relative)",
+        "base_app_description": "Discover distant homologs",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie2-related",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie2 Alignment",
+            "Different Levels of Homology discovery"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "69210": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie2-(Transcriptome-specific)",
+        "base_app_description": "Choose this to align transcriptome sequence reads to a transcriptome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie2-human-transcriptome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie2 Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "69209": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie2-(Exome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie2-human-exome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie2 Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "69208": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie2-(Human-whole-genome-specific)",
+        "base_app_description": "Choose this to align human sequence reads to a whole genome human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie2-human-wgs",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie2 Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "69207": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie2-(Bacteria-specific)",
+        "base_app_description": "Choose this to align bacterial sequence reads to a reference bacterial genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie2-bacteria",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie2 Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "69206": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie2-(Virus-specific)",
+        "base_app_description": "Choose this to align viral sequence reads to a reference viral genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie2-virus",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie2 Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "69205": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie2-(Standard)",
+        "base_app_description": "Choose this to align sequence reads to a reference genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie2-",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie2 Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2633": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "DNA-Batch",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=batch",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2632": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAT",
+        "base_app_description": null,
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blat",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2606": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAST-(Standard)",
+        "base_app_description": "Choose this to align sequence reads to a reference genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blast-",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLAST Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2605": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAST-(Virus-specific)",
+        "base_app_description": "Choose this to align viral sequence reads to a reference viral genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blast-virus",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLAST Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2604": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAST-(Bacteria-specific)",
+        "base_app_description": "Choose this to align bacterial sequence reads to a reference bacterial genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blast-bacteria",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLAST Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2603": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAST-(Human-whole-genome-specific)",
+        "base_app_description": "Choose this to align human sequence reads to a whole genome human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blast-human-wgs",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLAST Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2602": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAST-(Exome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blast-human-exome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLAST Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2601": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAST-(Transcriptome-specific)",
+        "base_app_description": "Choose this to align transcriptome sequence reads to a transcriptome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blast-human-transcriptome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLAST Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2600": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLASTX-(Standard)",
+        "base_app_description": "Choose this to align sequence reads to a reference genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blastx-",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2599": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLASTX-(Virus-specific)",
+        "base_app_description": "Choose this to align viral sequence reads to a reference viral genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blastx-virus",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2598": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLASTX-(Bacteria-specific)",
+        "base_app_description": "Choose this to align bacterial sequence reads to a reference bacterial genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blastx-bacteria",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2597": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLASTX-(Human-whole-genome-specific)",
+        "base_app_description": "Choose this to align human sequence reads to a whole genome human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blastx-human-wgs",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2596": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLASTX-(Exome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blastx-human-exome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2595": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLASTX-(Transcriptome-specific)",
+        "base_app_description": "Choose this to align transcriptome sequence reads to a transcriptome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blastx-human-transcriptome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2594": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "TBLASTX-(Standard)",
+        "base_app_description": "Choose this to align sequence reads to a reference genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tblastx-",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "TBLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2593": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "TBLASTX-(Virus-specific)",
+        "base_app_description": "Choose this to align viral sequence reads to a reference viral genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tblastx-virus",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "TBLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2592": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "TBLASTX-(Bacteria-specific)",
+        "base_app_description": "Choose this to align bacterial sequence reads to a reference bacterial genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tblastx-bacteria",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "TBLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2591": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "TBLASTX-(Human-whole-genome-specific)",
+        "base_app_description": "Choose this to align human sequence reads to a whole genome human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tblastx-human-wgs",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "TBLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2590": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "TBLASTX-(Exome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tblastx-human-exome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "TBLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2589": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "TBLASTX-(Transcriptome-specific)",
+        "base_app_description": "Choose this to align transcriptome sequence reads to a transcriptome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tblastx-human-transcriptome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "TBLASTX Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2588": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie-(Standard)",
+        "base_app_description": "Choose this to align sequence reads to a reference genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie-",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2587": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie-(Virus-specific)",
+        "base_app_description": "Choose this to align viral sequence reads to a reference viral genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie-virus",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2586": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie-(Bacteria-specific)",
+        "base_app_description": "Choose this to align bacterial sequence reads to a reference bacterial genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie-bacteria",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2585": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie-(Human-whole-genome-specific)",
+        "base_app_description": "Choose this to align human sequence reads to a whole genome human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie-human-wgs",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2584": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie-(Exome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie-human-exome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2583": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie-(Transcriptome-specific)",
+        "base_app_description": "Choose this to align transcriptome sequence reads to a transcriptome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie-human-transcriptome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2582": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BWA-(Standard)",
+        "base_app_description": "Choose this to align sequence reads to a reference genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bwa-",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BWA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2581": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BWA-(Virus-specific)",
+        "base_app_description": "Choose this to align viral sequence reads to a reference viral genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bwa-virus",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BWA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2580": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BWA-(Bacteria-specific)",
+        "base_app_description": "Choose this to align bacterial sequence reads to a reference bacterial genomes",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bwa-bacteria",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BWA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2579": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BWA-(Human-whole-genome-specific)",
+        "base_app_description": "Choose this to align human sequence reads to a whole genome human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bwa-human-wgs",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BWA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2578": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BWA-(Exome-specific)",
+        "base_app_description": "Choose this to align exome sequence reads to a exome reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bwa-human-exome",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BWA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2564": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Clustal-Multiple-ASlignment",
+        "base_app_description": "Choose this to align multiple sequence reads to each other using Clustal",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=clustal",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "Multiple Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2562": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "MAFFT-Multiple-Alignment",
+        "base_app_description": "Choose this to align multiple sequence reads to each other using MAFFT",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=mafft",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "Multiple Alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2561": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Tophat-(Rat-Alignment)",
+        "base_app_description": "Choose this to align rat sequence reads to a rat reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tophat-rat-rna-seq",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "RNA-seq",
+            "Tophat RNA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2560": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Tophat-(Human-Alignment)",
+        "base_app_description": "Choose this to align human sequence reads to a human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tophat-human-rna-seq",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "RNA-seq",
+            "Tophat RNA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2558": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HISAT2-(Rat-Alignment)",
+        "base_app_description": "Choose this to align rat sequence reads to a rat reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hisat2-rat-rna-seq",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "RNA-seq",
+            "HISAT2 RNA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2557": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "HISAT2-(Human-Alignment)",
+        "base_app_description": "Choose this to align human sequence reads to a human reference",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=hisat2-human-rna-seq",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "RNA-seq",
+            "HISAT2 RNA alignment"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2555": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BWA-(Distant-relative)",
+        "base_app_description": "Discover distant homologs",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bwa-related",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BWA alignment",
+            "Different Levels of Homology discovery"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2553": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Bowtie-(Distant-relative)",
+        "base_app_description": "Discover distant homologs",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=bowtie-related",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "Bowtie Alignment",
+            "Different Levels of Homology discovery"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2551": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "TBLASTX-(Distant-relative)",
+        "base_app_description": "Discover distant homologs",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=tblastx-related",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "TBLASTX Alignment",
+            "Different Levels of Homology discovery"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2549": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLASTX-(Distant-relative)",
+        "base_app_description": "Discover distant homologs",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blastx-related",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLASTX Alignment",
+            "Different Levels of Homology discovery"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    },
+    "2547": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "BLAST-(Distant-relative)",
+        "base_app_description": "Discover distant homologs",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=dna-hexagon&cmdMode=blast-related",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "Sequence Alignment on Genome",
+            "DNA-seq",
+            "BLAST Alignment",
+            "Different Levels of Homology discovery"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

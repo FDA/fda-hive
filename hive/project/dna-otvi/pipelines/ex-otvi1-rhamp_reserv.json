@@ -1,0 +1,96 @@
+{
+    "workflows" : {
+        "name" : "exotvi1-rhamp",
+        "title" : "Excision OTVI rhAmp pipeline 1",
+        "description" : "parameters to be specified externally folder,repl1_fwd,repl1_rev,repl2_fwd,repl2_rev,repl3_fwd,repl3_rev,repl1_merged,repl2_merged,repl3_merged,gblock_ref,noeditbar_ref,nominated_ref,hiv_ref,aav_ref,hg_ref,barcode,prob_ref",
+        "sample_launch" : "~/out/debug-Linux-x86_64/bin/wfl -preset app.verbose=1;debug on;folder='oct10722';barcodes='CGGTCA;ACGCGA';barcode.length=6;umi_size=5;ut_fwd=24194;ut_rev=24195;uc_fwd=24198;uc_rev=24199;tr_fwd=24216;tr_rev=24217;gblock_ref=24250;nominated_ref=18816;aav_ref=24205;hiv_ref=24201;hg_ref=24209;  -pipeline ~/code/hive/app/expipe/ex-otvi5.json",
+        "comment" : "excision otvi rhamp pipeline",
+        "_type" : "workflow",
+        "config" : [
+            {
+                "name" : "hive.cfg",
+                "execute" : [
+                    "hive.tmpdir='/hive/data/download/SRR/';"
+                ]
+            }
+        ],
+        "steps" : [
+            {
+                "name" : "setup",
+                "execute" : [
+                    "samples='repl1,repl2,repl3';",
+                    "refset=''+nominated_ref+';'+hiv_ref+';'+aav_ref",
+                    "folderID=HIVE.folderCreate(folder);"
+                ]
+            },
+            {
+                "name" : "merger",
+                "clone" : [
+                    "samples"
+                ],
+                "execute" : [
+                    "if( isvar('::'+$0+'_merged') ){merger$#0.archID=eval($0+'_merged');merger$#0.name=string.extract(HIVE.list('ids='+merger$#0.archID,'name',false,$0),0,'.fastq');} else {merger$#0.fwd=eval($0+'_fwd');merger$#0.rev=eval($0+'_rev');merger$#0.algo=2;merger$#0.folder=folderID;merger$#0.name=string.extract(HIVE.list('ids='+merger$#0.fwd,'name',false,$0),0,'.fastq');}",
+                    "merger$#0.name=folder+'_'+$0+'.fastq';",
+                    "if( isvar('::'+$0+'_merged') ){d=true;} else { HIVE.launchReadMerger('merger$#0');}"
+                ]
+            },
+            {
+                "name" : "find_spikes",
+                "clone" : [
+                    "samples"
+                ],
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "merger$#0.status==wflow.done;",
+                    "comment --=====  Aligning sequences to spike constructs to delineate spikes sequences =====-- ",
+                    "find_spikes$#0.minMatchLen=90;find_spikes$#0.minMatchUnit=1;find_spikes$#0.maxMissQueryPercent=1;find_spikes$#0.folder=folderID;",
+                    "find_spikes$#0.query=merger$#0.archID;find_spikes$#0.subject=gblock_ref;find_spikes$#0.name=merger$#0.name+'-merged vs gBlocks';",
+                    "find_spikes$#0.must_have_subsequences=barcodes;find_spikes$#0.must_have_subsequences_umishift=umi_size;find_spikes$#0.must_have_subsequences_revcomp=1;",
+                    "HIVE.launchHexagon('find_spikes'+#0);",
+                    "comment --=====  Retrieve spiked sequences into separate fastq  =====-- ",
+                    "HIVE.archiveHexagonReads(find_spikes$#0._id,merger$#0.name+'-spike.fastq',1,'find_spikes$#0_spike');"
+                ]
+            },
+            {
+                "name" : "align_nominated",
+                "clone" : [
+                    "samples"
+                ],
+                "condition" : [
+                    "merger.status==wflow.done"
+                ],
+                "execute" : [
+                    "merger$#0.status==wflow.done;",
+                    "comment --=====  Aligning sequences to nominated sites (cutpositions) , AAV, HIV =====-- ",
+                    "align_nominated$#0.minMatchLen=90;align_nominated$#0.minMatchUnit=0;align_nominated$#0.maxMissQueryPercent=15;align_nominated$#0.folder=folderID;",
+                    "align_nominated$#0.trimLowScoreEndsMaxMismatches=10;align_nominated$#0.trimLowScoreEndsWindow=10;",
+                    "align_nominated$#0.must_cover_ref_position_relative_to='cutsite=';align_nominated$#0.must_cover_ref_positions='10,-10';",
+                    "align_nominated$#0.query=merger$#0.archID;align_nominated$#0.subject=refset;align_nominated$#0.name=merger$#0.name+'-merged vs Nominated';",
+                    "align_nominated$#0.must_have_subsequences=barcodes;align_nominated$#0.must_have_subsequences_umishift=umi_size;align_nominated$#0.must_have_subsequences_revcomp=1;align_nominated$#0.must_have_negative=1;",
+                    "hept_nominated$#0.collapseRpts=0;hept_nominated$#0.startCountingImperfect=-10;hept_nominated$#0.endCountingImperfect=10;hept_nominated$#0.imperfectCountingRelativePos='cutsite=';hept_nominated$#0.imperfectTotalCoveragePosition=0;",
+                    "HIVE.launchHexaHeptagon('align_nominated'+#0,'hept_nominated'+#0);"
+                ]
+            },
+            {
+                "name" : "align_spikes",
+                "clone" : [
+                    "samples"
+                ],
+                "condition" : [
+                    "find_spikes.status==wflow.done"
+                ],
+                "execute" : [
+                    "find_spikes$#0.status==wflow.done;",
+                    "comment --======  Aligning spike sequences to human unedited barcoded constructs human =====-- ",
+                    "align_spikes$#0.minMatchLen=90;align_spikes$#0.minMatchUnit=0;align_spikes$#0.maxMissQueryPercent=15;align_spikes$#0.folder=folderID;",
+                    "align_spikes$#0.trimLowScoreEndsMaxMismatches=10;align_spikes$#0.trimLowScoreEndsWindow=10;",
+                    "align_spikes$#0.must_cover_ref_position_relative_to='cutsite=';align_spikes$#0.must_cover_ref_positions='10,-16';",
+                    "align_spikes$#0.query=find_spikes$#0_spike._ids;align_spikes$#0.subject=noeditbar_ref;align_spikes$#0.name=merger$#0.name+'-spike vs BarcodedNominated';",
+                    "HIVE.launchHexaHeptagon('align_spikes'+#0,'hept_spikes'+#0,);"
+                ]
+            }
+        ]
+    }
+}

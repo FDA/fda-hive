@@ -1,0 +1,669 @@
+// special attributes definition
+// _type
+	// can be any of the following: "type", "string", "integer", "bool", "email", "password" or any other previously declared type
+// _write
+	// can be one of the following: no, yes, once 
+// _attribute
+	// can be a name of any attribute or any other subject
+// _mandatory
+	// can be any of the following: true, false, 0, 1
+// _plural
+	// can be 0,  the maximum number of elements of this kind or true which means inifinity   
+// _hidden
+	// can be 0, or expression   
+// _default
+	// can be one of the accepted functions as $self(),$timenow(), $next()
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of primitive types
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+//kkk="$groupSystem.users[1].first_name",
+//a=$newid(),
+//ooo="$ionql(a=find.rel(atr=title,val='Type type'),blob(a.sub))._attribute.created.mandatory",
+
+// not yet implemented
+//kkk="$ionbr(_type=$hcType, title='Base system type').description",
+
+{
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of fundamental primitives 
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+primitives : {  
+	bool : {
+		_type: "type", 
+		
+		constraint : {
+			choice : {  
+				true: 1,
+				false : 0
+			} 
+		}
+	},
+	
+	integer : {
+		_type: "type"
+	},
+	
+	string : {
+		_type: "type"
+	},
+	
+	datetime : {
+		_type: "type",
+		_default : '$timenow()'
+	},
+	
+	password : {
+		_type: "string" 
+	},
+	
+	email : {
+		_type: "string"
+ 
+	},
+	
+	hiveid : {
+		_type: "integer"
+		// _default: $newid() this is the dafault behavior set by the ion-birel system
+	}
+},
+
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of fundamental types
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+// define type type by referencing to itself
+hc_type = { 
+	_type : "type",
+	_id : "$newid()",
+	_attribute : {
+		name : { 
+			_type: "string"
+		},
+		title : { 
+			_type: "string" 
+		},
+	 	description : { 
+	 		_type: "string" 
+		},
+		created : { 
+			_type : "datetime",
+		
+			mandatory : "bool"
+		},
+		modified : { 
+			_type : "datetime" 
+		},
+		_id : {
+			_type: "hiveid"
+		}
+	},
+
+	name : "hc_type",
+	title : "Type type",
+	description : "Type for all types"
+},
+
+// define system base type	
+hc_base = {
+	_type : "type",
+	_id : "$newid()",
+	_attribute : {
+		created : { 
+			_type : "datetime",
+		
+			mandatory : "bool"
+		},
+		modified : { 
+			_type : "datetime" 
+		},
+		_id : {
+			_type: "hiveid"
+		}
+	},	
+	
+	name : "hc_system_base",
+	title : "Base system type",
+	description : "Base type for all system types"
+},
+
+
+
+// define system base type	
+hc_system_base = {
+	_type : "type",
+	_id : "$newid()",
+	_inherit : "hc_base",
+	
+	name : "hc_system_base",
+	title : "Base system type",
+	description : "Base type for all system types"
+},
+
+
+// define user base type	
+hc_user_base = {
+	_type : "type",
+	_id : "$newid()",
+	_inherit : "hc_base",
+	
+	name : "hc_user_base",
+	title : "Base user type",
+	description : "Base type for all user visible types"
+},
+	
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of user and group types  
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+
+	
+// define type user
+hc_user = { 
+	_type : "type",
+	_id : "$newid()",
+	_inherit : "hc_system_base",
+	_attribute : { 
+		log_count : { 
+			_type: "integer" 
+		},
+		first_name : { 
+			_type:"string" 
+		},
+		last_name : { 
+			_type:"string" 
+		}, 
+		email : { 
+			_type : "email"
+		}, 
+		needs_email_validation : { 
+			_type : "bool"
+		}, 
+		is_inactive : { 
+			_type : "bool"
+		}, 
+		is_admin : { 
+			_type : "bool"
+		}, 
+		max_sessions : { 
+			_type : "integer"
+		}, 
+		passwd : {
+			_type : "password"
+		} 
+	},
+	
+	name : "hc_user",
+	title : "User type",
+	description : "Information about users"
+},
+
+// define type group
+hc_group = { 
+	_type : "type",
+	_id : "$newid()",
+	_inherit : "hc_system_base",
+	_attribute : {
+		name : { 
+			_type : "string" 
+		},
+		is_inactive : { 
+			_type : "bool" 
+		},
+		users : { 
+			_type : "hc_user" 
+		}
+	},
+	
+	name : "hc_group",
+	title : "Group type",
+	description : "Information about groups"
+},
+
+	//
+	// create fundamental users and groups
+	//
+	// system accounts
+	$groupSystem = { 
+		_type : "hc_group",
+		_id : "$newid()",
+		
+		name : "System group",
+		
+		users : [
+			{
+				first_name : "system",
+				last_name : "HIVE system",
+				is_admin : true,
+				_id : "$newid()"
+			},
+			{
+				first_name : "nomiS-HIVE-creator",
+				last_name : "Vahan Simonyan",
+				is_admin : true,
+				email : "vahansim@gmail.com",
+				passwd :"-install-only-",
+				_id : "$newid()"
+			}
+		]
+	},
+
+
+
+	// service accounts
+	$groupServices = { 
+		_type : "hc_group",
+		_id : "$newid()",
+		name : "HIVE management services",
+		users : [
+			{ 
+				_type : "hc_user",
+				first_name : "qpride",
+				last_name : "QPride service",
+				is_admin : true,
+				_id : "$newid()"
+			}
+		]
+	},
+
+
+	// data and application administrator accounts
+	$groupAdmin = { 
+		_type : "hc_group",
+		_id : "$newid()",
+	
+		name : "Administrators",
+		users : [
+			{ 
+				_type : "hc_user", 
+				_id : "$newid()",
+				
+				first_name : "data-queen",
+				last_name : "HIVE data queen",
+				is_admin : true,
+				_id : "$newid()"
+			},
+			{ 
+				_type : "hc_user",
+				_id : "$newid()",
+				
+				first_name : "app-queen", 
+				last_name : "HIVE application queen",
+				is_admin : true
+			}
+		]
+	},
+	
+
+	// guest accounts
+	$groupGuests = { 
+		_type : "hc_group", 
+		_id : "$newid()",
+		
+		name : "Guests",
+		users : [ 
+			{ 
+				_type : "hc_user",
+				_id : "$newid()",
+				
+				first_name : "Guest", 
+				last_name : "Unregistered",
+				email : "scream@world.all",
+				passwd: "noPass"
+			}
+		]
+	},
+
+	
+	// actual user accounts
+	$groupPeople = { 
+		_type: "hc_group",
+		_id : "$newid()",
+		
+		name : "People",
+		users : [ 
+			{ 
+				_type : hc_user,
+				_id : "$newid()",
+				
+				first_name : "Vahan",
+				last_name : "Simonyan",
+				email : "vahansim@gmail.com",
+				passwd : "-install-only-"
+			}
+		]
+	},
+
+
+	// other organization accounts
+	$groupProjects = { 
+		_type : "hc_group",
+		_id : "$newid()",
+		
+		name : "Projects"
+	},
+	$groupOrganization = {
+		_type : "hc_group",
+		_id : "$newid()",
+		
+		name: "Organization infrastructure"
+	},
+
+
+
+
+
+
+
+
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of permission types  
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+// define type permission  
+hc_permission = {
+	_type : "type", 
+	_id : "$newid()",
+	_inherit : "hc_system_base",
+	
+	_attribute : { 
+		name : { 
+			_type : "string" 
+		} , 
+		description : { 
+			_type : "string" 
+		} 
+	},
+	
+	name : "hc_permission",
+	title : "Permission",
+	description : "Honeycomb permission"
+},
+	
+	//
+	// create fundamental permissions
+	//
+
+	$permBrowse = { 
+		_type : "hc_permission",
+		_id : "$newid()",
+		
+		name : "browse", 
+		description : "browsing permission"
+	},
+		
+	$permRead = { 
+		_type : "hc_permission",
+		_id : "$newid()",
+				
+		name : "read",
+		description : "reading permission"
+	},
+	
+	$permDownload = { 
+		_type :  "hc_permission",
+		_id : "$newid()",
+		
+		name : "download",
+		description : "downloadng permission"
+	},
+	
+	$permWrite = { 
+		_type :  "hc_permission",
+		_id : "$newid()",
+		
+		name : "write",
+		description : "modification permission"
+	},
+	
+	$permExecute = { 
+		_type :  "hc_permission",
+		_id : "$newid()",
+		
+		name : "execute",
+		description : "execution permission"
+	},
+	
+	$permShare = { 
+		_type :  "hc_permission",
+		_id : "$newid()",
+		
+		name : "share",
+		description : "sharing permission"
+	},
+	
+	
+	
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of file based types  
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+	
+
+// define type file
+hc_file = {
+	_type: "type",
+	_id : "$newid()",
+
+	_attribute : { 
+		compressed-size : { 
+			_type : "integer",
+			_write : "once",
+			title : "Compressed size"
+		},
+		ext : { 
+			_type : "string", 
+			title : "Extension"
+	 	}, 		
+		md5 : { 
+			_type : "string",
+			title : "MD5"
+		},
+		name : { 
+			_type : "string" ,
+			title : "name"
+		},
+		orig_name : { 
+			_type : "string" , 
+			title : "Original filename"
+		},
+		size : { 
+			_type : "integer" ,
+		 	title : "Size"
+		},
+		source : { 
+			_type : "string",
+			title : "Source"
+		}
+	},
+	
+	name : "hc_file",
+	title : "File type" ,
+	description : "Base type for all file types"
+},
+
+// define system file type
+hc_system_file = { 
+	_type : _type,
+	_id : "$newid()",
+	_inherit : [ 
+		"hc_file", 
+		"hc_system_base"
+	]
+	 	
+},
+
+// define user file type
+hc_user_file = { 
+	_type : _type,
+	_id : "$newid()",
+	_inherit : [ 
+		"hc_file",
+		"hc_user_base"
+	]
+},
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of directory based types   
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+// define directory type 
+hc_dir = {
+	_type: "type",
+	_id : "$newid()",
+	_attribute : { 
+		name : { 
+			_type : "string" ,
+			title : "name"
+		},
+		orig_name : { 
+			_type : "string" , 
+			title : "Original filename"
+		},
+		source : { 
+			_type : "string",
+			title : "Source"
+		}
+	},
+	
+	name : "hc_dir",
+	title : "Directory type" ,
+	description : "Base type for all directory types"
+},
+
+// define system file type
+hc_system_dir = { 
+	_type : _type,
+	_id : "$newid()",
+	_inherit : [ 
+		"hc_dir", 
+		"hc_system_base"
+	]
+	 	
+},
+
+// define user file type
+hc_user_dir = { 
+	_type : _type,
+	_id : "$newid()",
+	_inherit : [ 
+		"hc_dir",
+		"hc_user_base"
+	]
+},
+
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of process based types  
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+	
+// define type file
+hc_process = { 
+	_type : "hc_type",
+	_attribute : {
+		started : { 
+			_type : "datetime",
+			_default : $now()
+		},
+		completed : { 
+			_type : "datetime"
+		}, 
+		requestID : {
+			_type : "integer"
+		}, 
+		priority : {
+			_type : "integer"
+		}, 
+		progress : {
+			_type : "integer"
+		}, 
+		progress100 : {
+			_type : "integer"
+		}, 
+		action : {
+			_type : "integer"
+		}, 
+		status : {
+			_type : "integer"
+		}, 
+		submitter : {
+			_type : "string"
+		}, 
+		svc : {
+			_type : "string"
+		}, 
+		svcTitle : {
+			_type : "string"
+		} 
+	},
+	
+	name : "hc_process",
+	title : "Process type",
+	description : "Base type for all process types"
+},
+
+			
+// define system process based type
+hc_system_process = {
+	_type : "type", 
+	_inherit : [ 
+		"hc_process",
+		"hc_system_base"
+	]
+},
+
+	
+// define user process based type
+hc_user_process = {
+	_type : "type",
+	_inherit : [ 
+		"hc_process",
+		"hc_user_base"
+	]
+}
+
+
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of fundamental actions   
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of fundamental commands   
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
+// _/
+// _/ definition of fundamental applications   
+// _/
+// _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/ 
+
+
+}
+

@@ -1,0 +1,74 @@
+{
+    "354": {
+        "_id": "$type.ci3_symptoms_12m",
+        "_type": "type",
+        "name": "ci3_symptoms_12m",
+        "title": "Symptoms (12 months)",
+        "fields": {
+            "1.1": {
+                "field_name": "subtitle_1",
+                "field_title": "Symptoms below are collected at Follow-up",
+                "field_type": "string",
+                "field_order": 21,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "problems_with_incisions",
+                "field_title": "Problems with incisions (pain, discharge, other)",
+                "field_type": "bool",
+                "field_order": 22,
+                "field_constraint_description": "checkbox"
+            },
+            "1.3": {
+                "field_name": "problems_with_incisions_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 23,
+                "field_constraint_data": "is_shown_fg=$(problems_with_incisions)=='true'"
+            },
+            "1.4": {
+                "field_name": "wound_problems",
+                "field_title": "Wound problems (swelling, infection, bleeding, other)",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_description": "checkbox"
+            },
+            "1.5": {
+                "field_name": "wound_problems_description",
+                "field_title": "description",
+                "field_type": "text",
+                "field_order": 25,
+                "field_constraint_data": "is_shown_fg=$(wound_problems)=='true'"
+            },
+            "1.6": {
+                "field_name": "other_concerns",
+                "field_title": "Other concerns",
+                "field_type": "text",
+                "field_order": 26
+            }
+        },
+        "parent": {
+            "3": "$type.ci3_symptoms"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

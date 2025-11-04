@@ -1,0 +1,55 @@
+{
+    "175": {
+        "_id": "$type.svc-align-dnaseq",
+        "_type": "type",
+        "name": "svc-align-dnaseq",
+        "title": "DNA-seq Alignments",
+        "description": "DNA-seq alignmnent",
+        "parent": {
+            "1": "$type.svc-align-pairwise"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "alignSelector",
+                "field_title": "Alignment Algorithm",
+                "field_type": "string",
+                "field_order": 1,
+                "field_default_value": "svc-align-hexagon",
+                "field_is_readonly_fg": -2,
+                "field_constraint": "search",
+                "field_constraint_data": "{\nfetch:'name',url:'http://?cmd=objList&type=algorithm-alignment-dnaseq%2B&raw=1&mode=csv',\ninline:[\n\t{name:'id',hidden:true,title:'ID'},\n\t{name:'icon',hidden:false,iconSize:48, type:'icon',title:'Icon'},\n\t{name:'title',hidden:false,title:'Name'},\n\t{name:'version',hidden:false,title:'Version'}\n],\noutline:[\n\t{name:'id',hidden:true,title:'ID'},\n\t{name:'title',order:2,hidden:false,title:'Name'},\n\t{name:'description',hidden:false,title:'Description'},\n\t{name:'icon',hidden:false,iconSize:48, type:'icon',title:'Icon'},\n\t{name:'version',hidden:false,title:'Version'}\n]\n}",
+                "field_description": "Alignment engine selector"
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

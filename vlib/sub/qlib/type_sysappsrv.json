@@ -1,0 +1,48 @@
+{
+    "72": {
+        "_id": "$type.sysappsrv",
+        "_type": "type",
+        "name": "sysappsrv",
+        "title": "System Service",
+        "description": "//\nlocation: vlib.qlib",
+        "fields": {
+            "1.0": {
+                "field_name": "service",
+                "field_title": "Service",
+                "field_type": "string"
+            }
+        },
+        "parent": {
+            "7": "$type.sysapp"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

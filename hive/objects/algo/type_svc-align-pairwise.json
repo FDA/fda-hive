@@ -1,0 +1,179 @@
+{
+    "type.347": {
+        "_id": "type.347",
+        "_type": "type",
+        "name": "svc-align-pairwise",
+        "title": "Pairwise Alignment Engines",
+        "description": "Pairwise Alignment Engines General Service",
+        "prefetch": true,
+        "fields": {
+            "1.14": {
+                "field_name": "keepAllMatches",
+                "field_title": "Matches to Keep",
+                "field_type": "integer",
+                "field_default_value": "4",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///First Match|1///Best first match|2///All Matches within acceptable thresholds|3///All equally best alternative matches|4///Random vote between equally best alternative matches|5///Uniquely aligned reads only",
+                "field_description": "Decide which matches to maintain in the final hit list"
+            },
+            "1.20": {
+                "field_name": "maxMissQueryPercent",
+                "field_title": "Percent Allowed",
+                "field_type": "integer",
+                "field_order": 1,
+                "field_default_value": "15",
+                "field_is_batch_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number",
+                "field_description": "Alignments with a greater percentage mismatch than this threashold are discarded"
+            },
+            "1.21": {
+                "field_name": "maxNumberQuery",
+                "field_title": "Alignment Test-Run Slice",
+                "field_type": "string",
+                "field_default_value": "all",
+                "field_description": "This parameter controls the maximum number of sequences per thread to be aligned in a test run"
+            },
+            "1.22": {
+                "field_name": "minMatch",
+                "field_title": "Minimum Match",
+                "field_type": "array"
+            },
+            "1.23": {
+                "field_name": "minMatchLen",
+                "field_title": "Length",
+                "field_type": "real",
+                "field_parent": "minMatch",
+                "field_order": 0,
+                "field_default_value": "75",
+                "field_is_batch_fg": true,
+                "field_constraint": "eval",
+                "field_constraint_data": "!(isNaN(\"$_(val)\")) && parseInt(\"$_(val)\")>=0",
+                "field_constraint_description": "Give a positive number",
+                "field_description": "Alignments shorter than this value are not reported"
+            },
+            "1.24": {
+                "field_name": "minMatchUnit",
+                "field_title": "Unit",
+                "field_type": "integer",
+                "field_parent": "minMatch",
+                "field_order": 1,
+                "field_default_value": "0",
+                "field_constraint": "choice",
+                "field_constraint_data": "0///base(s)|1///(%)percentage",
+                "field_description": "Specify if the minimum match length is the number of bases or a percentage of the read length"
+            },
+            "1.29": {
+                "field_name": "readconflicts",
+                "field_title": "Resolve conflicts",
+                "field_type": "list"
+            },
+            "1.30": {
+                "field_name": "resolveConfictsUnique",
+                "field_title": "Use uniquely align reads only",
+                "field_type": "bool",
+                "field_parent": "readconflicts",
+                "field_default_value": "0"
+            },
+            "1.31": {
+                "field_name": "resolveConflicts",
+                "field_title": "Conflict resolution method",
+                "field_type": "integer",
+                "field_parent": "readconflicts",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "0///No resolution|1///Markovnikov rule|2///Balanced"
+            },
+            "1.32": {
+                "field_name": "resolveConflictsScore",
+                "field_title": "Score for confilct resolution",
+                "field_type": "integer",
+                "field_parent": "readconflicts",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Number of reads|2///Coverage symmetry"
+            },
+            "1.33": {
+                "field_name": "resultFileTemplate",
+                "field_title": "resultFileTemplate",
+                "field_type": "string",
+                "field_is_readonly_fg": 1
+            },
+            "1.34": {
+                "field_name": "scoreFilter",
+                "field_title": "Score Filter",
+                "field_type": "string",
+                "field_default_value": "None",
+                "field_description": "Alignments with smaller scores are discarded and not reported. If 'none' is specified: all alignments are reported which satisfy the other criteria."
+            },
+            "1.35": {
+                "field_name": "splitField",
+                "field_title": "What field contains the object spliting the jobs",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_default_value": "query",
+                "field_is_hidden_fg": true
+            },
+            "1.36": {
+                "field_name": "splitSize",
+                "field_title": "Number of Computational Subjects per Single Thread",
+                "field_type": "integer",
+                "field_parent": "splitList",
+                "field_default_value": "500000",
+                "field_constraint": "eval",
+                "field_constraint_data": "!isNaN(\"$_(val)\")",
+                "field_constraint_description": "Give a Number"
+            },
+            "1.37": {
+                "field_name": "splitType",
+                "field_title": "How to split the sequences",
+                "field_type": "string",
+                "field_parent": "splitList",
+                "field_default_value": "sequences",
+                "field_is_hidden_fg": true,
+                "field_description": "The way large jobs are split into smaller pieces"
+            },
+            "1.38": {
+                "field_name": "force_reindex",
+                "field_title": "Force Reindexing of Subject",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_default_value": "false",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "8": "type.350",
+            "21": "type.25"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

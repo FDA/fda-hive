@@ -1,0 +1,79 @@
+{
+    "type.508": {
+        "_id": "type.508",
+        "_type": "type",
+        "name": "js_component",
+        "title": "JavaScript component",
+        "prefetch": true,
+        "fields": {
+            "1.0": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_role": "parameter",
+                "field_is_key_fg": true,
+                "field_is_summary_fg": true,
+                "field_brief": "JS component $_(v)"
+            },
+            "1.2": {
+                "field_name": "type_name",
+                "field_title": "Type",
+                "field_type": "string",
+                "field_role": "parameter",
+                "field_is_key_fg": true,
+                "field_constraint": "search+",
+                "field_constraint_data": "{fetch:'name',inline:'name,title',outline:'id,name,title', url:'http://?cmdr=objQry&qry=alloftype(\"type\").csv([\"id\",\"name\",\"title\"])'}"
+            },
+            "1.4": {
+                "field_name": "preview",
+                "field_type": "bool",
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "algoview",
+                "field_type": "bool",
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "order",
+                "field_title": "Order",
+                "field_type": "real",
+                "field_role": "parameter",
+                "field_is_optional_fg": true
+            }
+        },
+        "parent": {
+            "8": "type.84"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

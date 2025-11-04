@@ -1,0 +1,60 @@
+{
+    "4758": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "CI3_Forms_IH1W",
+        "readable_name": "In-hospital to 1 week follow-up",
+        "sl_order": 1,
+        "survey": {
+            "12": {
+                "12.0": {
+                    "name": "$type.ci3_in_hospital_1_week_follow-up",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "14": {
+                "14.0": {
+                    "name": "$type.ci3_symptoms",
+                    "order": 2,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            },
+            "15": {
+                "15.0": {
+                    "name": "$type.ci3_health_questionnaire",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 0
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

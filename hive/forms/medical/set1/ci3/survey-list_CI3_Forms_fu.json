@@ -1,0 +1,60 @@
+{
+    "4765": {
+        "_id": "$upsert()",
+        "_type": "survey-list",
+        "is_draft": false,
+        "unique-name": "CI3_Forms_fu",
+        "readable_name": "At Discharge",
+        "sl_order": 2,
+        "survey": {
+            "11": {
+                "11.1": {
+                    "name": "$type.ci3_in_hospital_post_operative_outcomes",
+                    "order": 1,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "24": {
+                "24.1": {
+                    "name": "$type.ci3_health_questionnaire",
+                    "order": 3,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            },
+            "49": {
+                "49.1": {
+                    "name": "$type.ci3_symptoms",
+                    "order": 4,
+                    "items-per-page": 0,
+                    "activate_delay": 0,
+                    "expiration_time": 0,
+                    "optional_fields": 1
+                }
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

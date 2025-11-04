@@ -1,0 +1,686 @@
+"PATIENTS" : [
+                {
+                	"USUBJID" : "CCTL019B2202_1401001",
+                	SITEID: 1401
+                },
+                "USUBJID" : "CCTL019B2202_1401002",
+                "USUBJID" : "CCTL019B2202_1401003",
+                "USUBJID" : "CCTL019B2202_1401004",
+                "USUBJID" : "CCTL019B2202_1401006",
+                "USUBJID" : "CCTL019B2202_1401008",
+                "USUBJID" : "CCTL019B2202_1404001",
+                "USUBJID" : "CCTL019B2202_1405001",
+                "USUBJID" : "CCTL019B2202_1405002",
+                "USUBJID" : "CCTL019B2202_1405003",
+                "USUBJID" : "CCTL019B2202_1405004",
+                "USUBJID" : "CCTL019B2202_1407001",
+                "USUBJID" : "CCTL019B2202_1407002",
+                "USUBJID" : "CCTL019B2202_1409001",
+                "USUBJID" : "CCTL019B2202_1411003"
+            ],
+
+AE_LIST : [
+		   {USUBJID}
+
+]
+
+
+{
+	"hc_CART_STUDY" : {
+				"name" : "hc_CART_STUDY",
+				"title" : "Study",
+				"_field" : {
+						"STUDYID" : {
+							"title" : "Study ID",
+							"_type" : "string",
+							"_key": true
+						},
+						"PATIENTS" : {
+		                	"title" : "List of Patients in Study",
+		                	"USUBJID": {
+		                		"_type" : "hc_CART_DM",
+		                		"title" : "Patient Identifier"
+		                	},
+		                	"SITEID" : {
+								"title" : "Site ID",
+								"_type" : "string",		
+								"_vital" : false					
+							},
+		                    "_plural" : true
+		          		},
+						"StudyName" : {
+							"title" : "Study Name",
+							"_type" : "string",
+							"_vital" : false						
+						},
+						"ProtocolNum" : {
+							"title" : "Protocol Number",
+							"_type" : "string",		
+							"_vital" : false						
+						},
+						
+						"ShortSummary" : {
+							"title" : "Short Summary",
+							"_type" : "text",		
+							"_vital" : false						
+						},
+						"FullDescription" : {
+							"title" : "Full Description",
+							"_type" : "text",		
+							"_vital" : false						
+						}
+	            },
+	            "descr" : "Database object containing study metadata"
+				
+	},
+	"hc_CART_DM" : {
+	            "name" : "hc_CART_DM",
+	            "title" : "DEMOGRAPHICS",
+	            "_type" : "type",
+	            "_field" : {
+		                "USUBJID" : {
+		                	"title" : "Patient ID",
+		                    "_type" : "string",
+		                    "_key" : true
+		                },
+		                "RFSTDTC" : {
+		                    "title" : "Treatment Start Date",
+							"_type" : "datetime"
+		                },
+		                "RFENDTC" : {
+		                    "title" : "Treatment End Date",
+							"_type" : "datetime",
+		                    "_vital" : false
+		                },
+		                "YOB" : {
+		                    "title" : "Year of Birth",
+							"_type" : "datetime",
+							"_vital" : false
+		                },
+		                "AGE" : {
+		                    "title" : "Age",
+		                    "_type" : "real",
+		                    "_vital" : false
+		                },
+		                "AGEU" : {
+		                    "title" : "Age Unit",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "SEX" : {
+		                    "title" : "Sex",
+		                    "_type" : "string",
+		                    "_vital" : false,
+		                    "_limit" : {
+				                    	"choice+" : [
+				                    		"male",
+				                    		"female"          
+		                    			]
+		                    }
+		                },
+		                "RACE" : {
+		                    "title" : "Race",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "ETHNIC" : {
+		                    "title" : "Ethnicity",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "WEIGHT" : {
+		                    "title" : "Weight",
+		                    "_type" : "real",
+		                    "_vital" : false
+		                },
+		                "WEIGHTU" : {
+		                    "title" : "Weight Unit",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "COUNTRY" : {
+		                    "title" : "Country",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "DMDTC" : {
+		                    "title" : "Date of Collection",
+		                    "_type" : "datetime",
+		                    "_vital" : false
+		                },
+		                "HEIGHT" : {
+		                    "title" : "Height Unit",
+		                    "_type" : "real",
+		                    "_vital" : false
+		                },
+		                "HEIGHTU" : {
+		                    "title" : "Height Unit",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "SITEID" : {
+		                    "title" : "Site ID",
+		                    "_type" : "string",
+		                    "_vital" : false,
+		                    "_unique" : true
+		                },
+		                "TRANSPLANT_TYPE" : {
+		                	"title" : "Type of Prior Stem Cell Transplantation",
+		                    "_type" : "string",
+		                    "_vital" : false,
+		                 	"_limit" : {
+				                 		"choice+" : [
+				                 			"AUTOLOGOUS",
+				                 			"ALLOGENIC"
+				                 		]
+		                 	}
+		                }
+	            },
+	            "descr" : "Object containing patient demographic data"
+	},
+	"hc_CART_AE" : {
+	            "name" : "hc_CART_AE",
+	            "title" : "Adverse Events",
+	            "_type" : "type",
+	            "_field" : {
+		                "AEDECOD" : {
+		                    "title" : "Preferred term",
+							"_type" : "string",
+							"_vital" : false,
+							"_key" : true
+		                },
+		                "AEDICT" : {
+		                    "title" : "Dictionary of AEDECOD",
+							"_type" : "string",
+		                    "_vital" : false,
+		                    "_unique" : true
+		                },
+		                "AEVER" : {
+		                    "title" : "Preferred term criteria version",
+							"_type" : "string",
+							"_vital" : false,
+							"_unique" : true,
+							"_plural" : true
+		                },       
+		                "AESCAT" : {
+		                    "title" : "Subcategory",
+		                    "_type" : "string",
+		                    "_vital" : false,
+		                    "_unique" : true
+		                }
+	            },
+	            "descr" : "Database object containing Adverse Event"
+	},
+	"hc_CART_DM_AE" : {
+	            "name" : "hc_CART_DM_AE",
+	            "title" : "List of Patient AEs",
+	            "_type" : "type",
+	            "_field" : {
+		             	"USUBJID" : {
+		             		"title" : "USUBJID",
+		                    "_type" : "hc_CART_DM"
+		          		},
+						"AEDECOD" : {
+							"title" : "Adverse Events",
+							"_type" : "hc_CART_AE"
+						}, 
+		                "AETERM" : {
+		                	"title" : "Adverse Event",
+		                    "_type" : "string",
+		                    "_vital" : "false"
+		                },
+		                "AECAT" : {
+		                    "title" : "Category",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+						"AESTDTC" : {
+							"title" : "Adverse Events",
+							"_type" : "hc_CART_AE",
+							"_plural" : true
+						},
+						"AEENDTC" : {
+							"title" : "Adverse Events",
+							"_type" : "hc_CART_AE",
+							"_plural" : true
+						},
+						"AETOXGR" : {
+		                    "title" : "Toxicity Grading",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "AEDESCRIPTION" : {
+		                    "title" : "Description of Adverse Event",
+		                    "_type" : "text",
+		                    "_vital" : false
+		                }
+		                
+	          	},
+				"descr" : "Database object containing a list of Adverse Events associated with a patient"
+	 },
+	 "hc_CART_DD" : {
+	 			"name" : "hc_CART_DD",
+	 			"title" : "DEATH_DETAILS",
+	 			"_type" : "type",
+				"_field" : {
+	 				"USUBJID" : {
+	 						"title" : "Patient",
+	 						"_type" : "hc_CART_DM",
+	 						"_key" : true
+	 				},
+	 				"DDDTC" : {
+	 						"title" : "Date time of assessment",
+	 						"_type" : "datetime",
+	 						"_vital" : false
+	 				},
+	 				"DD" : { 
+						"DDORRES" : {
+								"title" : "Result of assessment",
+								"_type" : "string",
+								"_vital" : false
+						},
+						"DDTEST" : {
+								"title" : "Assessment",
+								"_type" : "string",
+								"_vital" : false
+						},
+						"DDTESTCD" : {
+								"title" : "Assessment code",
+								"_type" : "string",
+								"_vital" : false
+						},
+						"_plural" : true 
+	 				}
+	 			},
+	 			"descr" : "Database object containing details about patient death"
+	 },
+	"hc_CART_CM" : {
+	 			"name" : "hc_CART_CM",
+	 			"title" : "CONCOMITANT_MEDICATION",
+	 			"_type" : "type",
+	 			"_field" : {
+		 				"CMDECOD" : {
+		                	"title" : "Standardized treatment name",
+		                    "_type" : "string",
+		                    "_key" : true
+		                },
+		                "CMDICT" : {
+		                	"title" : "Version of standard used for treatment name",
+		                    "_type" : "string",
+		                    "_vital" : "false",
+		                    "_unique" : true
+		                },
+		             	"CMSCAT" : {
+		                    "title" : "Subcategory",
+							"_type" : "string",
+							"_vital" : "false",
+							"_unique" : true
+		                }
+	 			},
+	 			"descr" : "Database object containing information about Treatment administrations"
+	 },	 
+	 "hc_CART_DM_CM" : {
+	 			"name" : "hc_CART_DM_CM",
+	 			"title" : "TREATMENT",
+	 			"_type" : "type",
+	 			"_field" : {
+		 				"USUBJID" : {
+		             		"title" : "USUBJID",
+		                    "_type" : "hc_CART_DM"
+		          		},
+		                "CMDECOD" : {
+		                	"title" : "Name of standard used for treatment name",
+		                    "_type" : "string",
+		                    "_vital" : "false"
+		                },
+		                "CMTRT" : {
+		                	"title" : "Generic name of treatment",
+		                    "_type" : "string",
+		                    "_vital" : "false"
+		                },
+		 				"CMCAT" : {
+		                	"title" : "Category",
+		                    "_type" : "string",
+		                    "_vital" : "false"
+		                },
+		                "CMDOSE" : {
+		                    "title" : "Dose",
+							"_type" : "real",
+							"_vital" : false
+		                },
+		                "CMDOSU" : {
+		                    "title" : "Dose Unit",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "CMDOSFRQ" : {
+		                    "title" : "Dose Unit",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "CMROUTE" : {
+		                    "title" : "Route",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "CMSTDTC" : {
+		                    "title" : "Start date time of treatment",
+							"_type" : "datetime",
+							"_vital" : false
+		                },
+		                "CMENDTC" : {
+		                    "title" : "End date time of treatment",
+		                    "_type" : "datetime",
+		                    "_vital" : false
+		                },
+		               "dose_num" : {
+		                    "title" : "Sequential number of dose",
+		                    "_type" : "integer"
+		          		},
+		          		"infusion_num" : {
+		                    "title" : "Sequential number of infusion",
+		                    "_type" : "integer"
+		          		},
+		          		"trans_cell_cnt" : {
+		                    "title" : "Total transduced cell count",
+		                    "_type" : "real"
+		          		},
+		          		"nucl_cell_cnt" : {
+		                    "title" : "Total nucleated cell count",
+		                    "_type" : "real"
+		          		},
+		          		"start_date_time" : {
+		                    "title" : "Start date time of treatment",
+		                    "_type" : "datetime"
+		          		}
+		         },
+		      	"descr" : "Database object containing treatment details"
+	 },
+	 "hc_CART_MH" : {
+	            "name" : "hc_CART_MH",
+	            "title" : "MEDICAL_HISTORY",
+	            "_type" : "type",
+	            "_field" : {
+	            		"USUBJID" : {
+		             		"title" : "USUBJID",
+		                    "_type" : "hc_CART_DM"
+		          		},
+	          		  	"MHTERM" : {
+		                    "title" : "Name of medical condition",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		             	"MHDECOD" : {
+		                    "title" : "Standardized name of medical condition",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"term_std" : {
+		                    "title" : "Standard used to identify medical condition",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"term_std_ver" : {
+		                    "title" : "Version of standard used to identify medical condition",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"MHTOXGR" : {
+		                    "title" : "Toxicity Grade",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"GRCRIT" : {
+		                    "title" : "Grading criteria",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"GRCRIVER" : {
+		                    "title" : "Grading criteria version",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"MHSTDTC" : {
+		                    "title" : "Date time of diagnosis",
+		                    "_type" : "datetime",
+		                    "_vital" : false
+		          		},
+		          		"MHENDTC" : {
+		                    "title" : "Date time of resolution",
+		                    "_type" : "datetime",
+		                    "_vital" : false
+		          		},
+		          		"MHONGO" : {
+		                    "title" : "Ongoing",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		}
+	          	},
+				"descr" : "Database object containing patient medical history"
+	 },
+	 "hc_CART_LB" : {
+	            "name" : "hc_CART_LB",
+	            "title" : "Lab Result",
+	            "_type" : "type",
+	            "_field" : {
+	          		  	"USUBJID" : {
+		             		"title" : "USUBJID",
+		                    "_type" : "hc_CART_DM"
+		          		},
+	          		  	"LBDTC" : {
+		          			"name" : "LBDTC",
+		                    "title" : "Date time of sample collection",
+		                    "_type" : "datetime",
+		                    "_vital" : false
+		          		},
+		             	"lab_type" : {
+		                    "name" : "lab_type",
+		                    "title" : "Lab type",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"LBCAT" : {
+		          			"name" : "LBCAT",
+		                    "title" : "Category of Test",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		},
+		          		"LBTEST" : {
+		          			"name" : "LBTEST",
+		                    "title" : "Test Name",
+		                    "_type" : "string"
+		          		},
+		          		"LBORRES" : {
+		          			"name" : "LBORRES",
+		                    "title" : "Result",
+		                    "_type" : "string"
+		          		},
+		          		"LBORRESU" : {
+		          			"name" : "LBORRESU",
+		                    "title" : "Unit of result",
+		                    "_type" : "string",
+		                    "_vital" : false
+		          		}
+	          	},
+				"descr" : "Database object containing laboratory results"
+	 },
+	 "hc_CART_INDICATION" : {
+	 			"name" : "hc_CART_INDICATION",
+	 			"title" : "Indication",
+	 			"_type" : "type",
+	 			"_field" : {
+		 				"ID_STD" : {
+		                	"name" : "ID_STD",
+		                	"title" : "Standard used for Preferred_ID",
+		                    "_type" : "string",
+		                    "_key" : true
+		                },
+		                "ID_STD_VER" : {
+		                	"name" : "ID_STD_VER",
+		                	"title" : "Version of standard used for Preferred_ID",
+		                    "_type" : "string",
+		                    "_vital" : false
+		                },
+		                "Preferred_ID" : {
+		                	"name" : "Preferred_ID",
+		                	"title" : "Standard identifier of Indication",
+		                    "_type" : "string"
+		                },
+		                "indication" : {
+		                	"title" : "Indication",
+		                    "_type" : "hc_CART_INDICATION"
+		                },
+		                "indication_cat" : {
+		                	"title" : "Indication category",
+		                    "_type" : "string"
+		                },
+		                "diag_date" : {
+		                    "title" : "Date time of diagnosis",
+	 						"_type" : "datetime",
+	 						"_vital" : false
+		                }
+		        },
+		        "descr" : "Database object containing disease identification details"
+	},
+	"hc_CART_DM_INDICATION_RS" : {
+	 			"name" : "hc_CART_DM_INDICATION_RS",
+	 			"title" : "Disease Response",
+	 			"_type" : "type",
+	 			"_field" : {
+	 					"USUBJID" : {
+		             		"title" : "USUBJID",
+		                    "_type" : "hc_CART_DM"
+		          		},
+	 					"RSDTC" : {
+	 						"name" : "RSDTC",
+	 						"title" : "Date time of assessment",
+	 						"_type" : "datetime",
+	 						"_vital" : false
+	 					},
+	 					"RSTEST" : {
+	 						"name" : "RSTEST",
+	 						"title" : "Name of assessment",
+	 						"_type" : "string",
+	 						"_vital" : false
+	 					},
+	 					"RSTESTCD" : {
+	 						"name" : "RSTESTCD",
+	 						"title" : "Standardized Name of assessment",
+	 						"_type" : "string",
+	 						"_vital" : false
+	 					},
+	 					"RSCAT" : {
+	 						"name" : "RSCAT",
+	 						"title" : "Criteria of assessment",
+	 						"_type" : "string",
+	 						"_vital" : false
+	 					},
+		 				"RSORRES" : {
+	 						"name" : "RSORRES",
+	 						"title" : "Results of assessment",
+	 						"_type" : "string",
+	 						"_vital" : false
+	 					},
+	 					"location" : {
+	 						"title" : "Anatomical location of assessment",
+	 						"_type" : "string",
+	 						"_vital" : false
+	 					},
+	 					"criteria" : {
+	 						"title" : "criteria",
+	 						"_type" : "string",
+	 						"_vital" : false
+	 					}
+	 			},
+	 			"descr" : "Database object containing disease response data"
+	},
+	"hc_CART_PRODUCT" : {
+	 			"name" : "hc_CART_PRODUCT",
+	 			"title" : "CART_PRODUCT",
+	 			"_type" : "type",
+				"_field" : {
+	 				"USUBJID" : {
+		             		"title" : "USUBJID",
+		                    "_type" : "hc_CART_DM"
+		          	},
+	 				"donor_type" : {
+	 						"title" : "Donor Type",
+	 						"_type" : "string",
+	 						"_vital" : false,
+	 						"_limit" : {
+	 									"choice+" : [
+						                    "ALLOGENIC",
+						                    "AUTOLOGOUS",
+						                    "THIRD_PARTY"
+                						]
+                			}
+	 				},
+	 				"product_name" : {
+	 						"title" : "Product Name",
+	 						"_type" : "string",
+	 						"_vital" : false
+	 				},
+	 				"product_id" : {
+	 						"title" : "Product ID",
+	 						"_type" : "string",
+	 						"_vital" : false,
+	 						"_key" : true
+	 				}
+	 			},
+	 			"descr" : "Database object containing CART product information"
+	 }
+}	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 "hc_PAT_DISEASES" : {
+	 			"name" : "hc_PAT_DISEASES",
+	 			"title" : "PATIENT_DISEASES",
+	 			"_type" : "type",
+				"_field" : {
+	 				"PATIENT" : {
+	 						"name" : "PATIENT",
+	 						"title" : "PATIENT",
+	 						"_type" : "hc_CART_DM"
+	 				},
+	 				"PATIENT_DISEASE_LIST" : {
+	 						"name" : "PAT_DISEASE_LIST",
+	 						"title" : "PAT_DISEASE_LIST",
+	 						"_type" : "DISEASE_ID",
+	 						"_plural" : true
+	 				},
+	 				"PATIENT_DISEASE_RS_LIST" : {
+	 						"name" : "PAT_DISEASE_RS_LIST",
+	 						"title" : "PAT_DISEASE_RS_LIST",
+	 						"_type" : "SDTM_RS",
+	 						"_plural" : true
+	 				}
+	 			},
+	 			"descr" : "Database object containing diseases associated to a patient"
+	 },
+	 
+	 
+	"hc_PAT_LBS" : {
+	 			"name" : "hc_PAT_LBS",
+	 			"title" : "PATIENT_LAB_RESULTS",
+	 			"_type" : "type",
+				"_field" : {
+	 				"PATIENT" : {
+	 						"name" : "PATIENT",
+	 						"title" : "PATIENT",
+	 						"_type" : "hc_CART_DM"
+	 				},
+	 				"LB_LIST" : {
+	 						"name" : "LB_LIST",
+	 						"title" : "LAB_RESULTS",
+	 						"_type" : "SDTM_LB",
+	 						"_plural" : true,
+	 						"_vital" : false
+	 				}
+	 			},
+	 			"descr" : "Database object containing patient laboratory results"
+	 }
+}

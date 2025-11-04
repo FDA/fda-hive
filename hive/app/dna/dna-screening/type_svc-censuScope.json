@@ -1,0 +1,42 @@
+{
+    "280": {
+        "_id": "$type.svc-censuScope",
+        "_type": "type",
+        "name": "svc-censuScope",
+        "title": "CensuScope: Metagenome Analyzer",
+        "description": "//Rapid Metagenome Profiler\nlocation: hive.app.dna.dna-censuScope",
+        "parent": {
+            "1": "$type.svc-dna-qcqa"
+        },
+        "prefetch": true,
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

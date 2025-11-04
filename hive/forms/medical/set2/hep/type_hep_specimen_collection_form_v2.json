@@ -1,0 +1,154 @@
+{
+    "520": {
+        "_id": "$type.hep_specimen_collection_form_v2",
+        "_type": "type",
+        "name": "hep_specimen_collection_form_v2",
+        "title": "Specimen Collection Form v2",
+        "fields": {
+            "1.1": {
+                "field_name": "date_of_collection",
+                "field_title": "Date of Collection",
+                "field_type": "date",
+                "field_order": 1,
+                "field_constraint_data": "{\n\"startDate\":\"1900\",\n\"endDate\":\"now\"\n}"
+            },
+            "1.2": {
+                "field_name": "seizure_last_24h",
+                "field_title": "Seizure in last 24 hours?",
+                "field_type": "bool",
+                "field_order": 2
+            },
+            "1.3": {
+                "field_name": "seizures_daily",
+                "field_title": "Are seizures daily?",
+                "field_type": "bool",
+                "field_order": 2.5,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='true'"
+            },
+            "1.4": {
+                "field_name": "subtitle_1",
+                "field_title": "Reschedule draw for another time,  over 24 hours after a seizure",
+                "field_type": "string",
+                "field_order": 3,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='true'&&$(seizures_daily)=='false'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.5": {
+                "field_name": "time_of_collection",
+                "field_title": "Time of collection",
+                "field_type": "time",
+                "field_order": 4,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='true'&&$(seizures_daily)=='true'"
+            },
+            "1.6": {
+                "field_name": "subtitle_2",
+                "field_title": "1ST- 2ND TUBE: LAVENDER TOP EDTA (PLASMA PROTEIN, cfDNA, METABOLOMICS)",
+                "field_type": "string",
+                "field_order": 5,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "sample1",
+                "field_title": "Was sample collected?",
+                "field_type": "bool",
+                "field_order": 6,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.8": {
+                "field_name": "labeled1",
+                "field_title": "Were Tubes/Cryovials Labeled? (Subject ID (including 3 letter site code) and date)",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.9": {
+                "field_name": "storage1",
+                "field_title": "Stored at -80°C? (Invert 8-10 times, centrifuge 10 mins (1300 rcf), pipet plasma layer into cryovials, freeze at -20ºC for 24 hours, then transfer to -80°C until shipment)",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.10": {
+                "field_name": "comments1",
+                "field_title": "Comments (If sample was collected at a different time as stated above, include date/time in this column)",
+                "field_type": "text",
+                "field_order": 9,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.11": {
+                "field_name": "subtitle_3",
+                "field_title": "3RD- 5TH TUBES: PAXGENE (RNA)",
+                "field_type": "string",
+                "field_order": 10,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'",
+                "field_constraint_description": "subtitle"
+            },
+            "1.12": {
+                "field_name": "sample2",
+                "field_title": "Was sample collected?",
+                "field_type": "bool",
+                "field_order": 11,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.13": {
+                "field_name": "labeled2",
+                "field_title": "Were Tubes/Cryovials Labeled? (Subject ID (including 3 letter site code) and date)",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.14": {
+                "field_name": "storage2",
+                "field_title": "Stored at -80°C? (Invert 8-10 times, store upright at room temperature for 2 hours, freeze at -20ºC for 24 hours, then transfer to -80ºC until shipment)",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.15": {
+                "field_name": "comments2",
+                "field_title": "Comments (If sample was collected at a different time as stated above, include date/time in this column)",
+                "field_type": "text",
+                "field_order": 14,
+                "field_is_optional_fg": true,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.16": {
+                "field_name": "concurrent_illness",
+                "field_title": "Has the participant had any concurrent illness (i.e. infections), recent surgeries, or other hospitalization unrelated to epilepsy?",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_data": "is_shown_fg=$(seizure_last_24h)=='false'||$(seizures_daily)=='true'"
+            },
+            "1.17": {
+                "field_name": "concurrent_illness_specify",
+                "field_title": "If yes, please provide details",
+                "field_type": "text",
+                "field_order": 25,
+                "field_constraint_data": "is_shown_fg=$(concurrent_illness)=='true'&&($(seizures_daily)=='true'||$(seizure_last_24h)=='false')"
+            }
+        },
+        "parent": {
+            "3": "$type.hep"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

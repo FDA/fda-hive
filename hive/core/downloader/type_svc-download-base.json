@@ -1,0 +1,69 @@
+{
+    "type.539": {
+        "_id": "type.539",
+        "_type": "type",
+        "name": "svc-download-base",
+        "title": "Download service",
+        "parent": {
+            "1": "type.330"
+        },
+        "is_abstract_fg": true,
+        "prefetch": true,
+        "fields": {
+            "1.17": {
+                "field_name": "uri",
+                "field_title": "URLs and/or Identifiers",
+                "field_type": "text",
+                "field_order": 0,
+                "field_role": "input",
+                "field_is_multi_fg": true,
+                "field_constraint": "search+",
+                "field_constraint_data": "{fetch:'bioprojectID',inline:'bioprojectID,name',outline:'bioprojectID,taxid,name', url:'http://taxTree.cgi?whatToPrint=bioprojectID|taxid|name|path|rank&cmd=ncbiTaxBrowseAll&searchTaxID=0&searchName=1&searchBioPID=1&start=0&cnt=20&ids=11019'}",
+                "field_description": "List URLs, numeric identifiers or accessions, one per line. Use http://, ftp:// prefix in URLs. If the value contains \", double it and surround by quotes."
+            },
+            "1.24": {
+                "field_name": "splitOnFrontEnd",
+                "field_type": "bool",
+                "field_parent": "splitList",
+                "field_default_value": "false",
+                "field_is_readonly_fg": -1,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            },
+            "1.25": {
+                "field_name": "output",
+                "field_type": "string",
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

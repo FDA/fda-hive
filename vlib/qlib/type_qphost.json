@@ -1,0 +1,99 @@
+{
+    "type.88": {
+        "_id": "type.88",
+        "_type": "type",
+        "name": "qphost",
+        "title": "Host",
+        "description": "Host",
+        "parent": {
+            "1": "type.84"
+        },
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "capacity",
+                "field_title": "Capacity",
+                "field_type": "real",
+                "field_default_value": "0"
+            },
+            "1.2": {
+                "field_name": "category",
+                "field_title": "Category",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_optional_fg": true
+            },
+            "1.3": {
+                "field_name": "cores",
+                "field_title": "CPU Core Number",
+                "field_type": "integer",
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "enabled",
+                "field_title": "Enabled",
+                "field_type": "bool",
+                "field_order": 0,
+                "field_default_value": "0"
+            },
+            "1.5": {
+                "field_name": "ip4",
+                "field_title": "IP4",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            },
+            "1.6": {
+                "field_name": "memory",
+                "field_title": "Memory Size",
+                "field_type": "integer",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "name",
+                "field_title": "Name",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_key_fg": true,
+                "field_brief": "$_(v) <b>$_(t)</b>"
+            },
+            "1.8": {
+                "field_name": "platform",
+                "field_title": "Platform",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_readonly_fg": 1,
+                "field_is_optional_fg": true
+            }
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

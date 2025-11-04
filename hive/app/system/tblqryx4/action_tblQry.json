@@ -1,0 +1,45 @@
+{
+    "132": {
+        "_id": "$upsert()",
+        "_type": "action",
+        "align": "left",
+        "icon": "rec",
+        "is_obj_action": true,
+        "name": "tblQry",
+        "order": 13,
+        "required_permission": 2,
+        "target": "new",
+        "type_name": "table+",
+        "url": "?cmd=tblqry-new&objs=$(ids)",
+        "title": "Analyze",
+        "description": "Analyze table with Table Query",
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

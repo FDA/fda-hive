@@ -1,0 +1,169 @@
+{
+    "214": {
+        "_id": "$type.svc-dna-alqc",
+        "_type": "type",
+        "name": "svc-dna-alqc",
+        "title": "HIVE-alignment-qc",
+        "description": "//HIVE Assembly QC\nlocation: hive.app.dna.dna-alqc",
+        "prefetch": true,
+        "fields": {
+            "1.1": {
+                "field_name": "window_size",
+                "field_title": "Initial window size",
+                "field_type": "integer",
+                "field_default_value": "30"
+            },
+            "1.3": {
+                "field_name": "heptagon_id",
+                "field_title": "Variant Callers",
+                "field_type": "obj",
+                "field_constraint": "type",
+                "field_constraint_data": "svc-profiler-heptagon"
+            },
+            "1.5": {
+                "field_name": "genemap_id",
+                "field_title": "Gene Mappers",
+                "field_type": "obj",
+                "field_is_optional_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "svc-align-hexagon"
+            },
+            "1.6": {
+                "field_name": "externalQC",
+                "field_title": "External QC",
+                "field_type": "list",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "asmQC",
+                "field_title": "Assembly QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.8": {
+                "field_name": "ngsQC",
+                "field_title": "NGS QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.9": {
+                "field_name": "posQC",
+                "field_title": "Positional QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.10": {
+                "field_name": "posAnnot",
+                "field_title": "Positional Annotations",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.11": {
+                "field_name": "codingTable",
+                "field_title": "Coding Table",
+                "field_type": "string",
+                "field_default_value": "Standard",
+                "field_is_optional_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "Standard|Vertebrate Mitochondrial|Yeast Mitochondrial|Mold,Protozoan and Coelenterate Mitochondrial and Mycoplasma/Spiroplasma|Invertebrate Mitochonrial|Ciliate, Dasycladacean and Hexamita Nuclear|Echinoderm and Flatworm Mitochondrial|Euplotid Nuclear|Bacterial, Archael and Plant Plastid|Alternative Yeast Nuclear|Ascidian Mitochondrial|Alternative Flatworm Mitochondrial|Chlorophycean Mitochondrial|Trematode Mitochondrial|Scenedesmus Obliquus Mitochondrial|Thraustochytrium Mitochondrial|Pterobranchia Mitochondrial|Candidate Division SR1 and Gracilibacteria|Pachysolen tannophilus Nuclear"
+            },
+            "1.13": {
+                "field_name": "bioSampleQC",
+                "field_title": "BioSample QC",
+                "field_type": "text",
+                "field_parent": "externalQC",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.15": {
+                "field_name": "source",
+                "field_title": "Source",
+                "field_type": "list",
+                "field_order": 5,
+                "field_is_optional_fg": true
+            },
+            "1.16": {
+                "field_name": "ref",
+                "field_title": "ref",
+                "field_type": "string",
+                "field_parent": "source",
+                "field_order": 1,
+                "field_is_optional_fg": true
+            },
+            "1.17": {
+                "field_name": "asm",
+                "field_title": "asm",
+                "field_type": "string",
+                "field_parent": "source",
+                "field_order": 2,
+                "field_is_optional_fg": true
+            },
+            "1.18": {
+                "field_name": "srr",
+                "field_title": "srr",
+                "field_type": "string",
+                "field_parent": "source",
+                "field_order": 3,
+                "field_is_optional_fg": true
+            },
+            "1.19": {
+                "field_name": "biosampleAcc",
+                "field_title": "biosampleAcc",
+                "field_type": "string",
+                "field_parent": "source",
+                "field_order": 4,
+                "field_is_optional_fg": true
+            },
+            "1.21": {
+                "field_name": "refs_direct_id",
+                "field_title": "references with no SRRs",
+                "field_type": "obj",
+                "field_constraint": "type",
+                "field_constraint_data": "genome",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            }
+        },
+        "parent": {
+            "5": "$type.svc-dna-qcqa"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

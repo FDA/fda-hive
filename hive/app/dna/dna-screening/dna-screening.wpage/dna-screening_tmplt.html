@@ -1,0 +1,180 @@
+<script type="application/javascript" src="js/vjTree.js"></script>
+<script type="application/javascript" src='js/vjDataSeries.js'></script>
+<script type="application/javascript" src='js/vjTreeSeries.js'></script>
+<script type="application/javascript" src='js/vjTaxonomyView.js' ></script>
+<script type="text/javascript" src="d3js/core/d3.js"></script>
+<script type="text/javascript" src="d3js/core/d3.csv.js"></script>
+<script type="text/javascript" src="d3js/d3js_basics.js"></script>
+<script type="text/javascript" src="d3js/sunburst_hierarchy.js"></script>
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<div style="text-align:center;font-family:Century Gothic;font-size:20px;font-weight:bold;visibility:hidden;" id="jumpNewPage">
+    <a href = "#">
+        Click to go to old Censuscope webpage
+    </a>
+</div>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script src="?cmd=~^dna~js-obj-new/svc-dna-screening.js"></script>
+<script type="application/javascript">
+
+setLocationTitle("censuScope: HIVE");
+
+var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+var process_svc="svc-dna-screening";
+var process_qpsvc="dna-screening";
+var thisQuery=docLocValue("query");
+
+var algoProcess=new valgoProcess(thisProcessID,  process_qpsvc, process_svc);
+algoProcess.visibleParameters = ["name", "query", "alignSelector", "subject", "Sample", "CensusIterations", 
+                                 "CensuslimitIterations", "taxDepth", "method", "filterNs", "selfStopping", "deepScanning"];
+                                 
+if (thisQuery)
+{
+    algoProcess.initialPresets = { query: thisQuery,
+                                    name: "query:s=["+thisQuery+"] as objlist; return s[0].name;"};
+}
+
+algoProcess.submitButtonName="SUBMIT";
+
+var thisQuery=docLocValue("query");
+var process_cmdMode=docLocValue("cmdMode");
+var process_initialPresets={};
+var thisProcessID = 0;
+
+function isMode(mode)
+{
+    return (!process_cmdMode || (process_cmdMode.indexOf("-"+mode)==-1 && process_cmdMode.indexOf(mode)!=0)) ? false : true;
+}
+
+if(isMode("batch")) { 
+    algoProcess.qpSvc="svc-batcher";
+    algoProcess.initialPresets.batch_svc="dna-screening";
+}
+
+algoProcess.doneComputing = function (viewer, reqid, stat)
+{
+    thisProcessID = docLocValue("id");
+    
+     if(stat>=5) {
+        var exposeAlignments = vjDV[algoProcess.recViewerName].getElement("storeAlignments");
+        if (exposeAlignments && exposeAlignments.value != 0){
+            valgoToolbarDoneList=
+                ",right,2,alignment,Aligning Tools,img-algo/dna-tools.gif,/alignment,,Reference based assembly and profiling analysis\n"+
+                ",right,2,aligner,Hexagon Alignment,img-algo/hive-hexagon.gif,/alignment/aligner,?cmd=dna-hexagon-new&id=$(::thisProcessID),Proceed to alignment, Alignment, etc...\n";
+        }
+    }
+};
+
+algoProcess.inputLoaded = function (viewer){
+    algoProcess.readFromDocLoc(["alignmentInput"]);
+    var alObjID=algoProcess.getValue("alignmentInput", "join");
+    var name = algoProcess.getValue("name");
+    if(alObjID){
+        algoProcess.setValue("alignmentInput",alObjID.split(",").join(";"));
+        algoProcess.setValue("name","Screening for object "+ alObjID);
+        algoProcess.setValueList({name: "query:s=["+alObjID+"] as objlist; return s[0].name; "});
+    }
+    algoProcess.readFromDocLoc(["query"]);
+    var thisObjID=algoProcess.getValue("query", "join");
+    if(thisObjID){
+        algoProcess.setValueList({"query": thisObjID.split(",")});
+        algoProcess.setValue("name","Screening for objects "+thisObjID);
+        algoProcess.setValueList({name: "query:s=["+thisObjID+"] as objlist; return s[0].name; "});
+    }
+    algoProcess.setValue("split",'-');
+    
+    if(algoProcess.getValue("storeAlignments") == 1){
+        var node = {
+                _type : 'svc-align2',
+                id : algoProcessID,
+                addTo: ["Alignment"],
+                moveNext: false,
+                checkable: (algoProcess.modeActive) ? true : false, 
+                isInput: true,
+                openTabsOnRefresh: false,
+                autoOpen: "computed"
+            };
+            dna_hexagonHitList = vjHO.fullview(node._type, node, $.getAlgoViewManager().options.jsonForPage.subTabs.parameters);
+    }
+
+    return;
+};
+
+
+algoProcess.allDownloadsGetDescription = function (filename){
+    var description = filename.replace(/[^.]*\./, "").toUpperCase() + " file";
+    
+    if( filename.match(/gicenteric/gi) ) {
+        description = "GI Based Results CSV File";
+    } else if ( filename.match(/screenResult/gi) ) {
+        description = "Screen Results CSV File";
+    } else if ( filename.match(/screenShannon/gi) ) {
+        description = "Shannon Entropy Convergece Graph";
+    }
+    
+    return description;
+};
+
+
+algoProcess.prettyFileName = function (filename) {
+    var prettyFileName = filename;
+    
+    if( filename.match(/gicenteric/gi) ) {
+        prettyFileName = "GI Based Results";
+    } else if ( filename.match(/screenResult/gi) ) {
+        prettyFileName = "Screen Results";
+    } else if ( filename.match(/screenShannon/gi) ) {
+        prettyFileName = "Shannon Screen";
+    }
+    
+    return prettyFileName;
+};
+
+
+algoProcess.allDownUrlModification = function () {    
+    var j = "javascript: var ing_url = 'http:
+        if(node.value.match(/gicenteric/gi)) {ing_url = 'http:
+        else if(node.value.match(/screenResult/gi)) {}\
+        else if(node.value.match(/screenShannon/gi)) {}\
+        vjDS.add('', 'dsDownSrc', 'static:
+        vjDS['dsDownSrc'].reload(ing_url,true,'download');"
+        
+    return j;
+            
+};
+
+gInitList += "screeningInit();";
+function screeningInit () {
+    var topVal = $("#header").height() + 45;
+
+        
+    globalAlgo = $('#mainAlgoArea').algoview({
+        algoObj: algoProcess,
+        svcType: "svc-dna-screening",
+        algoTitle: "CensuScope"
+    });
+    
+    $("#jumpNewPage").on("click", function (eventData){
+            var url = window.location.href;
+            setCookie("jumpNewPageCensuscope", "false", 7);
+            
+            if (url.indexOf("&") >= 0)
+                linkURL("?cmd=dna-screening" + url.substring(url.indexOf("&")));
+            else
+                linkURL("?cmd=dna-screening");
+            
+            eventData.preventDefault();
+    });
+};
+</script>
+
+

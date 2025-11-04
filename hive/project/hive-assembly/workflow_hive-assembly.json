@@ -1,0 +1,24 @@
+{
+    "265610": {
+        "_id": "$upsert()",
+        "_type": "workflow",
+        "engine": "h2o-wflow",
+        "name": "hive-assembly",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,75 @@
+{
+    "176": {
+        "_id": "$type.medtronic_medical_image_transmittal_form",
+        "_type": "type",
+        "name": "medtronic_medical_image_transmittal_form",
+        "title": "Medical Image Transmittal Form",
+        "fields": {
+            "1.2": {
+                "field_name": "medical_image_transmittal_form",
+                "field_title": "Medical Image Transmittal Form",
+                "field_type": "array",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_is_multi_fg": true
+            },
+            "1.3": {
+                "field_name": "view",
+                "field_title": "View",
+                "field_type": "string",
+                "field_parent": "medical_image_transmittal_form",
+                "field_order": "1",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NEUTRAL AP|NEUTRAL LATERAL|FLEXION|EXTENSION|THIN-SLICE CT|MRI"
+            },
+            "1.4": {
+                "field_name": "image_date",
+                "field_title": "Image Date",
+                "field_type": "date",
+                "field_parent": "medical_image_transmittal_form",
+                "field_order": "2",
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "not_done",
+                "field_title": "Not Done",
+                "field_type": "string",
+                "field_parent": "medical_image_transmittal_form",
+                "field_order": "3",
+                "field_is_optional_fg": true,
+                "field_constraint_data": "NO|YES"
+            }
+        },
+        "parent": {
+            "7": "$type.medtronic"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

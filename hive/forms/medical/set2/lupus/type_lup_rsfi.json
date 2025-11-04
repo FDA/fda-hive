@@ -1,0 +1,368 @@
+{
+    "559": {
+        "_id": "$type.lup_rsfi",
+        "_type": "type",
+        "name": "lup_rsfi",
+        "title": "Selena Flare Index (rSFI)",
+        "description": "<h5>Check box: if descriptor is present at the time of visit or in the preceding 10 days</h5>",
+        "fields": {
+            "1.1": {
+                "field_name": "ms_title",
+                "field_title": "MUCOCUTANEOUS SYSTEM",
+                "field_type": "string",
+                "field_order": 1,
+                "field_constraint_description": "subtitle"
+            },
+            "1.2": {
+                "field_name": "ms_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 2,
+                "field_constraint_data": "if($(this)=='true'&& !($(ms_mild)=='false'&&$(ms_moderate)=='false'&&$(ms_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.3": {
+                "field_name": "ms_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 3,
+                "field_constraint_data": "if($(this)=='true'&& !($(ms_none)=='false'&&$(ms_moderate)=='false'&&$(ms_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/recurrent malar rash<br />\r\nNew/worse mild oral/nasal ulcers<br />\r\nNew/worse discoid in a small existing lesion or a very localized area  such as ear<br />\r\nNew mild photosensitive or maculopapular rash<br />\r\nNew mild alopecia<br />\r\nNew mild bullous lupus"
+            },
+            "1.4": {
+                "field_name": "ms_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 4,
+                "field_constraint_data": "if($(this)=='true'&& !($(ms_mild)=='false'&&$(ms_none)=='false'&&$(ms_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse extensive oral/nasal ulcers<br />\r\nNew/worse discoid beyond a very localized area, such as new areas, enlargement, or deepening lesions<br />\r\nNew/worse moderate photosensitive or maculopapular rash<br />\r\nNew/worse marked alopecia<br />\r\nNew/worse small cutaneous ulcers, very limited periungual infarcts<br />\r\nNew/worse mild to moderate angioedema<br />\r\nNew/worse moderate bullous lupus<br />\r\nNew/worse mild to moderate panniculitis"
+            },
+            "1.5": {
+                "field_name": "ms_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 5,
+                "field_constraint_data": "if($(this)=='true'&& !($(ms_mild)=='false'&&$(ms_moderate)=='false'&&$(ms_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse extensive and/or severe vasculitis, panniculitis, bullous lesions, large cutaneous ulcers, desquamating, necrosis, gangrene, angioedema"
+            },
+            "1.6": {
+                "field_name": "mus_title",
+                "field_title": "MUSCULOSKELETAL SYSTEM",
+                "field_type": "string",
+                "field_order": 6,
+                "field_constraint_description": "subtitle"
+            },
+            "1.7": {
+                "field_name": "mus_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 7,
+                "field_constraint_data": "if($(this)=='true'&& !($(mus_mild)=='false'&&$(mus_moderate)=='false'&&$(mus_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.8": {
+                "field_name": "mus_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 8,
+                "field_constraint_data": "if($(this)=='true'&& !($(mus_none)=='false'&&$(mus_moderate)=='false'&&$(mus_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Mild/worse/recurring polyarthralgias<br />\r\nNew/mild arthritis of 1 or 2 joints"
+            },
+            "1.9": {
+                "field_name": "mus_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 9,
+                "field_constraint_data": "if($(this)=='true'&& !($(mus_mild)=='false'&&$(mus_none)=='false'&&$(mus_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worst/recurrent polyarthritis (3 or more joints) "
+            },
+            "1.10": {
+                "field_name": "mus_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 10,
+                "field_constraint_data": "if($(this)=='true'&& !($(mus_mild)=='false'&&$(mus_moderate)=='false'&&$(mus_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worst polyarthritis (3 or more joints) with marked reduction in range of motion or mobility"
+            },
+            "1.11": {
+                "field_name": "cs_title",
+                "field_title": "CARDIOPULMONARY SYSTEM",
+                "field_type": "string",
+                "field_order": 11,
+                "field_constraint_description": "subtitle"
+            },
+            "1.12": {
+                "field_name": "cs_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 12,
+                "field_constraint_data": "if($(this)=='true'&& !($(cs_mild)=='false'&&$(cs_moderate)=='false'&&$(cs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.13": {
+                "field_name": "cs_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 13,
+                "field_constraint_data": "if($(this)=='true'&& !($(cs_none)=='false'&&$(cs_moderate)=='false'&&$(cs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse mild pleurisy or pericarditis (symptoms sufficient)"
+            },
+            "1.14": {
+                "field_name": "cs_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 14,
+                "field_constraint_data": "if($(this)=='true'&& !($(cs_mild)=='false'&&$(cs_none)=='false'&&$(cs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse moderate pleurisy or pericarditis, small pleural effusion (with physical examination findings, radiographs or echo)"
+            },
+            "1.15": {
+                "field_name": "cs_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 15,
+                "field_constraint_data": "if($(this)=='true'&& !($(cs_mild)=='false'&&$(cs_moderate)=='false'&&$(cs_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse pleural or pericardial effusion requiring tap or window, tamponade<br />\r\nNew/worse pulmonary hemorrhage, shrinking lung<br />\r\nNew/worse myocarditis, coronary arteritis<br />"
+            },
+            "1.16": {
+                "field_name": "hs_title",
+                "field_title": "HEMATOLOGICAL SYSTEM",
+                "field_type": "string",
+                "field_order": 16,
+                "field_constraint_description": "subtitle"
+            },
+            "1.17": {
+                "field_name": "hs_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 17,
+                "field_constraint_data": "if($(this)=='true'&& !($(hs_mild)=='false'&&$(hs_moderate)=='false'&&$(hs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.18": {
+                "field_name": "hs_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 18,
+                "field_constraint_data": "if($(this)=='true'&& !($(hs_none)=='false'&&$(hs_moderate)=='false'&&$(hs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Leukopenia - new/worse/recurrent < 3,000<br />\r\nThrombocytopenia - new/worse/recurrent 50 to 100,000<br />\r\nHemolytic anemia or anemia of active SLE - HCT>30"
+            },
+            "1.19": {
+                "field_name": "hs_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 19,
+                "field_constraint_data": "if($(this)=='true'&& !($(hs_mild)=='false'&&$(hs_none)=='false'&&$(hs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Leukopenia - <1,500 but > 1,000<br />\r\nThrombocytopenia - 30 to 50,000<br />\r\nHemolytic anemia or anemia of active SLE - HCT<30, but >25"
+            },
+            "1.20": {
+                "field_name": "hs_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 20,
+                "field_constraint_data": "if($(this)=='true'&& !($(hs_mild)=='false'&&$(hs_moderate)=='false'&&$(hs_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Leukopenia - <1,000<br />\r\nThrombocytopenia - <30,000 or thrombotic microangiopathy<br />\r\nHemolytic anemia or anemia of active SLE - HCT<25"
+            },
+            "1.21": {
+                "field_name": "con_title",
+                "field_title": "CONSTITUTIONAL",
+                "field_type": "string",
+                "field_order": 21,
+                "field_constraint_description": "subtitle"
+            },
+            "1.22": {
+                "field_name": "con_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 22,
+                "field_constraint_data": "if($(this)=='true'&& !($(con_mild)=='false'&&$(con_moderate)=='false'&&$(con_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.23": {
+                "field_name": "con_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 23,
+                "field_constraint_data": "if($(this)=='true'&& !($(con_none)=='false'&&$(con_moderate)=='false'&&$(con_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Fever - new/worse/recurrent up to 101°F (38.3°C)<br />\r\nLymphadenopathy - new/worse up to a small cervical/axillary nodes (<1cm)<br />\r\nWeight loss - new weight loss <5%"
+            },
+            "1.24": {
+                "field_name": "con_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 24,
+                "field_constraint_data": "if($(this)=='true'&& !($(con_mild)=='false'&&$(con_none)=='false'&&$(con_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Fever - new/worse >101°F (38.3°C) but <103°F (39.4°C)<br />\r\nLymphadenopathy - new/worse lymph nodes outside cervical chain<br />\r\nWeight loss - 5% to 10%"
+            },
+            "1.25": {
+                "field_name": "con_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 25,
+                "field_constraint_data": "if($(this)=='true'&& !($(con_mild)=='false'&&$(con_moderate)=='false'&&$(con_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Fever - new/worse >103°F (39.4°C)<br />\r\nWeight loss - >10%"
+            },
+            "1.26": {
+                "field_name": "rs_title",
+                "field_title": "RENAL SYSTEM",
+                "field_type": "string",
+                "field_order": 26,
+                "field_constraint_description": "subtitle"
+            },
+            "1.27": {
+                "field_name": "rs_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 27,
+                "field_constraint_data": "if($(this)=='true'&& !($(rs_mild)=='false'&&$(rs_moderate)=='false'&&$(rs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.28": {
+                "field_name": "rs_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 28,
+                "field_constraint_data": "if($(this)=='true'&& !($(rs_none)=='false'&&$(rs_moderate)=='false'&&$(rs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse protein/cr >0.2 but <0.5"
+            },
+            "1.29": {
+                "field_name": "rs_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 29,
+                "field_constraint_data": "if($(this)=='true'&& !($(rs_mild)=='false'&&$(rs_none)=='false'&&$(rs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse urine pr/cr >0.5 but <1.0<br />\r\nIncrease in RBC/hpf from <5 to >15 with >2 acanthocytes/hpf"
+            },
+            "1.30": {
+                "field_name": "rs_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 30,
+                "field_constraint_data": "if($(this)=='true'&& !($(rs_mild)=='false'&&$(rs_moderate)=='false'&&$(rs_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Urine pr/cr>1.0 is baseline <0.3<br />\r\nUrine pr/cr doubled is baseline >1<br />\r\nUrine pr/cr>5.0<br />\r\nNew RBC casts or mixed RBC casts<br />\r\nBiopsy with new/worse aggressive lesions (necrosis, crescents)<br />\r\nBiopsy with Class IV<br />\r\nRapidly progressing glomerulonephritis<br />\r\nDecreased GFR in the last 3 months<br />\r\nIf baseline Cr<2, increase of >0.2 mg/dl<br />\r\nIf baseline Cr>2, increase of >0.4 mg/dl"
+            },
+            "1.31": {
+                "field_name": "ns_title",
+                "field_title": "NEUROLOGICAL SYSTEM",
+                "field_type": "string",
+                "field_order": 31,
+                "field_constraint_description": "subtitle"
+            },
+            "1.32": {
+                "field_name": "ns_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 32,
+                "field_constraint_data": "if($(this)=='true'&& !($(ns_mild)=='false'&&$(ns_moderate)=='false'&&$(ns_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.33": {
+                "field_name": "ns_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 33,
+                "field_constraint_data": "if($(this)=='true'&& !($(ns_none)=='false'&&$(ns_moderate)=='false'&&$(ns_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Minimal/intermittent ACR neuropsychiatric SLE syndrome"
+            },
+            "1.34": {
+                "field_name": "ns_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 34,
+                "field_constraint_data": "if($(this)=='true'&& !($(ns_mild)=='false'&&$(ns_none)=='false'&&$(ns_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worsening persistent ACR neuropsychiatric SLE syndrome"
+            },
+            "1.35": {
+                "field_name": "ns_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 35,
+                "field_constraint_data": "if($(this)=='true'&& !($(ns_mild)=='false'&&$(ns_moderate)=='false'&&$(ns_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "Acute delirium or confusional state (organic brain syndrome)<br />\r\nComa<br />\r\nStatus epilepticus<br />\r\nCranial nerve palsy (including optic)<br />\r\nStroke due to CNS vasculitis<br />\r\nAseptic meningitis<br />\r\nMononeuritis multiplex<br />\r\nLongitudinal myelitis<br />\r\nChorea<br />\r\nCerebellar ataxia<br />\r\nMyositis with weakness"
+            },
+            "1.36": {
+                "field_name": "gs_title",
+                "field_title": "GASTROINTESTINAL SYSTEM",
+                "field_type": "string",
+                "field_order": 36,
+                "field_constraint_description": "subtitle"
+            },
+            "1.37": {
+                "field_name": "gs_none",
+                "field_title": "None",
+                "field_type": "bool",
+                "field_order": 37,
+                "field_constraint_data": "if($(this)=='true'&& !($(gs_mild)=='false'&&$(gs_moderate)=='false'&&$(gs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox"
+            },
+            "1.38": {
+                "field_name": "gs_mild",
+                "field_title": "Mild",
+                "field_type": "bool",
+                "field_order": 38,
+                "field_constraint_data": "if($(this)=='true'&& !($(gs_none)=='false'&&$(gs_moderate)=='false'&&$(gs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse LFTs >2x normal but <4x normal"
+            },
+            "1.39": {
+                "field_name": "gs_moderate",
+                "field_title": "Moderate",
+                "field_type": "bool",
+                "field_order": 39,
+                "field_constraint_data": "if($(this)=='true'&& !($(gs_mild)=='false'&&$(gs_none)=='false'&&$(gs_severe)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse LFTs >4x normal<br />\r\nNew/worse pancreatitis with increased amylase, but no IV therapy<br />\r\nNew/worse peritonitis with no ascites"
+            },
+            "1.40": {
+                "field_name": "gs_severe",
+                "field_title": "Severe",
+                "field_type": "bool",
+                "field_order": 40,
+                "field_constraint_data": "if($(this)=='true'&& !($(gs_mild)=='false'&&$(gs_moderate)=='false'&&$(gs_none)=='false')) {value_fg='false'}",
+                "field_constraint_description": "checkbox",
+                "field_description": "New/worse lupus peritonitis with ascites<br />\r\nNew/worse enteritis, colitis or protein-losing enteropathy<br />\r\nNew/worse intestinal pseudo-obstruction with hypomotility<br />\r\nNew/worse pancreatitis requiring IV therapy<br />\r\nNew/worse GI vasculitis (mesenteric or other GI organ) "
+            }
+        },
+        "parent": {
+            "4": "$type.lupus"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "166": {
+        "_id": "$upsert()",
+        "_type": "user_app_legacy",
+        "base_app_name": "Table-Query",
+        "base_app_description": "This tool takes you to the table query utility",
+        "base_app_version": 1,
+        "base_app_url": "?cmd=tblqry-new",
+        "base_app_license": "FDA HIVE",
+        "base_app_labels": [
+            "General DNA Filters and Tools"
+        ],
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [
+                        "member"
+                    ]
+                }
+            }
+        ]
+    }
+}

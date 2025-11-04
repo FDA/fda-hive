@@ -1,0 +1,14 @@
+// import React, { Component } from "react";
+// import ReactDOM from "react-dom";
+// import { HeaderContainer }  from "./Header/index.js";  // eslint-disable-next-line
+// class App extends Component {
+//     render(){
+//         return(
+//         <>
+//             <HeaderContainer />
+//         </>
+//        )
+//     }
+// }
+
+//  ReactDOM.render(<App />, document.querySelector("#root"));

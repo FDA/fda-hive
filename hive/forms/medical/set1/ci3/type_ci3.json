@@ -1,0 +1,49 @@
+{
+    "325": {
+        "_id": "$type.ci3",
+        "_type": "type",
+        "name": "ci3",
+        "title": "CI3",
+        "fields": {
+            "1.1": {
+                "field_name": "empty",
+                "field_title": "Empty",
+                "field_type": "string",
+                "field_order": 0,
+                "field_is_optional_fg": true,
+                "field_is_hidden_fg": true
+            }
+        },
+        "parent": {
+            "3": "$type.med_set1"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}
