@@ -51,7 +51,7 @@ if [[ "${DBUSER}" = "" ]]; then
   fi
 fi
 if [[ "${MYSQL_PWD}" = "" ]]; then
-  echo -n "Database password [q666pride]? "
+  echo -n "Database password? "
   read MYSQL_PWD
 fi
 if [[ "${DBHOST}" = "" ]]; then
