@@ -168,7 +168,7 @@ else
     TOP_LDFLAGS = -Wl,-rpath-link,$(abs_devdir)/$(rname)/lib $(l2)
 endif
 
-HIVE_DB_CXXFLAGS=-DHIVE_DB_HOST=\"qpridesrv:3306\" -DHIVE_DB=\"QPride\" -DHIVE_DB_USER=\"qpride\" -DHIVE_DB_PWD=\"q666pride\" $(SQLDB_CFLAGS)
+HIVE_DB_CXXFLAGS=-DHIVE_DB_HOST=\"qpridesrv:3306\" -DHIVE_DB=\"QPride\" -DHIVE_DB_USER=\"qpride\" -DHIVE_DB_PWD=\"\" $(SQLDB_CFLAGS)
 MYSQL_LIB = $(SQLDB_LIB)
 MYSQL_LIB_STATIC = $(MYSQL_LIB) -lz
 
