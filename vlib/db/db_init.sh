@@ -53,9 +53,6 @@ fi
 if [[ "${MYSQL_PWD}" = "" ]]; then
   echo -n "Database password [q666pride]? "
   read MYSQL_PWD
-  if [[ "${MYSQL_PWD}" = "" ]]; then
-    MYSQL_PWD="q666pride"
-  fi
 fi
 if [[ "${DBHOST}" = "" ]]; then
   echo -n "Database host [localhost] or type qpridesrv? "
