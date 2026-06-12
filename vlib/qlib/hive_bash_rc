@@ -151,7 +151,7 @@ export HIVE_DB_HOST=${arr[0]}
 export HIVE_DB_PORT=$port
 export HIVE_DB=`qapp_cfg_QPride db QPride`
 export HIVE_DB_USER=`qapp_cfg_QPride user qpride`
-export HIVE_DB_PWD=`qapp_cfg_QPride pass q666pride`
+export HIVE_DB_PWD=`qapp_cfg_QPride pass `
 # avoid passwords on command line, mariadb will pick up the env var
 export MYSQL_PWD=$HIVE_DB_PWD
 alias qdb="mariadb -h $HIVE_DB_HOST -P$HIVE_DB_PORT -u $HIVE_DB_USER $HIVE_DB"
