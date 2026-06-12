@@ -107,4 +107,4 @@ HIVE_DB_HOST ?= qpridesrv
 HIVE_DB_PORT ?= 3306
 HIVE_DB ?= QPride
 HIVE_DB_USER ?= qpride
-HIVE_DB_PWD ?= q666pride
+HIVE_DB_PWD ?= 
