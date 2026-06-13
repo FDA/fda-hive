@@ -79,7 +79,7 @@ Center for Biologics Evaluation and Research,
 Food and Drug Administration
 
 #### Source repository
-  GitHub (https://github.com/fda-hive) is the location of HIVE open source codebase.
+  GitHub (https://github.com/FDA/fda-hive) is the location of HIVE open source codebase.
 
 #### The MIT Open Source License
 
