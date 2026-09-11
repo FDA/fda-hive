@@ -19,7 +19,7 @@
     
     var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
     var algoProcess=new valgoProcess(thisProcessID,  "argos", "svc-argos-alqc");
-    algoProcess.visibleParameters=["name","wflow-folder","metadata","ref-list", "ngs-list","wflow-codingTable"];
+    algoProcess.visibleParameters=["name","wflow-folder","metadata","ref-list", "ngs-list","wflow-codingTable", "alignment_params"];
     algoProcess.submitButtonName="Submit";
     
     algoProcess.initialPresets={pipeline:"query:alloftype('workflow',{name:'argos-cflow'})"};
@@ -30,6 +30,49 @@
     } 
 
     algoProcess.inputChanged= function (viewer, elem){
+        var fieldName = elem && elem.fld && elem.fld.name;
+
+        if (fieldName == "tax_group") {
+            if (elem.value == 'Viruses'){
+                algoProcess.setValue("max_miss_pct",15);
+                algoProcess.setValue("min_match_len",75);
+            }
+            if (elem.value == 'Bacteria'){
+                algoProcess.setValue("max_miss_pct",5);
+                algoProcess.setValue("min_match_len",38);
+            }
+            if (elem.value == 'Fungi'){
+                algoProcess.setValue("max_miss_pct",3);
+                algoProcess.setValue("min_match_len",30);
+            }
+            if (elem.value == 'Eukaryote'){
+                algoProcess.setValue("max_miss_pct",3);
+                algoProcess.setValue("min_match_len",30);
+            }
+            if (elem.value == 'Protozoa'){
+                algoProcess.setValue("max_miss_pct",3);
+                algoProcess.setValue("min_match_len",30);
+            }
+        }
+
+        if (fieldName == "max_miss_pct") {
+             if (elem.value <=0 || elem.value == '') {
+                alert("Max Miss Query Percent should not be empty or <=0")
+             }
+        }
+        if (fieldName == "min_match_len") {
+             if (elem.value <=0 || elem.value == '') {
+                alert("Minimum Match Length should not be empty or <=0")
+             }
+        }
+
+        if (fieldName == "tax_group" || fieldName == "max_miss_pct" || fieldName == "min_match_len") {
+            var maxMissPct = algoProcess.getValue("max_miss_pct");
+            var minMatchLen = algoProcess.getValue("min_match_len");
+            var validMaxMissPct = maxMissPct != undefined && maxMissPct != null && String(maxMissPct).trim() != '' && isFinite(Number(maxMissPct)) && Number(maxMissPct) > 0;
+            var validMinMatchLen = minMatchLen != undefined && minMatchLen != null && String(minMatchLen).trim() != '' && isFinite(Number(minMatchLen)) && Number(minMatchLen) > 0;
+            algoProcess.activateSubmitButton(validMaxMissPct && validMinMatchLen);
+        }
     }
 
     
@@ -45,5 +88,3 @@
         
     };
 </script>
-
-
