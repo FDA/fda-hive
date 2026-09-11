@@ -48,6 +48,7 @@ enum enumIonCommands
     eExtendCodonTable,
     eIonWander,
     eIonTaxidCollapseExt,
+    eIonTaxLineage,
     eDoThisDoThat
 };
 
@@ -1636,6 +1637,74 @@ idx DnaCGI::CmdIon(idx cmd)
             }
 
             outHtml();
+            return 1;
+        }
+        case eIonTaxLineage: {
+            const char * taxidInput = pForm->value("taxid", 0);
+            idx taxidColInput = pForm->ivalue("taxidCol", 0);
+            const char * objIdStr = pForm->value("objId");
+            if( !taxidInput && !objIdStr) {
+                error("No taxid or objId are provided");
+                outHtml();
+                return 1;
+            }
+            sTaxIon taxIon(ionP.ptr());
+
+            if (objIdStr) {
+                sHiveId objId(objIdStr);
+                sTxtTbl tbl;
+                sStr err, objname, fileName00;
+                formValue("filename", &fileName00,"_.csv");
+                fileName00.add0(2);
+                bool success = loadScreeningFile(&tbl, objId, fileName00.ptr(), 0, &err, &objname);
+                if( !success ) {
+                    error("%s", err.length() ? err.ptr(0) : "Could not parse file or file is empty");
+                    outHtml();
+                    return 1;
+                }
+                if( taxidColInput <= 0 || taxidColInput > tbl.cols()) {
+                    error(taxidColInput <= 0 ? "taxidCol parameter is required when objId is provided" : "invalid taxidCol index > table columns");
+                    outHtml();
+                    return 1;
+                }
+
+                static idx maxDumpContainer = 100 * 1024 * 1024;
+                outBinHeaders(true, "lineage-table.csv");
+                sStr preOut, cellBuf, linBuf;
+                for( idx icol = 0; icol < tbl.cols(); ++icol ) {
+                    cellBuf.cut0cut();
+                    tbl.printCell(cellBuf, -1, icol);
+                    preOut.printf("%s,", cellBuf.ptr());
+                }
+                preOut.printf("%s\n", "lineage");
+                for( idx irow = 0; irow < tbl.rows(); ++irow ) {
+                    for( idx icol = 0; icol < tbl.cols(); ++icol ) {
+                        cellBuf.cut0cut();
+                        tbl.printCell(cellBuf, irow, icol);
+                        preOut.printf("%s,", cellBuf.ptr());
+                    }
+                    cellBuf.cut0cut();
+                    tbl.printCell(cellBuf, irow, taxidColInput-1);
+                    idx taxid = atoidx(cellBuf.ptr());
+                    linBuf.cut(0);
+                    const char * lin = taxIon.getLineageByTaxon(taxid, &linBuf);
+                    preOut.printf("\"%s\"\n", lin ? lin : "");
+                    if( preOut.length() > maxDumpContainer ) {
+                        outBinData(preOut.ptr(), preOut.length());
+                        preOut.cut(0);
+                    }
+                }
+                if( preOut.length() ) {
+                    outBinData(preOut.ptr(), preOut.length());
+                }
+            }
+            else {
+                idx taxid = atoidx(taxidInput);
+                sStr linBuf;
+                const char * lin = taxIon.getLineageByTaxon(taxid, &linBuf);
+                dataForm.addString(lin ? lin : "(no result)");
+                outHtml();
+            }
             return 1;
         }
 
