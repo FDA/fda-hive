@@ -50,6 +50,7 @@ namespace slib
 
         public:
             virtual char * QP_configGet( sStr * vals00, const char * pars00, bool single=true){return 0;}
+            virtual char * QP_configGetClean( sStr * vals00, const char * pars00, bool single=true){return 0;}
             virtual bool QP_configSet(const char * par, const char * val){return false;}
             virtual  void QP_flushCache(){return;}
             virtual  sVar *  QP_getVars(sStr * dst=0, const char * src=0, idx len=0){return 0;}
@@ -107,6 +108,9 @@ namespace slib
             virtual idx QP_serviceList(sStr * lst00, void * svcVecList) = 0;
             virtual void QP_servicePurgeOld(sVec < idx > * reqList, const char * service=0, idx limit = -1, bool no_delete=false){return  ;}
             virtual void QP_servicePath2Clean(sVarSet & res){}
+            virtual idx QP_hostList(sStr * lst00, void * hostVecList){return 0;}
+            virtual idx QP_hostGet(void * Host, const char * hostName=0, idx hostId=0, void * HostVec=0){return 0;}
+            virtual idx QP_hostSet(void * Host, idx cnt=1, sStr * out=0){return 0;}
             virtual void QP_registerHostIP(const char * sys) {return ; }
             virtual real QP_getHostCapacity(const char * hostname){ return 0;}
             virtual void QP_getRegisteredIP(sVec <sStr> * ips, const char * equCmd) {return ; }
