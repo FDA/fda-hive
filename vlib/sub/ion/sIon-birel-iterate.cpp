@@ -261,6 +261,9 @@ idx sIonBirel::iterateNodesCallback(sIonWander * cliWander,
         }
         if(isz<sz)isNumberValue=false;
         else isNumberValue=true;
+        if (body[0] == '0' && (body[1] != 0 && body[1] != '.' )) {
+            isNumberValue = false;
+        }
     }
 
     if (isok) {
