@@ -329,15 +329,15 @@ static idx xtern_EMBHEP3_propSet( sUsrCGI * ucgi, sVar * pForm, const char * cmd
         "date_completed",
         "date_completed_system",
         "participantID",
-        "Set2PatientTaskID",
+        "EmbleemaPatientTaskID",
         "latest_editor",
         "authorID",
-        "Set2TaskID",
+        "EmbleemaTaskID",
         "SiteName",
-        "Set2TaskSet2ID",
-        "Set2EventID",
-        "Set2EventSet2ID",
-        "Set2PatientEventID"
+        "EmbleemaTaskEmbleemaID",
+        "EmbleemaEventID",
+        "EmbleemaEvenEmbleemaID",
+        "EmbleemaPatientEventID"
     };
 
     sStr b,fields;
@@ -404,12 +404,17 @@ void sUsrCGI::xternInitModules(void)
     xternAddAPI("EMBHEP3", "propset", (sCallbackUniversal)xtern_EMBHEP3_propSet);
 
     sString::SectVar genVarsCentral[]={
+        {"" __,"[CHIOS]" _"baseURL" __,"%S",0,&xtern_CHIOS_BASE},
+        {"" __,"[EMBLEEMA]" _"baseURL" __,"%S" DEC,0,&xtern_EMBHEP3_BASE},
         {0, 0, 0, 0, 0 }
         };
 
     sFil fl("xtern.cfg",sMex::fReadonly);
     if(fl) {
         sString::xscanSect(fl.ptr(0), fl.length(),genVarsCentral,0);
+    }else {
+        xtern_CHIOS_BASE.printf("http://chios-consent.weisstech.consulting/");
+        xtern_EMBHEP3_BASE.printf("https://app.embleema.com/");
     }
 
 }
