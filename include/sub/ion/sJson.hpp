@@ -292,9 +292,15 @@ namespace slib {
                     return link(atr,num ? "true" : "false");
                 }
 
-                Node & linkpercent(const char * atr, real num)
+                Node & linkpercent(const char * atr, real num, bool showPercent=true)
                 {
-                    sStrT buf;buf.printf("%.2lf%%", num) ;
+                    sStrT buf;
+                    if(showPercent){
+                        buf.printf("%.2lf%%", num) ;    
+                    } else {
+                        buf.printf("%.2lf", num) ;    
+                    }
+                    
                     return link(atr,buf.ptr());
                 }
                 Node & linkarr(const char * atr)
