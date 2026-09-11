@@ -67,6 +67,7 @@ namespace slib
             char * QP_configGetPattern(sStr * cfgBuf, const char * parset=0);
             void QP_configSetPattern(const char * cfgBuf, idx len=0,const char * parset=0);
             char * QP_configGet( sStr * vals00, const char * pars00, bool single=true);
+            char * QP_configGetClean( sStr * vals00, const char * pars00, bool single=true);
             bool QP_configSet(const char * par, const char * val);
 
         public:
@@ -117,6 +118,9 @@ namespace slib
             idx QP_serviceList(sStr * lst00, void * svcVecList);
             void QP_servicePurgeOld(sVec < idx > * reqList, const char * service=0, idx limit = -1, bool no_delete = false);
             void QP_servicePath2Clean(sVarSet & res);
+            idx QP_hostList(sStr * lst00, void * hostVecList);
+            idx QP_hostGet(void * Host, const char * hostName=0, idx hostId=0, void * HostVec=0);
+            idx QP_hostSet(void * Host, idx cnt=1, sStr * out=0);
             void QP_registerHostIP(const char * sys);
             real QP_getHostCapacity(const char * hostname);
             void QP_getRegisteredIP(sVec <sStr> * ips, const char * equCmd);
