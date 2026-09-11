@@ -1,0 +1,27 @@
+{
+    "969": {
+        "_id": "$upsert()",
+        "_type": "sys_package",
+        "cmdlist": {
+            "0": {
+                "cmd": "hive-telemetry",
+                "dir": "$(HIVE.repo)/hive/app/system/hive-telemetry",
+                "deploy_package": "$(MODULAR_DECOMPRESS)\nmake dist",
+                "prepare_package": "make sync\n$(MODULAR_COMPRESS)"
+            }
+        },
+        "version": 1,
+        "name": "hive.app.system.hive-telemetry",
+        "description": "HIVE-Telemetry is HIVEs Telemetry data collection service",
+        "authors": {
+            "24": "V.Simonyan",
+            "39": "P.L"
+        },
+        "contributors": {
+            "28": "P.L"
+        },
+        "synonyms": {
+            "36": "Hive Telemetry"
+        }
+    }
+}
