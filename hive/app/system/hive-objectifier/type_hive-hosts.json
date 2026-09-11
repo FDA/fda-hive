@@ -1,0 +1,67 @@
+{
+    "1454": {
+        "_id": "$type.hive-hosts",
+        "_type": "type",
+        "name": "hive-hosts",
+        "title": "HIVE Host object",
+        "fields": {
+            "1.0": {
+                "field_name": "name",
+                "field_type": "string",
+                "field_is_readonly_fg": -1,
+                "field_brief": "Name=\"$_(v)\" Type=\"<b>$_(t)</b>\""
+            },
+            "1.2": {
+                "field_name": "ip4",
+                "field_type": "string"
+            },
+            "1.3": {
+                "field_name": "htype",
+                "field_title": "host type",
+                "field_type": "string"
+            },
+            "1.4": {
+                "field_name": "category",
+                "field_type": "string",
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "enabled",
+                "field_type": "bool"
+            },
+            "1.6": {
+                "field_name": "capacity",
+                "field_type": "integer"
+            },
+            "1.7": {
+                "field_name": "cores",
+                "field_type": "integer"
+            },
+            "1.8": {
+                "field_name": "memory",
+                "field_type": "integer"
+            }
+        },
+        "parent": {
+            "7": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}
