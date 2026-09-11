@@ -1,0 +1,145 @@
+{
+    "15636": {
+        "_id": "$type.svc-argos-alqc-demo",
+        "_type": "type",
+        "name": "svc-argos-alqc-demo",
+        "title": "Argos Assembly QC Demo",
+        "singleton": 0,
+        "fields": {
+            "1.0": {
+                "field_name": "wflow-srr",
+                "field_title": "SRR IDs",
+                "field_type": "string",
+                "field_default_value": "SRR23633919",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///SRR23633919"
+            },
+            "1.2": {
+                "field_name": "wflow-asm",
+                "field_title": "Assembly IDs",
+                "field_type": "string",
+                "field_default_value": "GCA_038606275.1",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///GCA_038606275.1"
+            },
+            "1.3": {
+                "field_name": "wflow-codingTable",
+                "field_title": "Coding Table",
+                "field_type": "string",
+                "field_default_value": "Standard",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///Standard"
+            },
+            "1.4": {
+                "field_name": "metadata",
+                "field_title": "Metadata",
+                "field_type": "list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.6": {
+                "field_name": "hive_assembly",
+                "field_title": "Hive Template Assembly",
+                "field_type": "list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "genome"
+            },
+            "1.7": {
+                "field_name": "asm_pipeline",
+                "field_title": "Pipeline Object",
+                "field_type": "obj",
+                "field_parent": "hive_assembly",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "workflow"
+            },
+            "1.8": {
+                "field_name": "clone_params",
+                "field_title": "Clonal Discovery Parameters",
+                "field_type": "type2list",
+                "field_parent": "hive_assembly",
+                "field_include_type": "$type.base_hive_asm_clonal_params",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.10": {
+                "field_name": "ngs",
+                "field_title": "Reads",
+                "field_type": "string",
+                "field_parent": "ngs-list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "1///SRR accession"
+            },
+            "1.11": {
+                "field_name": "references",
+                "field_title": "References",
+                "field_type": "string",
+                "field_parent": "ref-list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice",
+                "field_constraint_data": "2///Assembly ID"
+            },
+            "1.12": {
+                "field_name": "ngs-list",
+                "field_title": "NGS",
+                "field_type": "list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            },
+            "1.13": {
+                "field_name": "ref-list",
+                "field_title": "References",
+                "field_type": "list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_hidden_fg": true,
+                "field_constraint": "choice"
+            }
+        },
+        "parent": {
+            "7": "$type.core-cflow",
+            "22": "$type.svc-wflo-base",
+            "23": "$type.project-base"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}
