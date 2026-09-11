@@ -216,6 +216,21 @@ static void configGetVal(sStr & vals00, const sVar & cfg_cache, const char * par
         }
     }
 }
+
+static void configGetValClean(sStr & vals00, const sVar & cfg_cache, const char * par, idx ipar)
+{
+    idx parsz = 0;
+    if( !par && ipar >= 0 ) {
+        par = static_cast<const char *>(cfg_cache.id(ipar, &parsz));
+    }
+    if( *par ) {
+        const char * val = cfg_cache.value(par, 0, 0);
+        if( val) {
+            vals00.printf("%s", val[0]==0 ? " " : val); vals00.add0();
+            vals00.printf("%s", par); vals00.add0();
+        }
+    }
+}
 void sQPrideDB::QP_configInit(void)
 {
     g_QPCfg.init(0);
@@ -287,6 +302,27 @@ char * sQPrideDB::QP_configGet(sStr * vals00, const char * pars00, bool single)
     } else {
         for(idx ipar = 0; ipar < (single ? 1 : g_QPCfg.dim()); ipar++) {
             configGetVal(*vals00, g_QPCfg, 0, ipar);
+        }
+    }
+    if( vals00->length() ) {
+        vals00->add0(2);
+    }
+    return vals00->ptr(pos);
+}
+
+char * sQPrideDB::QP_configGetClean(sStr * vals00, const char * pars00, bool single)
+{
+    QP_configInit();
+    if(!vals00) return 0;
+
+    const idx pos = vals00->length();
+    if( pars00 ) {
+        for(const char * p = pars00; p; p = single ? 0 : sString::next00(p)) {
+            configGetValClean(*vals00, g_QPCfg, p, -1);
+        }
+    } else {
+        for(idx ipar = 0; ipar < (single ? 1 : g_QPCfg.dim()); ipar++) {
+            configGetValClean(*vals00, g_QPCfg, 0, ipar);
         }
     }
     if( vals00->length() ) {
@@ -1116,6 +1152,130 @@ idx sQPrideDB::QP_serviceList(sStr * lst00, void * svcVecList)
         lst00->add0(2);
     }
     return svcCnt;
+}
+
+idx sQPrideDB::QP_hostList(sStr * lst00, void * hostVecList)
+{
+    sVec< sQPrideBase::Host > * hostvec = ( sVec < sQPrideBase::Host > * )hostVecList;
+    idx hostCnt=0;
+    if( hostvec) {
+        hostCnt=db->ivalue("SELECT COUNT(name) FROM QPHosts", 0);
+        if(hostCnt)
+            QP_hostGet(hostvec->add(hostCnt));
+    }
+    if(lst00) {
+        sVarSet res;
+        db->getTable("SELECT name FROM QPHosts", &res);
+        for(idx i=0; i<res.rows; ++i){
+            lst00->printf("%s",res(i,0));lst00->add0(1);
+        }
+        hostCnt=res.rows;
+        lst00->add0(2);
+    }
+    return hostCnt;
+}
+
+idx sQPrideDB::QP_hostGet(void * Host, const char * hostName, idx hostId, void * HostVec)
+{
+    sQPrideBase::Host * host = (sQPrideBase::Host *)Host;
+    sVec < sQPrideBase::Host > * hostVec=(sVec < sQPrideBase::Host > * ) HostVec;
+
+
+    sStr sql;
+    sql.printf( "SELECT "
+        "name,ip4,htype,category,enabled,UNIX_TIMESTAMP(mdate),capacity,cores,memory"
+        " FROM QPHosts");
+    if( hostName ) {
+        sql.addString(" WHERE name = ");
+        protectString(sql, hostName);
+    } else if( hostId ) {
+    }
+
+    sVarSet res;
+    db->getTable(sql.ptr(), &res);
+
+    if(!host && hostVec ) {
+        hostVec->add(res.rows);
+        host=hostVec->ptr();
+    }
+    for(idx ir=0; ir<res.rows; ++ir) {
+        idx o=0;
+        strncpy(host->name, res(ir,o++), sizeof(host->name) - 1);
+        strncpy(host->ip4, res(ir,o++), sizeof(host->ip4) - 1);
+        strncpy(host->htype, res(ir,o++), sizeof(host->htype) - 1);
+        strncpy(host->category, res(ir,o++), sizeof(host->category) - 1);
+        host->enabled = res.ival(ir, o++);
+        host->mdate = res.ival(ir, o++);
+        host->capacity = res.rval(ir, o++, 0);
+        host->cores = res.ival(ir, o++);
+        host->memory = res.ival(ir, o++);
+        ++host;
+    }
+
+    return res.rows;
+}
+
+idx sQPrideDB::QP_hostSet(void * Host, idx cnt, sStr* out)
+{
+    sQPrideBase::Host * host = (sQPrideBase::Host *)Host;
+    for (idx i = 0; i < cnt; ++i) {
+        if (host->name[0] == '\0') {
+            if (out) out->printf("Host name is empty, skipping update\n");
+            ++host;
+            continue;
+        }
+        if (out) out->printf("Host %s updated\n", host->name);
+        
+        sStr sql("UPDATE QPHosts SET ");
+        bool first = true;
+        if (host->updateMask & sQPrideBase::HOST_UPDATE_IP4) {
+            if (!first) sql.addString(", ");
+            sql.printf("ip4 = ");
+            protectString(sql, host->ip4);
+            first = false;
+        }
+        if (host->updateMask & sQPrideBase::HOST_UPDATE_HTYPE) {
+            if (!first) sql.addString(", ");
+            sql.printf("htype = ");
+            protectString(sql, host->htype);
+            first = false;
+        }
+        if (host->updateMask & sQPrideBase::HOST_UPDATE_CATEGORY) {
+            if (!first) sql.addString(", ");
+            sql.printf("category = ");
+            protectString(sql, host->category);
+            first = false;
+        }
+        if (host->updateMask & sQPrideBase::HOST_UPDATE_ENABLED) {
+            if (!first) sql.addString(", ");
+            sql.printf("enabled = %" DEC, host->enabled);
+            first = false;
+        }
+        if (host->updateMask & sQPrideBase::HOST_UPDATE_CAPACITY) {
+            if (!first) sql.addString(", ");
+            sql.printf("capacity = %lf", host->capacity);
+            first = false;
+        }
+        if (host->updateMask & sQPrideBase::HOST_UPDATE_CORES) {
+            if (!first) sql.addString(", ");
+            sql.printf("cores = %" DEC, host->cores);
+            first = false;
+        }
+        if (host->updateMask & sQPrideBase::HOST_UPDATE_MEMORY) {
+            if (!first) sql.addString(", ");
+            sql.printf("memory = %" DEC, host->memory);
+            first = false;
+        }
+        if (!first) {
+            sql.printf(", mdate = NOW() WHERE name = ");
+            protectString(sql, host->name);
+            db->execute("%s", sql.ptr());
+        } else {
+            if (out) out->printf("No fields to update for host %s\n", host->name);
+        }
+        ++host;
+    }
+    return cnt;
 }
 
 void sQPrideDB::QP_getRegisteredIP(sVec <sStr> * ips, const char * equCmd)
