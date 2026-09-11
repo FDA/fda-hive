@@ -947,6 +947,7 @@ void sUsrCGI::objs(void)
     const udx cnt = pForm->uvalue("cnt", sIdxMax);
     udx qty = cnt;
     const bool showTrash = pForm->boolvalue("showTrashed", false) || pForm->boolvalue("showtrash", false);
+    const bool showForAll = m_User.isAdmin() && pForm->boolvalue("showForAll", false);
     const char * pIds = pForm->value("parIds");
     const char * pProp = pForm->value("parP");
     const char * pVal = pForm->value("parV");
@@ -1031,6 +1032,9 @@ void sUsrCGI::objs(void)
     }
     sUsrObjRes v;
     udx total_qty = 0, fstart = from;
+    if( showForAll ) {
+        m_User.m_SuperUserMode = true;
+    }
     do {
         if( qty ) {
             const idx r = v.dim();
@@ -1062,6 +1066,9 @@ void sUsrCGI::objs(void)
         json_printer.addKey("objs");
     }
     propGet(&v, pForm->value("view"), props, is_json ? &json_printer : 0);
+    if( showForAll ) {
+        m_User.m_SuperUserMode = false;
+    }
     if( show_info ) {
         if( strcasecmp("csv", mode) == 0 ) {
             sVarSet x;
