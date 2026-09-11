@@ -314,7 +314,7 @@ const char * sTaxIon::getLineageByTaxon(idx taxid, sStr * buf)
 {
     sStr trbuf;
     trbuf.printf(0,"\
-        x=foreach(% " DEC "); \
+        x=foreach(%" DEC "); \
         o=find.taxid_name(taxid==x.1, tag='scientific name'); \
         k=find.taxid_parent(taxid=o.taxid); \
         print("",o.taxid,k.rank,o.name,k.#,'|');\
@@ -343,7 +343,7 @@ const char * sTaxIon::getLineageByTaxon(idx taxid, sStr * buf)
 
     if(buf) {
         buf->cut(0);
-        sString::searchAndReplaceStrings(buf,ts.traverseBuf.ptr(2),0,":|:" __, "|" __, 0 , false );
+        sString::searchAndReplaceStrings(buf,ts.traverseBuf.ptr(),0,":|:" __, "|" __, 0 , false );
         return buf->ptr();
     }
 
@@ -386,7 +386,7 @@ const char * sTaxIon::getLineageByAccession(const char * accession, sStr * buf)
         return 0;
     if(buf) {
         buf->cut(0);
-        sString::searchAndReplaceStrings(buf,ts.traverseBuf.ptr(2),0,":|:" __, "|" __, 0 , false );
+        sString::searchAndReplaceStrings(buf,ts.traverseBuf.ptr(),0,":|:" __, "|" __, 0 , false );
         return buf->ptr();
     }
 
