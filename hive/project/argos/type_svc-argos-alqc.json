@@ -1,5 +1,5 @@
 {
-    "336": {
+    "313": {
         "_id": "$type.svc-argos-alqc",
         "_type": "type",
         "name": "svc-argos-alqc",
@@ -182,18 +182,57 @@
                 "field_title": "Template References",
                 "field_type": "obj",
                 "field_parent": "hive_assembly",
-                "field_constraint_data": "genome",
-                "field_constraint": "type",
+                "field_order": 2,
                 "field_is_optional_fg": true,
-                "field_is_multi_fg": true
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
             },
             "1.27": {
                 "field_name": "asm_pipeline",
                 "field_title": "Pipeline Object",
                 "field_type": "obj",
                 "field_parent": "hive_assembly",
+                "field_order": 1,
                 "field_constraint": "type",
                 "field_constraint_data": "workflow"
+            },
+            "1.29": {
+                "field_name": "clone_params",
+                "field_title": "Clonal Discovery Parameters",
+                "field_type": "type2list",
+                "field_parent": "hive_assembly",
+                "field_order": 3,
+                "field_include_type": "$type.base_hive_asm_clonal_params"
+            },
+            "1.31": {
+                "field_name": "tax_group",
+                "field_title": "Taxonomic Group",
+                "field_type": "string",
+                "field_parent": "metadata",
+                "field_default_value": "Viruses",
+                "field_constraint_data": "Viruses|Bacteria|Fungi|Eukaryote|Protozoa",
+                "field_constraint": "choice",
+                "field_is_optional_fg": true
+            },
+            "1.32": {
+                "field_name": "alignment_params",
+                "field_title": "Alignment Parameters",
+                "field_type": "list"
+            },
+            "1.33": {
+                "field_name": "max_miss_pct",
+                "field_title": "Max Miss Percent",
+                "field_type": "integer",
+                "field_parent": "alignment_params",
+                "field_default_value": "15"
+            },
+            "1.34": {
+                "field_name": "min_match_len",
+                "field_title": "Min Match Length",
+                "field_type": "integer",
+                "field_parent": "alignment_params",
+                "field_default_value": "75"
             }
         },
         "_perm": [
