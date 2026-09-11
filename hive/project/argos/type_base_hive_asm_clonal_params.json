@@ -1,0 +1,65 @@
+{
+    "15247": {
+        "_id": "$type.base_hive_asm_clonal_params",
+        "_type": "type",
+        "name": "base_hive_asm_clonal_params",
+        "title": "Clonal Parameters for Hive Assembly",
+        "fields": {
+            "1.0": {
+                "field_name": "clone_cov",
+                "field_title": "Coverage Threshold",
+                "field_type": "integer",
+                "field_order": 1,
+                "field_default_value": "10"
+            },
+            "1.2": {
+                "field_name": "clone_length",
+                "field_title": "Length Threshold",
+                "field_type": "integer",
+                "field_order": 2,
+                "field_default_value": "6"
+            },
+            "1.3": {
+                "field_name": "clone_support",
+                "field_title": "Support Mutattion Threshold",
+                "field_type": "integer",
+                "field_order": 3,
+                "field_default_value": "4"
+            }
+        },
+        "parent": {
+            "7": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            },
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "share": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}
