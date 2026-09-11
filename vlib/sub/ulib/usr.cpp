@@ -4609,10 +4609,8 @@ idx sUsr::replaceVarsFromObjForm(sStr * dst, const char * script,sUsrObj * obj, 
             dst->add(value);dst->shrink00();
             if(toquote)dst->add("\"",1);
         }else {
-            if (jsonMode && dst->length()>0) {
-                idx ipos=dst->length()-1;
-                while( ipos>0 && strchr(" \r\n,\t",*dst->ptr(ipos)) ) ipos--; 
-                dst->cut(ipos+1);
+            if (jsonMode) {
+                dst->add("null",4);
             }
         }
         varEnd+=quoted;
