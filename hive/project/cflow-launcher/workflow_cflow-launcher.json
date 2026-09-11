@@ -1,0 +1,22 @@
+{
+    "10159": {
+        "_id": "$upsert()",
+        "_type": "workflow",
+        "name": "cflow-launcher",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "exec": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

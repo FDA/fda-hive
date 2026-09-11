@@ -1,0 +1,20 @@
+{
+    "10149": {
+        "_id": "$upsert()",
+        "_type": "wpage",
+        "name": "cflow-launcher",
+        "_perm": [
+            {
+                "party": "/everyone/users/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}
