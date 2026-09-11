@@ -557,13 +557,13 @@ idx sFrameConsensus::getFirstMutation(idx iCl, idx pos, bool ignoreGaps)
             continue;
         }
         if( ignoreGaps){
-            while( p1 && p1->isAnyGap() && i < cl->seqCov.dim() ) {
+            while( p1 && p1->isAnyGap() && i < cl->seqCov.dim() -1 ) {
                 ++i;
                 p1 = cl->getSubPos(i+cl_mut_start);
             }
             if( i >= cl->seqCov.dim() )
                 break;
-            while( p2 && p2->isAnyGap() && i_p < parent->seqCov.dim() ) {
+            while( p2 && p2->isAnyGap() && i_p < parent->seqCov.dim() -1) {
                 ++i_p;
                 p2 = parent->getSubPos(i_p + cl_mut_start);
             }
@@ -615,13 +615,13 @@ idx sFrameConsensus::getLastMutation(idx iCl, idx pos, bool ignoreGaps)
             continue;
         }
         if( ignoreGaps){
-            while( p1 && p1->isAnyGap() && i < pos ) {
+            while( p1 && p1->isAnyGap() && i < pos -1 ) {
                 ++i;
                 p1 = cl->getSubPos(i+cl_mut_start);
             }
             if( i >= pos )
                 break;
-            while( p2 && p2->isAnyGap() && i_p < cl->seqCov.dim() ) {
+            while( p2 && p2->isAnyGap() && i_p < cl->seqCov.dim() -1) {
                 ++i_p;
                 p2 = merged->getSubPos(i_p + cl_mut_start);
             }
@@ -671,7 +671,7 @@ bool sFrameConsensus::mergePositions(sCloneConsensus * dstCl, sCloneConsensus * 
         }
         idx dimDif = start+cnt - (dstCl->summary.start + dstCl->seqCov.dim());
         if( dimDif > 0 ) {
-            dstCl->seqCov.resize( dimDif );
+            dstCl->seqCov.add( dimDif );
             dstCl->summary.end += dimDif;
         }
         sBioseqpopul::clonePosition * p_dst = 0, * p_src;
@@ -1139,12 +1139,12 @@ bool sFrameConsensus::areDifferent(sCloneConsensus * cl1, sCloneConsensus * cl2,
     for(idx i1 = start, i2 = start; i1 < end && i2 < end; ++i1, ++i2) {
         p1 = cl1->getSubPos(i1);
         p2 = cl2->getSubPos(i2);
-        while( p1 && p1->isAnyGap() && i1 < end ) {
+        while( p1 && p1->isAnyGap() && i1 < end-1 ) {
             p1 = cl1->getSubPos(++i1);
         }
         if( i1 >= end )
             break;
-        while( p2 && p2->isAnyGap() && i2 < end ) {
+        while( p2 && p2->isAnyGap() && i2 < end-1 ) {
             p2 = cl2->getSubPos(++i2);
         }
         if( i2 >= end )
@@ -1160,6 +1160,45 @@ bool sFrameConsensus::areDifferent(sCloneConsensus * cl1, sCloneConsensus * cl2,
         }
     }
     return false;
+}
+
+
+static bool wouldCreateMergeCycle(
+    sFrameConsensus * frame,
+    idx sourceClID,
+    idx targetClID
+)
+{
+    const idx cloneCount = frame->dim();
+
+    if( sourceClID < 0 || sourceClID >= cloneCount ||
+        targetClID < 0 || targetClID >= cloneCount ) {
+        return true;
+    }
+
+    if( sourceClID == targetClID ) {
+        return false;
+    }
+
+    idx currentClID = targetClID;
+
+    for(idx hops = 0; hops < cloneCount; ++hops) {
+        if( currentClID == sourceClID ) {
+            return true;
+        }
+
+        sCloneConsensus * current = frame->ptr(currentClID);
+        if( !current->summary.hasMerged() ) {
+            return false;
+        }
+
+        currentClID = current->summary.mergeclID;
+        if( currentClID < 0 || currentClID >= cloneCount ) {
+            return true;
+        }
+    }
+
+    return true;
 }
 
 idx sFrameConsensus::cleanOutClones(sVec<idx> &cloneIndex)
@@ -1245,6 +1284,19 @@ idx sFrameConsensus::cleanOutClones(sVec<idx> &cloneIndex)
                 continue;
             }
             if( !areDifferent(cl, cl2) ) {
+                idx sourceClID = cl2->summary.clID;
+                idx targetClID = cl->summary.clID;
+
+                if( wouldCreateMergeCycle(this, sourceClID, targetClID) ) {
+                    #ifdef _DEBUG
+                        ::printf(
+                            "Rejected cyclic merge: %" DEC " -> %" DEC "\n",
+                            sourceClID,
+                            targetClID
+                        );
+                    #endif
+                    continue;
+                }
                 cl2->summary.mergeclID = cl->summary.clID;
                 if( !isLink(cl2) ) {
                     if( mergePositions(cl, cl2, 0, 0, true) ) {
