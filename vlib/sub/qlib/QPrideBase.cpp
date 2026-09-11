@@ -389,6 +389,11 @@ char * sQPrideBase::configGetAll( sStr * vals00, const char * pars00)
     return QPDB->QP_configGet(vals00, pars00, false);
 }
 
+char * sQPrideBase::configGetAllClean( sStr * vals00, const char * pars00)
+{
+    return QPDB->QP_configGetClean(vals00, pars00, false);
+}
+
 
 void sQPrideBase::makeVar00(void)
 {
@@ -461,6 +466,21 @@ idx sQPrideBase::serviceID(const char * service)
     if(self)
         svcID=svc;
     return svc;
+}
+
+idx sQPrideBase::hostList(sStr * lst00 , sVec < Host > * hostlist)
+{
+    return QPDB->QP_hostList(lst00 , hostlist);
+}
+
+idx sQPrideBase::hostGet(Host * host, const char * hostName, idx hostId, sVec < Host > * hostVec)
+{
+    return QPDB->QP_hostGet(host, hostName, hostId, hostVec);
+}
+
+idx sQPrideBase::hostSet(Host * host, idx cnt, sStr * out)
+{
+    return QPDB->QP_hostSet(host, cnt, out);
 }
 
 void sQPrideBase::getRegisteredIP(sVec <sStr> * ips, const char * equCmd)
