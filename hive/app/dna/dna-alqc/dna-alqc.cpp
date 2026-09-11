@@ -789,19 +789,19 @@ idx DnaAlQCProc::referenceQC(Heptagon * hept, JSNode & annot, JSNode & refseq)
             iseq.link("coverage_gaps",qc->coverage_gaps);
             iseq.link("cnt_contigs",qc->cnt_contigs);
             iseq.link("cnt_gaps",qc->cnt_gaps);
-            iseq.linkpercent("contig_percentile",qc->contig_percentile);
-            iseq.linkpercent("gap_percentile",qc->gap_percentile);
+            iseq.linkpercent("contig_percentile",qc->contig_percentile, false);
+            iseq.linkpercent("gap_percentile",qc->gap_percentile, false);
             iseq.link("contig_momentum",qc->contig_momentum);
-            iseq.link("n50",qc->N50);
-            iseq.link("l50",qc->L50);
-            iseq.link("n75",qc->N75);
-            iseq.link("l75",qc->L75);
-            iseq.link("n90",qc->N90);
-            iseq.link("l90",qc->L90);
-            iseq.link("n95",qc->N95);
-            iseq.link("l95",qc->L95);
+            iseq.link("l50",qc->N50);
+            iseq.link("n50",qc->L50);
+            iseq.link("l75",qc->N75);
+            iseq.link("n75",qc->L75);
+            iseq.link("l90",qc->N90);
+            iseq.link("n90",qc->L90);
+            iseq.link("l95",qc->N95);
+            iseq.link("n95",qc->L95);
 
-            iseq.linkpercent("assembly_gc_content",qc->GC*100);
+            iseq.linkpercent("assembly_gc_content",qc->GC*100, false);
             iseq.link("phred_average",qc->phred_average);
             iseq.link("count_major_mutations",qc->count_major_mutations);
             iseq.link("count_major_indels",qc->count_major_indels);
@@ -815,8 +815,8 @@ idx DnaAlQCProc::referenceQC(Heptagon * hept, JSNode & annot, JSNode & refseq)
             iseq.link("entropic_momentum",qc->entropic_momentum);
             iseq.link("reads_unaligned",qc->reads_unaligned);
             iseq.link("reads_aligned",qc->reads_aligned);
-            iseq.linkpercent("percent_reads_aligned",qc->reads_aligned*100./totReads);
-            iseq.linkpercent("percent_reads_unaligned",qc->reads_unaligned*100./totReads);
+            iseq.linkpercent("percent_reads_aligned",qc->reads_aligned*100./totReads, false);
+            iseq.linkpercent("percent_reads_unaligned",qc->reads_unaligned*100./totReads, false);
             iseq.link("rpkm",qc->rpkm);
 
     }
@@ -910,10 +910,10 @@ idx DnaAlQCProc::seqQC(Hexagon * hex , JSNode & n)
             cnt.link("count_g",qc->countsRpt[2]);
             cnt.link("count_t",qc->countsRpt[3]);
             cnt.link("count_n",qc->countsRpt[4]);
-            cnt.linkpercent("percent_a",100.*qc->countsRpt[0]/qc->numBasesRpt);
-            cnt.linkpercent("percent_c",100.*qc->countsRpt[1]/qc->numBasesRpt);
-            cnt.linkpercent("percent_g",100.*qc->countsRpt[2]/qc->numBasesRpt);
-            cnt.linkpercent("percent_t",100.*qc->countsRpt[3]/qc->numBasesRpt);
+            cnt.linkpercent("percent_a",100.*qc->countsRpt[0]/qc->numBasesRpt, false);
+            cnt.linkpercent("percent_c",100.*qc->countsRpt[1]/qc->numBasesRpt, false);
+            cnt.linkpercent("percent_g",100.*qc->countsRpt[2]/qc->numBasesRpt, false);
+            cnt.linkpercent("percent_t",100.*qc->countsRpt[3]/qc->numBasesRpt, false);
             cnt.link("avg_quality_a",qc->phredsRpt[0]);
             cnt.link("avg_quality_c",qc->phredsRpt[1]);
             cnt.link("avg_quality_g",qc->phredsRpt[2]);
@@ -930,7 +930,7 @@ idx DnaAlQCProc::seqQC(Hexagon * hex , JSNode & n)
             nod.link("count_all",qc->numBasesRpt);
         }
         nod.link("stdev_quality",sqrt(qc->quaDev2Rpt));
-        nod.linkpercent("ngs_gc_content",100.*gc/(gc+at));
+        nod.linkpercent("ngs_gc_content",100.*gc/(gc+at), false);
 
         workWithFile("_.qc2.ComplexityTable.csv");
         sscanf(cont,"Reads,Count\n"
@@ -941,8 +941,8 @@ idx DnaAlQCProc::seqQC(Hexagon * hex , JSNode & n)
             );
 
 
-        nod.linkpercent("complexity_percent",100.*qc->cntComplex/(qc->cntComplex+qc->cntNotComplex));
-        nod.linkpercent("non_complexity_percent",100.*qc->cntNotComplex/(qc->cntComplex+qc->cntNotComplex));
+        nod.linkpercent("complexity_percent",100.*qc->cntComplex/(qc->cntComplex+qc->cntNotComplex), false);
+        nod.linkpercent("non_complexity_percent",100.*qc->cntNotComplex/(qc->cntComplex+qc->cntNotComplex), false);
 
         workWithFile("_.qc2.codonQCTable.csv");
         sTbl tbl;tbl.parse(cont.ptr(), cont.length(),sTbl::fPreserveQuotes);
@@ -955,8 +955,8 @@ idx DnaAlQCProc::seqQC(Hexagon * hex , JSNode & n)
                 break;
             }
         }
-        nod.linkpercent("percent_coding",100.*qc->cntCoding/(qc->cntCoding+qc->cntNonCoding));
-        nod.linkpercent("percent_non_coding",100.*qc->cntNonCoding/(qc->cntCoding+qc->cntNonCoding));
+        nod.linkpercent("percent_coding",100.*qc->cntCoding/(qc->cntCoding+qc->cntNonCoding), false);
+        nod.linkpercent("percent_non_coding",100.*qc->cntNonCoding/(qc->cntCoding+qc->cntNonCoding), false);
         nod.link("coding_system",cod.ptr());
 
         workWithFile("dna-alignx_screenResult.csv");
@@ -972,7 +972,7 @@ idx DnaAlQCProc::seqQC(Hexagon * hex , JSNode & n)
                 const char * tn=t.get(&nam,i,(idx)0);if(!tn || !*tn)continue;
                 JSNode to=itax.linkobj("#");
                     to.link( "taxid",tn);nam.cut(0);
-                    to.linkpercent("hits",100.*atoidx(t.get(&nam,i,1))/totHits);nam.cut(0);
+                    to.linkpercent("hits",100.*atoidx(t.get(&nam,i,1))/totHits, false);nam.cut(0);
             }
         }
        nam.cut(0);
@@ -1067,17 +1067,11 @@ idx DnaAlQCProc::OnExecute(idx req)
     reqProgress(2, 20, 100);
 
 
-    {
-        sFil fbio(ProcFile("biosample.json"));
-        formValue("bioSampleQC",&fbio,0);
-        fbio.cut(-2);
-    }
 
     sJson jAll;jAll.file(ProcFile("qcAll.json"));
     sJson jPos;jPos.file(ProcFile("qcPos.json"));
     sJson jNGS;jNGS.file(ProcFile("qcNGS.json"));
     sJson jAnnot;jAnnot.file(ProcFile("refAnnot.json"));
-    sJson jMeta;jMeta.file(ProcFile("biosample-meta.json"));
 
 
     #define attachExternal(_v_json, _v_node,_v_name, _v_formname) {JSNode root=JSNode(&_v_json);_v_node=root.linkarr(_v_name);sJson jsx;sStr bbb;const char * jsonExternal=formValue(_v_formname,&bbb,0);if(jsonExternal){jsx.initMem(jsonExternal,sLen(jsonExternal));JSNode jsxroot(&jsx);jsxroot.path("$root.externalQC");if(jsxroot.isok)_v_node.copy(jsxroot);}}
@@ -1098,19 +1092,22 @@ idx DnaAlQCProc::OnExecute(idx req)
 
     sUsrObj contigMetrics(*user, "argos_Assm_Metrics");
     sUsrObj ngsMetrics(*user, "argos_Reads_Metrics");
-
+    sHiveId assmId = contigMetrics.Id();
+    sHiveId readId = ngsMetrics.Id();
     sJson contigJson, ngsJson;
       
-    user->objJson(strtoidx(contigMetrics.IdStr(), nullptr, 10), &contigJson);
-    user->objJson(strtoidx(ngsMetrics.IdStr(), nullptr, 10), &ngsJson);
+    user->objJson(assmId.objId(), &contigJson);
+    user->objJson(readId.objId(), &ngsJson);
 
     root=JSNode(&jAll);
     root.link("biosample",formValue("biosampleAcc"));
     root.link("shortReads",formValue("srr"));
+    root.link("argos_objID",formValue("argos_objID"));
     root.link("_id", contigJson.value("_id"));
     root.link("_type", contigJson.value("_type"));
     root.link("created", contigJson.value("created"));
     JSNode refseq;attachExternal(jAll,refseq,REFSEQ,"asmQC");
+    
     
     
     
@@ -1139,6 +1136,7 @@ idx DnaAlQCProc::OnExecute(idx req)
     root=JSNode(&jNGS);
     root.link("biosample",formValue("biosampleAcc"));
     root.link("shortReads",formValue("srr"));
+    root.link("argos_objID",formValue("argos_objID"));
     root.link("_id", ngsJson.value("_id"));
     root.link("_type", ngsJson.value("_type"));
     root.link("created", ngsJson.value("created"));
@@ -1150,19 +1148,37 @@ idx DnaAlQCProc::OnExecute(idx req)
             seqQC(hex,seqc);
         }
     }
-    bool readMetrics = user->propSetJson(&jNGS);
-    bool assmMetrics = user->propSetJson(&jAll);
 
+    jAll.serialize();
+    jNGS.serialize();
+
+    sStr allTxt, ngsTxt;
+    allTxt.printf("%s", jAll.ret());
+    ngsTxt.printf("%s", jNGS.ret());
+
+    user->propSetJson(0, allTxt.ptr());
+    user->propSetJson(0, ngsTxt.ptr());
+
+    sHiveId alqcID = objs[0].Id();
+
+    sVec<sHiveId> parent_folders;
+    if(sUsrFolder::attachedTo(&parent_folders, *user, alqcID) > 0 || parent_folders.dim()){
+      for(idx i=0; i < parent_folders.dim(); ++i){
+        sUsrFolder dst(*user, parent_folders[i]);
+        if(dst.Id()){
+          dst.attach(contigMetrics);
+          dst.attach(ngsMetrics);
+        }
+      }
+    }
+
+      
     reqProgress(5, 80, 100);
 
     jAnnot.serialize();
     ::printf("%s\n",jAnnot.ret());
     jPos.serialize();
     ::printf("%s",jPos.ret());
-    jAll.serialize();
-    ::printf("%s\n",jAll.ret());
-    jNGS.serialize();
-    ::printf("%s\n",jNGS.ret());
 
 
 
