@@ -1,0 +1,94 @@
+{
+    "1711": {
+        "_id": "$type.hive-config",
+        "_type": "type",
+        "name": "hive-config",
+        "title": "Hive Config",
+        "singleton": 0,
+        "fields": {
+            "1.0": {
+                "field_name": "par",
+                "field_type": "string",
+                "field_parent": "par_val_list",
+                "field_order": 1,
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_brief": "par=\"$_(v)\""
+            },
+            "1.1": {
+                "field_name": "val",
+                "field_type": "string",
+                "field_parent": "par_val_list",
+                "field_default_value": "\"\"",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true
+            },
+            "1.2": {
+                "field_name": "permID",
+                "field_type": "integer",
+                "field_parent": "par_val_list",
+                "field_default_value": "0",
+                "field_role": "input",
+                "field_is_readonly_fg": 0
+            },
+            "1.3": {
+                "field_name": "date",
+                "field_type": "datetime",
+                "field_parent": "par_val_list",
+                "field_default_value": "now",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true
+            },
+            "1.4": {
+                "field_name": "cleanUpDays",
+                "field_type": "integer",
+                "field_parent": "par_val_list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true
+            },
+            "1.5": {
+                "field_name": "nameMasks",
+                "field_type": "string",
+                "field_parent": "par_val_list",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "par_val_list",
+                "field_type": "array",
+                "field_is_multi_fg": true
+            },
+            "1.9": {
+                "field_name": "name",
+                "field_type": "string",
+                "field_order": 1,
+                "field_brief": "name=\"$_(v)\""
+            }
+        },
+        "parent": {
+            "4": "$type.base_system_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

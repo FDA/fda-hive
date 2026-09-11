@@ -1,0 +1,49 @@
+{
+    "962": {
+        "_id": "$type.hive-telemetry-data",
+        "_type": "type",
+        "name": "hive-telemetry-data",
+        "title": "Hive Telemetry Data",
+        "description": "Telemetry data",
+        "singleton": 0,
+        "fields": {
+            "1.0": {
+                "field_name": "cntCPUs",
+                "field_title": "CPU Count",
+                "field_type": "integer",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            },
+            "1.2": {
+                "field_name": "totalRAM",
+                "field_title": "Total RAM",
+                "field_type": "integer",
+                "field_role": "input",
+                "field_is_readonly_fg": 0,
+                "field_constraint": "choice"
+            }
+        },
+        "parent": {
+            "7": "$type.base_user_type"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

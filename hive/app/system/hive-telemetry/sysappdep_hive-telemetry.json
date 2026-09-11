@@ -1,0 +1,7 @@
+{
+    "970": {
+        "_id": "$upsert()",
+        "_type": "sysappdep",
+        "name": "hive-telemetry"
+    }
+}

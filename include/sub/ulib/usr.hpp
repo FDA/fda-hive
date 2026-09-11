@@ -636,7 +636,7 @@ namespace slib {
                         eMaybeExpired
                     } expiration;
             };
-            typedef std::auto_ptr< sDic<sObjPerm> > TPermCache;
+            typedef std::unique_ptr< sDic<sObjPerm> > TPermCache;
             mutable TPermCache m_ObjPermission;
 
             void cacheRemove(const sHiveId & objHiveId) const;

@@ -145,6 +145,36 @@ namespace slib {
                 return epoch ? (idx)epoch : def;
             }
 
+            static inline idx parseTimestamp(const char* timestamp_str, idx def = 0)
+            {
+                if (!timestamp_str || !*timestamp_str) return def;
+
+                if (strspn(timestamp_str, "0123456789") == strlen(timestamp_str)) {
+                    return (idx)atoll(timestamp_str);
+                }
+
+                struct tm tm = {0};
+                if (strptime(timestamp_str, "%Y-%m-%dT%H:%M:%SZ", &tm)) {
+                    return (idx)timegm(&tm);
+                }
+
+                memset(&tm, 0, sizeof(tm));
+                if (strptime(timestamp_str, "%Y-%m-%d %H:%M:%S", &tm)) {
+                    return (idx)mktime(&tm);
+                }
+
+                memset(&tm, 0, sizeof(tm));
+                if (strptime(timestamp_str, "%Y-%m-%d", &tm)) {
+                    return (idx)mktime(&tm);
+                }
+
+                memset(&tm, 0, sizeof(tm));
+                if (strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S", &tm)) {
+                    return (idx)mktime(&tm);
+                }
+
+                return def;
+            }
 
         private:
             idx _lastValue;

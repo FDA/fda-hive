@@ -189,7 +189,7 @@ const char * listCommands = "seqList" _
 _;
 
 const char * listIonCommands = "ionncbiTax" _ "ionTaxInfo" _ "ionTaxDownInfo" _ "ionTaxParent" _ "ionTaxPathogenInfo" _
-"ionAnnotInfo" _ "ionAnnotIdMap" _ "ionTaxidCollapse" _ "ionTaxidByName" _ "ionCodonDB" _ "extendCodonTable" _ "ionWander" _ "ionTaxidCollapseExt" _ "doThis" _
+"ionAnnotInfo" _ "ionAnnotIdMap" _ "ionTaxidCollapse" _ "ionTaxidByName" _ "ionCodonDB" _ "extendCodonTable" _ "ionWander" _ "ionTaxidCollapseExt" _ "ionTaxLineage" _ "doThis" _
 _;
 
 const char * listIonBioCommands = "ionGenBankAnnotPosMap" _ "ionAnnotTypes" _ "ionAnnotInfoAll" _ "" _

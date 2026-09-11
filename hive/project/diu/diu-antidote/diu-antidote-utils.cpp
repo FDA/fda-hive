@@ -640,7 +640,7 @@ const char * diu_utils::FormatOutput::getResultDetails(idx resultInt, const char
     }
 }
 
-idx diu_utils::createDIEventJson (const char * file, JSNode & resinf, sStr & b, idx & cntEvents, sVar * acc2DB)
+idx diu_utils::createDIEventJson (const char * file, JSNode & resinf, sStr & b, idx & cntEvents, idx & highestSeverity, sVar * acc2DB)
 {
     #define GET_SUPERKINGDOM(lineage) \
         (   strstr((lineage), "Viruses") ? "Viruses" :  \
@@ -809,6 +809,9 @@ idx diu_utils::createDIEventJson (const char * file, JSNode & resinf, sStr & b, 
                     case 1: sev = "low"; break;
                     case 2: sev = "medium"; break;
                     case 3: sev = "high"; break;
+            }
+            if (maxSev > highestSeverity) {
+                highestSeverity = maxSev;
             }
         }
 

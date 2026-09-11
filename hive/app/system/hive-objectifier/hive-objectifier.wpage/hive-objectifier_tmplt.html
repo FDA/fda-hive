@@ -1,0 +1,47 @@
+
+<script>
+    $.loadLayoutManager();
+    $.loadCSS('css/look_and_feel/velvet.css');
+    $.loadCSS('css/algoview.css');
+    $.loadScript('jsx/widgets/jquery/view/jquery.algoview.js');
+    $.loadCSS('css/tabs.css');
+</script>
+
+<script> 
+    document.write(algoViewHTMLSetUp(false));
+</script>
+
+<script type="application/javascript">
+
+    setLocationTitle("HIVE Objectifier");
+    
+    google.load("visualization", "1", { packages : [ "corechart" ] });
+    
+    var thisProcessID=docLocValue("id"); if(!thisProcessID) thisProcessID=0;
+    var algoProcess=new valgoProcess(thisProcessID,  "hive-objectifier", "svc-hive-objectifier");
+    algoProcess.visibleParameters=["name","update","col_list_list"];
+    algoProcess.submitButtonName="Submit";
+    
+    
+     algoProcess.inputLoaded = function (viewer, elem){
+        algoProcess.inputChanged(viewer, elem);
+    } 
+
+    algoProcess.inputChanged= function (viewer, elem){
+    }
+
+    
+    gInitList += "hiveObjInit();";
+    function hiveObjInit() {
+        var topVal = $("#header").height() + 45;
+        
+        globalAlgo = $('#mainAlgoArea').algoview({
+            algoObj: algoProcess,
+            svcType: 'svc-hive-objectifier',
+            algoTitle: "HIVE Objectifier"
+        });
+        
+    };
+</script>
+
+

@@ -1,5 +1,5 @@
 {
-    "214": {
+    "198": {
         "_id": "$type.svc-dna-alqc",
         "_type": "type",
         "name": "svc-dna-alqc",
@@ -127,10 +127,15 @@
                 "field_name": "refs_direct_id",
                 "field_title": "references with no SRRs",
                 "field_type": "obj",
-                "field_constraint": "type",
-                "field_constraint_data": "genome",
                 "field_is_optional_fg": true,
-                "field_is_multi_fg": true
+                "field_is_multi_fg": true,
+                "field_constraint": "type",
+                "field_constraint_data": "genome"
+            },
+            "1.23": {
+                "field_name": "argos_objID",
+                "field_title": "argos object ID",
+                "field_type": "string"
             }
         },
         "parent": {

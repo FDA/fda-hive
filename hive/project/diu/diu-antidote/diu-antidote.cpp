@@ -254,7 +254,7 @@ CFLOW_START(DIUANTIDOTE,"diu-antidote")
         JSNode root(oj,"$root");
         root.del("result_info");
         JSNode & resinf=root.linkarr("result_info");
-        idx cntEvents=0, highestSeverity=0;
+        idx cntEvents=0, highestSeverity=-1;
         if(support_2_tier) {
             eventDB(tier2,true); 
         } else {
@@ -269,11 +269,12 @@ CFLOW_START(DIUANTIDOTE,"diu-antidote")
         if (resDIProfiler) {
             sStr diProfFilePath;
             getFilePath("p_di_profiler","di-profile.csv",0,&diProfFilePath);
-            createDIEventJson (diProfFilePath.ptr(),resinf, b, cntEvents, &acc2DB);
+            createDIEventJson (diProfFilePath.ptr(),resinf, b, cntEvents, highestSeverity,&acc2DB);
         }
 
         switch(highestSeverity){
-            case 0:root.link("highest_severity","unknown");break;
+            case -1: root.link("highest_severity","unknown"); break;
+            case 0:root.link("highest_severity","safe");break;
             case 1:root.link("highest_severity","low");break;
             case 2:root.link("highest_severity","medium");break;
             case 3:root.link("highest_severity","high");break;

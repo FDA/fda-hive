@@ -1,0 +1,40 @@
+{
+    "10143": {
+        "_id": "$type.svc-cflow-launcher",
+        "_type": "type",
+        "name": "svc-cflow-launcher",
+        "title": "cflow auto launcher",
+        "fields": {
+            "1.0": {
+                "field_constraint": "type",
+                "field_constraint_data": "csv-table",
+                "field_name": "accessions_csv",
+                "field_title": "Accessions CSV",
+                "field_type": "obj"
+            }
+        },
+        "parent": {
+            "7": "$type.svc-wflo-base",
+            "15": "$type.project-base",
+            "16": "$type.core-cflow"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}

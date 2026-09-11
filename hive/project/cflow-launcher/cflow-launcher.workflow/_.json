@@ -1,0 +1,48 @@
+{
+    "workflows": {
+        "name": "cflow-launcher-cflow",
+        "steps": [
+            {
+                "name": "p_computation",
+                "svc": "argos",
+                "execute": [
+                    {
+                        "_id": "$newid",
+                        "_type": "svc-argos-alqc",
+                        "name": "${'computationName}",
+                        "pipeline": "${'cflowID}",
+                        "wflow-codingTable": "${'wflow-codingTable}",
+                        "wflow-folder": "${'computationFolder}",
+                        "delayLaunch": 10,
+                        "submitter": "argos-alqc",
+                        "hive_assembly": {
+                            "asm_pipeline": 347,
+                            "clone_params": {
+                                "clone_params_clone_cov": 10,
+                                "clone_params_clone_length": 6,
+                                "clone_params_clone_support": 4
+                            }
+                        },
+                        "ngs-list": {
+                            "ngs": "1",
+                            "wflow-srr": "${'wflow-srr}"
+                        },
+                        "ref-list": {
+                            "references": "${'references}",
+                            "wflow-asm": "${'wflow-asm}",
+                            "wflow-ref": "${'wflow-ref}"
+                            
+                        },
+                        "metadata": {
+                            "tax_group": "${'tax_group}"
+                        },
+                        "alignment_params": {
+                            "max_miss_pct": "${'max_miss_pct}",
+                            "min_match_len": "${'min_match_len}"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}

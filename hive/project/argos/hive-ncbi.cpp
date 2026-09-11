@@ -79,6 +79,7 @@ const char * sHIVENCBI::Dataset_Base="https://api.ncbi.nlm.nih.gov/datasets";
 const char * sHIVENCBI::eSearch(const char * db, const char * term , sStr * dst)
 {
     if(!db || ! term) return 0;
+    
     CURL_CALLJSON("$root.esearchresult.idlist", "%s/esearch.fcgi?db=%s&term=%s&rettype=uilist&retmode=json",NCBI_BaseURL,db,term)
 ::printf("################ ESEARCH\nURL=%s\nRSLT=%s\n########################\n",url.ptr(),rslt);
         return rslt;
@@ -90,7 +91,7 @@ const char * sHIVENCBI::eSearch(const char * db, const char * term , sStr * dst)
 const char * sHIVENCBI::eFetch(const char * db, const char * id , const char * mode, sStr * dst)
 {
     if(!db || ! id) return 0;
-
+    
     CURL_CALLDIR("%s/efetch.fcgi?db=%s&id=%s&retmode=%s",NCBI_BaseURL,db,id,mode ? mode : "json" )
 ::printf("################ EFETCH\nURL=%s\nRSLT=%s\n########################\n",url.ptr(),rslt);
         return rslt;
@@ -101,7 +102,7 @@ const char * sHIVENCBI::eFetch(const char * db, const char * id , const char * m
 const char * sHIVENCBI::eLink(const char * dbFrom, const char * id, const char * dbto, const char * linkname, sStr * dst)
 {
     if(!dbFrom || ! id || !dbto ) return 0;
-
+    
     CURL_CALLJSON("$root.linksets.0.linksetdbs.0.links","%s/elink.fcgi?dbfrom=%s&id=%s&db=%s&rettype=uilist&retmode=json&linkname=%s",NCBI_BaseURL,dbFrom,id,dbto , linkname ? linkname : "")
 ::printf("################ ELINK\nURL=%s\nRSLT=%s\n########################\n",url.ptr(),rslt);
         return rslt;
@@ -125,9 +126,281 @@ const char * sHIVENCBI::id2Acc(const char * db, const char * ids, sStr * dst)
     CURL_END();
 }
 
+const char * sHIVENCBI::eSummary(const char * db, const char * id, sStr * dst)
+{
+    if(!db || !id) return 0;
+    CURL_CALLDIR("%s/esummary.fcgi?db=%s&id=%s&retmode=json", NCBI_BaseURL, db, id)
+    ::printf("################ ESUMMARY\nURL=%s\nRSLT=%s\n########################\n", url.ptr(), rslt);
+    return rslt;
+    CURL_END();
+}
+
+const char * sHIVENCBI::eSummaryXML(const char * db, const char * id, sStr * dst)
+{
+    if(!db || !id) return 0;
+    CURL_CALLDIR("%s/esummary.fcgi?db=%s&id=%s&retmode=xml", NCBI_BaseURL, db, id)
+    ::printf("################ ESUMMARY XML\nURL=%s\nRSLT=%s\n############################\n", url.ptr(), rslt);
+    return rslt;
+    CURL_END();
+}
+
+idx sHIVENCBI::extractBioSampleAcc(const char * txt, sStr & outCsv)
+{
+    outCsv.cut(0);
+    if(!txt) return 0;
+
+    sDic<idx> seen;
+
+    const char * prefixes[] = {"SAMN", "SAMEA", "SAMD"};
+    const idx nPref = (idx)(sizeof(prefixes)/sizeof(prefixes[0]));
+
+    idx count = 0;
+    for(const char * p = txt; *p; ++p) {
+
+        const char * hit = 0;
+        idx hitLen = 0;
+
+        for(idx i = 0; i < nPref; ++i) {
+            const char * pref = prefixes[i];
+            idx len = sLen(pref);
+
+            if(!strncmp(p, pref, len) && p[len] >= '0' && p[len] <= '9') {
+                hit = p;
+                hitLen = len;
+                break;
+            }
+        }
+        if(!hit) continue;
+
+        const char * q = hit + hitLen;
+        while(*q >= '0' && *q <= '9') ++q;
+
+        sStr one;
+        one.addString(hit, q - hit);
+
+        if(!seen.get(one.ptr())) {
+            seen[one.ptr()] = 1;
+            if(outCsv.length()) outCsv.addString(",");
+            outCsv.addString(one.ptr());
+            ++count;
+        }
+
+        p = q - 1; 
+    }
+
+    return count;
+}
+
+static bool xmlTagValue(const char *xml, const char *tag, sStr *dst)
+{
+    if(!xml || !tag || !dst) return false;
+
+    dst->cut(0);
+
+    sStr openTag, closeTag;
+    openTag.printf("<%s>", tag);
+    closeTag.printf("</%s>", tag);
+
+    const char *beg = strstr(xml, openTag.ptr());
+    if(!beg) return false;
+
+    beg += openTag.length();
+
+    const char *end = strstr(beg, closeTag.ptr());
+    if(!end || end <= beg) return false;
+
+    dst->addString(beg, end - beg);
+    dst->add0(1);
+    return true;
+}
+
+const char *sHIVENCBI::getLibaryInfo(const char *srr, sStr *instrumentModel, sStr *libStrategy, sStr *libSource, sStr *libSelection, sStr *libConstProtocol) {
+    
+    instrumentModel->cut(0);
+    libStrategy->cut(0);
+    libSource->cut(0);
+    libSelection->cut(0);
+    libConstProtocol->cut(0);
+
+    if(!srr || !*srr) return 0;
+
+    sStr term;
+    term.printf("%s", srr);
+
+    sStr uidBuf;
+    const char *uid = eSearch("sra", term.ptr(), &uidBuf);
+    if(!uid || !*uid) return 0;
+
+    sStr xml;
+    const char *xmlPtr = eFetch("sra", uid, "xml", &xml);
+    if(!xmlPtr || !*xmlPtr) return 0;
+
+    if(instrumentModel)
+        xmlTagValue(xmlPtr, "INSTRUMENT_MODEL", instrumentModel);
+
+    if(libStrategy)
+        xmlTagValue(xmlPtr, "LIBRARY_STRATEGY", libStrategy);
+
+    if(libSource)
+        xmlTagValue(xmlPtr, "LIBRARY_SOURCE", libSource);
+
+    if(libSelection)
+        xmlTagValue(xmlPtr, "LIBRARY_SELECTION", libSelection);
+
+    if(libConstProtocol)
+        xmlTagValue(xmlPtr, "LIBRARY_CONSTRUCTION_PROTOCOL", libConstProtocol);
+
+    return xmlPtr;
+}
+
+static void splitNumericIds(const char * s, sVec<sStr> & out)
+{
+    out.cut(0);
+    if(!s) return;
+
+    const char * p = s;
+    while(*p) {
+        while(*p && !(*p >= '0' && *p <= '9')) ++p;
+        if(!*p) break;
+
+        const char * start = p;
+        while(*p && (*p >= '0' && *p <= '9')) ++p;
+
+        sStr * tok = out.add(1);
+        tok->cut(0);
+        tok->addString(start, p - start);
+    }
+}
 
 
+const char * sHIVENCBI::biosampleUid2Acc(const char * biosample_uids, sStr * dst)
+{
+    if(!dst) return 0;
+    dst->cut(0);
+    if(!biosample_uids || !*biosample_uids) return 0;
 
+    sVec<sStr> uidList;
+    splitNumericIds(biosample_uids, uidList);
+    if(!uidList.dim()) return 0;
+
+    sDic<idx> seenAcc;
+    sStr outCsv;
+
+    for(idx i = 0; i < uidList.dim(); ++i) {
+        const char * uid = uidList[i].ptr();
+        if(!uid || !*uid) continue;
+
+        const char * js = eSummary("biosample", uid, 0);
+        if(!js || !*js) continue;
+
+        sStr jsCopy;
+        jsCopy.printf("%s", js);
+
+        sStr accCsv;
+        if(extractBioSampleAcc(jsCopy.ptr(), accCsv) <= 0) continue;
+        
+        sStr tmp;
+        tmp.printf("%s", accCsv.ptr());
+        for(char * p = tmp.ptr(); p && *p; ) {
+            char * start = p;
+            char * comma = (char*)strchr(p, ',');
+            if(comma) { *comma = 0; p = comma + 1; }
+            else { p = start + sLen(start); }
+
+            if(!*start) continue;
+
+            if(!seenAcc.get(start)) {
+                seenAcc[start] = 1;
+                if(outCsv.length()) outCsv.addString(",");
+                outCsv.addString(start);
+            }
+        }
+    }
+
+    if(!outCsv.length()) return 0;
+    dst->printf("%s", outCsv.ptr());
+    return dst->ptr();
+}
+
+const char * sHIVENCBI::srr2biosampleAcc(const char * srr, sStr * dst)
+{
+    if(!srr || !dst) return 0;
+    dst->cut(0);
+
+    sStr term;
+    term.printf("%s%%5Baccn%%5D", srr);
+
+    const char * sra_uids = eSearch("sra", term.ptr(), 0);
+    if(!sra_uids || !*sra_uids) return 0;
+
+    sStr sraUidsCopy;
+    sraUidsCopy.printf("%s", sra_uids);
+
+    const char * biosample_uids = eLink("sra", sraUidsCopy.ptr(), "biosample", "sra_biosample", 0);
+    if(!biosample_uids || !*biosample_uids) return 0;
+
+    return biosampleUid2Acc(biosample_uids, dst);
+}
+
+const char * sHIVENCBI::srr2biosampleAccXML(const char * srr, sStr * dst)
+{
+    if(!srr || !dst) return 0;
+    dst->cut(0);
+
+    sStr term;
+    term.printf("%s%%5Baccn%%5D", srr);
+
+    const char * sra_uids = eSearch("sra", term.ptr(), 0);
+    if(!sra_uids || !*sra_uids) return 0;
+
+    sStr sraUidsCopy;
+    sraUidsCopy.printf("%s", sra_uids);
+
+    const char * biosample_uids = eLink("sra", sraUidsCopy.ptr(), "biosample", "sra_biosample", 0);
+    if(!biosample_uids || !*biosample_uids) return 0;
+
+    sVec<sStr> uidList;
+    splitNumericIds(biosample_uids, uidList);
+    if(!uidList.dim()) return 0;
+
+    sDic<idx> seenAcc;
+    sStr outCsv;
+
+    for(idx i = 0; i < uidList.dim(); ++i) {
+        const char * uid = uidList[i].ptr();
+        if(!uid || !*uid) continue;
+
+        sStr xmlBuf;
+        xmlBuf.cut(0);
+
+        const char * xml = eSummaryXML("biosample", uid, &xmlBuf);
+        if(!xml || !*xml) continue;
+
+        sStr accCsv;
+        if(extractBioSampleAcc(xml, accCsv) <= 0) continue;
+
+        sStr tmp;
+        tmp.printf("%s", accCsv.ptr());
+        for(char * p = tmp.ptr(); p && *p; ) {
+            char * start = p;
+            char * comma = (char*)strchr(p, ',');
+            if(comma) { *comma = 0; p = comma + 1; }
+            else { p = start + sLen(start); }
+
+            if(!*start) continue;
+
+            if(!seenAcc.get(start)) {
+                seenAcc[start] = 1;
+                if(outCsv.length()) outCsv.addString(",");
+                outCsv.addString(start);
+            }
+        }
+    }
+
+    if(!outCsv.length()) return 0;
+    dst->printf("%s", outCsv.ptr());
+    return dst->ptr();
+}
 
 const char * sHIVENCBI::assembly2genome(const char * assembly, sStr * dst)
 {
@@ -197,25 +470,477 @@ const char * sHIVENCBI::biosample(const char * acc, sStr * dst, sJson * json)
     return dst->length() ? dst->ptr() : 0;
 }
 
+static bool isNumericIdList(const char *s)
+{
+    if(!s || !*s) return false;
+
+    for(const char *p = s; *p; ++p) {
+        if((*p >= '0' && *p <= '9') || *p == ',' || *p == ' ' || *p == '\n' || *p == '\t')
+            continue;
+        return false;
+    }
+    return true;
+}
+
+static bool looksLikeSRR(const char *s)
+{
+    return s &&
+           s[1] == 'R' &&
+           s[2] == 'R' &&
+           s[3] >= '0' &&
+           s[3] <= '9';
+}
+
+static bool looksLikeRunInfo(const char *txt)
+{
+    return txt && strncmp(txt, "Run,", 4) == 0;
+}
+
+static idx extractSRRAccsFromRunInfo(const char *txt, sStr &outCsv)
+{
+    outCsv.cut(0);
+    if(!txt || !*txt) return 0;
+
+    sDic<idx> seen;
+    idx count = 0;
+
+    const char *line = txt;
+
+    while(line && *line) {
+        while(*line == '\n' || *line == '\r') ++line;
+        if(!*line) break;
+
+        const char *lineEnd = strchr(line, '\n');
+        if(!lineEnd) lineEnd = line + sLen(line);
+
+        const char *comma = (const char *)memchr(line, ',', lineEnd - line);
+        const char *fieldEnd = comma ? comma : lineEnd;
+
+        sStr run;
+        run.addString(line, fieldEnd - line);
+
+        if(looksLikeSRR(run.ptr())) {
+            if(!seen.get(run.ptr())) {
+                seen[run.ptr()] = 1;
+                if(outCsv.length()) outCsv.addString(",");
+                outCsv.addString(run.ptr());
+                ++count;
+            }
+        }
+
+        line = (*lineEnd) ? lineEnd + 1 : lineEnd;
+    }
+
+    return count;
+}
+
+static idx extractSRRAccs(const char *txt, sStr &outCsv)
+{
+    outCsv.cut(0);
+    if(!txt) return 0;
+
+    sDic<idx> seen;
+    idx count = 0;
+
+    for(const char *p = txt; *p; ++p) {
+        if(!looksLikeSRR(p)) continue;
+
+        const char *q = p + 3;
+        while(*q >= '0' && *q <= '9') ++q;
+
+        sStr one;
+        one.addString(p, q - p);
+
+        if(!seen.get(one.ptr())) {
+            seen[one.ptr()] = 1;
+            if(outCsv.length()) outCsv.addString(",");
+            outCsv.addString(one.ptr());
+            ++count;
+        }
+
+        p = q - 1;
+    }
+
+    return count;
+}
+
+const char * sHIVENCBI::eFetchRunInfo(const char * sra_uids, sStr * dst)
+{
+    if(!sra_uids || !*sra_uids) return 0;
+
+    CURL_CALLDIR(
+        "%s/efetch.fcgi?db=sra&id=%s&rettype=runinfo&retmode=text",
+        NCBI_BaseURL,
+        sra_uids
+    )
+    ::printf("################ EFETCH RUNINFO\nURL=%s\nRSLT=%s\n########################\n",
+             url.ptr(), rslt);
+    return looksLikeRunInfo(rslt) ? rslt : 0;
+    CURL_END();
+}
+
+const char * sHIVENCBI::sraUid2SRR(const char * sra_uids, sStr * dst)
+{
+    if(!dst) return 0;
+    dst->cut(0);
+
+    ::printf("sraUid2SRR INPUT sra_uids=%s\n",
+             sra_uids ? sra_uids : "NULL");
+
+    if(!sra_uids || !*sra_uids) return 0;
+
+    sStr runInfoBuf;
+    const char *runInfo = eFetchRunInfo(sra_uids, &runInfoBuf);
+
+    ::printf("sraUid2SRR runInfo=%s\n",
+             runInfo ? runInfo : "NULL");
+
+    if(!runInfo || !*runInfo) return 0;
+
+    sStr srrCsv;
+    idx n = extractSRRAccsFromRunInfo(runInfo, srrCsv);
+
+    ::printf("sraUid2SRR extracted count=%" DEC "\n", n);
+    ::printf("sraUid2SRR srrCsv=%s\n",
+             srrCsv.ptr() ? srrCsv.ptr() : "EMPTY");
+
+    if(n <= 0) return 0;
+
+    dst->printf("%s", srrCsv.ptr());
+    return dst->ptr();
+}
+
+const char * sHIVENCBI::biosampleUid2SRR(const char * biosample_uids, sStr * dst)
+{
+    if(!dst) return 0;
+    dst->cut(0);
+
+    ::printf("biosampleUid2SRR INPUT biosample_uids=%s\n",
+             biosample_uids ? biosample_uids : "NULL");
+
+    if(!biosample_uids || !*biosample_uids) return 0;
+
+    sStr sraUidBuf;
+    const char *sra_uids = eLink(
+        "biosample",
+        biosample_uids,
+        "sra",
+        "biosample_sra",
+        &sraUidBuf
+    );
+
+    ::printf("biosampleUid2SRR sra_uids=%s\n",
+             sra_uids ? sra_uids : "NULL");
+
+    if(!sra_uids || !*sra_uids) return 0;
+
+    const char *srr = sraUid2SRR(sra_uids, dst);
+
+    ::printf("biosampleUid2SRR final srr=%s\n", srr ? srr : "NULL");
+    ::printf("biosampleUid2SRR dst=%s\n", dst->ptr() ? dst->ptr() : "EMPTY");
+
+    return srr;
+}
+
+const char * sHIVENCBI::assembly2SRR(const char * assembly, sStr * dst)
+{
+    if(!assembly || !dst) return 0;
+    dst->cut(0);
+
+    sStr assemblyIdBuf;
+    const char *assembly_ids = 0;
+
+    if(isNumericIdList(assembly)) {
+        assemblyIdBuf.printf("%s", assembly);
+        assembly_ids = assemblyIdBuf.ptr();
+    } else {
+        assembly_ids = eSearch("assembly", assembly, &assemblyIdBuf);
+    }
+
+    if(!assembly_ids || !*assembly_ids) return 0;
+
+    sVec<sStr> assmUidList;
+    splitNumericIds(assembly_ids, assmUidList);
+    if(!assmUidList.dim()) return 0;
+
+    sDic<idx> seenSrr;
+
+    for(idx i = 0; i < assmUidList.dim(); ++i) {
+        const char *assmUid = assmUidList[i].ptr();
+        if(!assmUid || !*assmUid) continue;
+
+        sStr bioUidBuf;
+        const char *bioUids = eLink(
+            "assembly",
+            assmUid,
+            "biosample",
+            "assembly_biosample",
+            &bioUidBuf
+        );
+
+        if(!bioUids || !*bioUids) continue;
+
+        sStr srrCsv;
+        const char *srrs = biosampleUid2SRR(bioUids, &srrCsv);
+        if(!srrs || !*srrs) continue;
+
+        sStr srr00;
+        sString::searchAndReplaceSymbols(
+            &srr00,
+            srrs,
+            0,
+            ",",
+            0,
+            0,
+            true,
+            true,
+            true,
+            true,
+            0
+        );
+
+        for(const char *srr = srr00.ptr(0); srr && *srr; srr = sString::next00(srr)) {
+            if(!srr || !*srr) continue;
+
+            if(!seenSrr.get(srr)) {
+                seenSrr[srr] = 1;
+
+                if(dst->length())
+                    dst->addString(",");
+
+                dst->addString(srr);
+            }
+        }
+    }
+
+    return dst->length() ? dst->ptr() : 0;
+}
+
+const char * sHIVENCBI::nucUid2SRRFromDBLink(const char * nuc_uid, sStr * dst)
+{
+    if(!nuc_uid || !dst) return 0;
+    dst->cut(0);
+
+    sStr fetchBuf;
+    const char *txt = eFetch("nuccore", nuc_uid, "text", &fetchBuf);
+    if(!txt || !*txt) return 0;
+
+    sStr srrCsv;
+    if(extractSRRAccs(txt, srrCsv) <= 0) return 0;
+
+    dst->printf("%s", srrCsv.ptr());
+    return dst->ptr();
+}
+
+const char * sHIVENCBI::nucUid2SRRThroughBioSample(const char * nuc_uid, sStr * dst)
+{
+    if(!nuc_uid || !dst) return 0;
+    dst->cut(0);
+
+    sStr biosampleUidBuf;
+
+    const char *biosample_uids = eLink(
+        "nuccore",
+        nuc_uid,
+        "biosample",
+        "nuccore_biosample",
+        &biosampleUidBuf
+    );
+
+    if(!biosample_uids || !*biosample_uids) return 0;
+
+    return biosampleUid2SRR(biosample_uids, dst);
+}
+
+const char * sHIVENCBI::nucAcc2CurrentAcc(const char * nuc_acc, sStr * dst)
+{
+    if(!nuc_acc || !dst) return 0;
+    dst->cut(0);
+
+    sStr term;
+    term.printf("%s", nuc_acc);
+
+    sStr uidBuf;
+    const char *old_uid = eSearch("nuccore", term.ptr(), &uidBuf);
+    if(!old_uid || !*old_uid) return 0;
+
+    return id2Acc("nuccore", old_uid, dst);
+}
+
+const char * sHIVENCBI::nucseq2BiosampleAccOnce(const char * nuc_acc, sStr * dst)
+{
+    if(!nuc_acc || !dst) return 0;
+    dst->cut(0);
+
+    sStr nucUidBuf;
+    eSearch("nuccore", nuc_acc, &nucUidBuf);
+    if(!nucUidBuf.length()) return 0;
+
+    sVec<sStr> nucUidList;
+    splitNumericIds(nucUidBuf.ptr(), nucUidList);
+    if(!nucUidList.dim()) return 0;
+
+    for(idx i = 0; i < nucUidList.dim(); ++i) {
+        const char *nucUid = nucUidList[i].ptr();
+        if(!nucUid || !*nucUid) continue;
+
+        sStr bioUidBuf;
+        const char *bioUids = eLink("nuccore", nucUid, "biosample", "nuccore_biosample", &bioUidBuf);
+        if(!bioUids || !*bioUids) continue;
+
+        const char *biosample = biosampleUid2Acc(bioUids, dst);
+        if(biosample && *biosample) return biosample;
+    }
+
+    dst->cut(0);
+    return 0;
+}
+
+const char * sHIVENCBI::nucseq2BiosampleAcc(const char * nuc_acc, sStr * dst)
+{
+    if(!nuc_acc || !dst) return 0;
+
+    static const unsigned retryDelay[] = { 3, 10, 30 };
+    const idx retryCount = sizeof(retryDelay) / sizeof(retryDelay[0]);
+
+    for(idx attempt = 0; attempt < retryCount; ++attempt) {
+        dst->cut(0);
+
+        const char * result = nucseq2BiosampleAccOnce(nuc_acc, dst);
+        if(result && *result) return result;
+
+        log.printf("BioSample lookup failed for %s; attempt %" DEC " of %" DEC "\n",
+            nuc_acc, attempt + 1, retryCount);
+
+        if(attempt + 1 < retryCount) sleep(retryDelay[attempt]);
+    }
+
+    dst->cut(0);
+    return 0;
+}
+
+const char * sHIVENCBI::nucseq2SRROnce(const char * nuc_acc, sStr * dst)
+{
+    if(!nuc_acc || !dst) return 0;
+    dst->cut(0);
+
+    sStr nucUidBuf;
+    eSearch("nuccore", nuc_acc, &nucUidBuf);
+
+    if(nucUidBuf.length() == 0) return 0;
+
+    sVec<sStr> nucUidList;
+    splitNumericIds(nucUidBuf.ptr(), nucUidList);
+
+    if(!nucUidList.dim()) return 0;
+
+    sDic<idx> seenSrr;
+
+    for(idx i = 0; i < nucUidList.dim(); ++i) {
+        const char *nucUid = nucUidList[i].ptr();
+        if(!nucUid || !*nucUid) continue;
+
+        sStr bioUidBuf;
+        const char *bioUids = eLink("nuccore", nucUid, "biosample", "nuccore_biosample", &bioUidBuf);
+
+        if(bioUidBuf.length() == 0) continue;
+
+        sStr srrCsv;
+        const char *srrs = biosampleUid2SRR(bioUids, &srrCsv);
+
+        if(!srrs || !*srrs) continue;
+
+        sStr srr00;
+        sString::searchAndReplaceSymbols(&srr00, srrs, 0, ",", 0, 0, true, true, true, true, 0);
+
+        for(const char *srr = srr00.ptr(0); srr && *srr; srr = sString::next00(srr)) {
+            if(!srr || !*srr) continue;
+
+            if(!seenSrr.get(srr)) {
+                seenSrr[srr] = 1;
+
+                if(dst->length())
+                    dst->addString(",");
+
+                dst->addString(srr);
+            }
+        }
+    }
+
+    return dst->length() ? dst->ptr() : 0;
+}
+
+const char * sHIVENCBI::nucseq2SRR(const char * nuc_acc, sStr * dst)
+{
+    if(!nuc_acc || !dst) return 0;
+
+    static const unsigned retryDelay[] = { 3, 10, 30 };
+    const idx retryCount = sizeof(retryDelay) / sizeof(retryDelay[0]);
+
+    for(idx attempt = 0; attempt < retryCount; ++attempt) {
+        dst->cut(0);
+
+        const char * result = nucseq2SRROnce(nuc_acc, dst);
+        if(result && *result) return result;
+
+        log.printf("SRR lookup failed for %s; attempt %" DEC " of %" DEC "\n",
+            nuc_acc, attempt + 1, retryCount);
+
+        if(attempt + 1 < retryCount) sleep(retryDelay[attempt]);
+    }
+
+    dst->cut(0);
+    return 0;
+}
+
 
 
 const char * sHIVENCBI::saveBiosampleData(const char * assmACC, sStr * dst) {
-    if (!assmACC) return 0;
-
-    CURL_CALLDIR("%s/v2alpha/genome/accession/%s/dataset_report", Dataset_Base, assmACC)
-    rslt = retBuf.ptr();
-    ::printf("################ FETCH BIOSAMPLE DATA FROM NCBI\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
-    
-    if (!dst) {
+    if(!assmACC || !*assmACC){
+        return 0;
+    }
+    if(!dst) {
         dst = &m_curlBuf;
         m_curlBuf.cut(0);
+    } else {
+        dst->cut(0);
     }
 
-    dst->printf("%s", rslt);
+    CURL_CALLDIR("%s/v2alpha/genome/accession/%s/dataset_report", Dataset_Base, assmACC)
+    ::printf("################ FETCH BIOSAMPLE DATA FROM NCBI\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
+    
+    if(!rslt || !*rslt){
+        return 0;
+    }
+
     return dst->ptr();
 
     CURL_END();
 }
+
+const char * sHIVENCBI::fetchGenbankData(const char * gbAcc, sStr * dst) {
+    if(!gbAcc || !*gbAcc){
+        return 0;
+    }
+    if(!dst) {
+        dst = &m_curlBuf;
+        m_curlBuf.cut(0);
+    } else {
+        dst->cut(0);
+    }
+
+    CURL_CALLDIR("%s/v2alpha/virus/accession/%s/dataset_report", Dataset_Base, gbAcc)
+    ::printf("################ FETCH BIOSAMPLE DATA FROM NCBI\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
+    
+    if(!rslt || !*rslt){
+        return 0;
+    }
+
+    return dst->ptr();
+
+    CURL_END();
+}
+
 
 bool sHIVENCBI::getLineage(const char *taxID, sStr *strLineage, sStr *dst) {
 
@@ -259,7 +984,8 @@ bool sHIVENCBI::getLineage(const char *taxID, sStr *strLineage, sStr *dst) {
 }
 
 
-bool sHIVENCBI::flattenNcbiJson(const char * ncbiRawJson, sJson * strucJson, sStr * outJsonStr, sStr * log) {
+bool sHIVENCBI::flattenNcbiJson(const char * ncbiRawJson, sJson * strucJson, sStr * outJsonStr, sStr * log, const char *argos_ID) {
+    strucJson->link(0, "argos_objID", argos_ID);
     if (!ncbiRawJson || !outJsonStr) return false;
 
     sJson src, dst;
@@ -450,7 +1176,7 @@ const char * sHIVENCBI::parseJson(const char * json, sStr * dst) {
 
 }
 
-const char * sHIVENCBI::assm2biosample(const char * assmACC, sStr * dst, const char * json) {
+const char * sHIVENCBI::assm2biosample(const char * assmACC, sStr * dst, const char * json, sStr * seqLen) {
 
     CURL_CALLDIR("%s/v2alpha/genome/accession/%s/dataset_report", Dataset_Base, assmACC)
     ::printf("################ FETCH DATA FROM NCBI\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
@@ -468,8 +1194,65 @@ const char * sHIVENCBI::assm2biosample(const char * assmACC, sStr * dst, const c
     }
 
     dst->printf("%s", jsonParser.value("reports.0.assembly_info.biosample.accession", "Not found"));
-
+    seqLen->printf("%s", jsonParser.value("reports.0.assembly_stats.total_sequence_length"));
     jsonParser.value("reports.0.assembly_info.biosample.accession", nullptr);
+
+    if (strstr(dst->ptr(), "Not found") ) {
+        return nullptr;
+    }
+
+
+    return dst->ptr();;
+    CURL_END();
+}
+
+const char * sHIVENCBI::getRefLen(const char * ref, sStr * dst) {
+
+    CURL_CALLDIR("%s/v2alpha/virus/accession/%s/dataset_report", Dataset_Base, ref)
+    ::printf("################ FETCH DATA FROM NCBI\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
+
+    if (!dst) {
+        dst = &m_curlBuf; 
+        m_curlBuf.cut(0); 
+    }
+
+    dst->cut(0);
+
+    sJson jsonParser;
+    if (!jsonParser.initMem(rslt)) {
+        return 0;
+    }
+
+    dst->printf("%s", jsonParser.value("reports.0.length", "Not found"));
+
+    if (strstr(dst->ptr(), "Not found") ) {
+        return nullptr;
+    }
+
+    return dst->ptr();;
+    CURL_END();
+}
+
+const char * sHIVENCBI::assm2sra(const char * assmACC, sStr * dst, const char * json) {
+
+    CURL_CALLDIR("%s/v2alpha/genome/accession/%s/dataset_report", Dataset_Base, assmACC)
+    ::printf("################ FETCH DATA FROM NCBI\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
+    
+    if (!dst) {
+        dst = &m_curlBuf; 
+        m_curlBuf.cut(0); 
+    }
+
+    dst->cut(0);
+
+    sJson jsonParser;
+    if (!jsonParser.initMem(rslt)) {
+        return 0;
+    }
+
+    dst->printf("%s", jsonParser.value("reports.0.assembly_info.biosample.sample_ids[0].value", "Not found"));
+
+    jsonParser.value("reports.0.assembly_info.biosample.sample_ids[0].value", nullptr);
 
     if (strstr(dst->ptr(), "Not found") ) {
         return nullptr;
@@ -503,6 +1286,28 @@ const char * sHIVENCBI::biosample2assm(const char * bsAcc, sStr * dst, const cha
     CURL_END();
 }
 
+const char * sHIVENCBI::getBiosampleMeta(const char * bsAcc, sStr * dst, const char * json) {
+    if(!bsAcc || !*bsAcc){
+        return 0;
+    }
+    if(!dst) {
+        dst = &m_curlBuf;
+        m_curlBuf.cut(0);
+    } else {
+        dst->cut(0);
+    }
+
+    CURL_CALLDIR("%s/v2alpha/biosample/accession/%s/biosample_report", Dataset_Base, bsAcc)
+    ::printf("################ FETCH DATA FROM NCBI\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
+
+    if(!rslt || !*rslt){
+        return 0;
+    }
+
+    return dst->ptr();
+
+    CURL_END();
+}
 
 const char * sHIVENCBI::biosample2SRA(const char *biosample, sStr *dst, const char *json) {
     CURL_CALLDIR("%s/v2alpha/genome/biosample/%s/dataset_report", Dataset_Base, biosample)
@@ -650,48 +1455,78 @@ const char * sHIVENCBI::assm2genome(const char * assembly, sStr * dst, sStr * ou
 }
 
 const char * sHIVENCBI::srs2srr(const char * srsId, sStr * dst) {
-    if (!srsId) {
-        return nullptr;
-    }
+    if (!srsId || !dst) return nullptr;
 
     sStr idSearchResult;
     const char *internalId = eSearch("sra", srsId, &idSearchResult);
-    if (!internalId) {
-        ::printf("No internal ID found for SRS: %s\n", srsId);
+    if (!internalId || !*internalId) {
+        ::printf("No internal ID found for SRS/ERS/DRS: %s\n", srsId);
         return nullptr;
     }
 
     sStr fetchResult;
     const char *metadata = eFetch("sra", internalId, "xml", &fetchResult);
-    if (!metadata) {
+    if (!metadata || !*metadata) {
         ::printf("Failed to fetch metadata for internal ID: %s\n", internalId);
         return nullptr;
     }
 
-    const char *runTagStart = strstr(fetchResult.ptr(), "<RUN ");
-    if (!runTagStart) {
-        ::printf("No <RUN> tag found in metadata for SRS: %s\n", srsId);
-        return nullptr;
-    }
-
-    const char *accessionAttr = strstr(runTagStart, "accession=\"");
-    if (!accessionAttr) {
-        ::printf("No accession attribute found in <RUN> tag for SRS: %s\n", srsId);
-        return nullptr;
-    }
-
-    accessionAttr += 11;
-    const char *accessionEnd = strchr(accessionAttr, '"');
-    if (!accessionEnd) {
-        ::printf("Malformed accession attribute in <RUN> tag for SRS: %s\n", srsId);
-        return nullptr;
-    }
+    const char *buf = fetchResult.ptr();
+    const char *bufEnd = buf + fetchResult.length();
 
     dst->cut(0);
-    dst->add(accessionAttr, accessionEnd - accessionAttr);
+
+    const char *p = buf;
+    while (p && p < bufEnd) {
+        const char *runTagStart = strstr(p, "<RUN");
+        if (!runTagStart || runTagStart >= bufEnd) break;
+
+        const char *tagEnd = strchr(runTagStart, '>');
+        if (!tagEnd) break;
+
+        const char *accessionAttr = strstr(runTagStart, "accession=\"");
+        if (accessionAttr && accessionAttr < tagEnd) {
+            accessionAttr += 11;
+            const char *accessionEnd = strchr(accessionAttr, '"');
+            if (accessionEnd && accessionEnd <= tagEnd) {
+                idx accLen = accessionEnd - accessionAttr;
+                if (accLen > 0) {
+                    bool already = false;
+                    const char *q = dst->ptr();
+                    const char *dstEnd = q + dst->length();
+                    while (q < dstEnd) {
+                        const char *nextComma = (const char*)memchr(q, ',', dstEnd - q);
+                        const char *tokEnd = nextComma ? nextComma : dstEnd;
+                        idx tokLen = tokEnd - q;
+                        if (tokLen == accLen && strncmp(q, accessionAttr, (size_t)accLen) == 0) {
+                            already = true;
+                            break;
+                        }
+                        if (!nextComma) break;
+                        q = nextComma + 1;
+                    }
+
+                    if (!already) {
+                        if (dst->length() > 0) dst->add(",", 1);
+                        dst->add(accessionAttr, accLen);
+                    }
+                }
+            }
+        }
+
+        p = tagEnd + 1;
+    }
+
+    if (!dst->length()) {
+        ::printf("No <RUN accession=\"...\"> entries found for sample: %s\n", srsId);
+        return nullptr;
+    }
+
+    dst->add0cut();
 
     return dst->ptr();
 }
+
 
 const char * sHIVENCBI::getReferences(const char * assembly, sStr * dst, bool *isRefseq) {
     CURL_CALLDIR("%s/v2alpha/genome/accession/%s/sequence_reports", Dataset_Base, assembly)
@@ -905,28 +1740,27 @@ const char * sHIVENCBI::getUniProtProteomeID(const char *uniprotJson, sStr *buf,
     return 0;
 }
 
-const char * sHIVENCBI::mapUniProtID(const char *proteomeID, sStr *dst) {
+const char * sHIVENCBI::mapUniProtID(const char *proteomeID, sStr *dst) 
+{
     if (!proteomeID) return 0;
 
     CURL_CALLDIR("https://rest.uniprot.org/proteomes/%s?format=json", proteomeID);
-    ::printf("################ MAP UNIPROT DATA\nURL=%s\nRSLT=%s\n########################\n\n\n", url.ptr(), rslt);
-    
     rslt = retBuf.ptr();
 
-    if (!dst) {
-        dst = &m_curlBuf;
-        m_curlBuf.cut(0);
-    }
-
-    sStr jsonStr;
-    jsonStr.printf("%s", rslt);
-
     sJson json;
-    json.initMem(dst->ptr(), dst->length());
+    json.initMem(rslt, sLen(rslt));
+
     sStr valBuf;
     const char *genomeAcc = json.value(0, "genomeAssembly.assemblyId", 0, &valBuf);
-
-    if (genomeAcc) return dst->printf("%s", genomeAcc);
+    if (genomeAcc && genomeAcc[0]) {
+        if (dst) {
+            dst->cut(0);
+            dst->printf("%s", genomeAcc);
+            return dst->ptr();
+        } else {
+            return genomeAcc;
+        }
+    }
 
     for (idx i = 0;; ++i) {
         sStr dbPath, idPath;
@@ -936,7 +1770,13 @@ const char * sHIVENCBI::mapUniProtID(const char *proteomeID, sStr *dst) {
         const char *gid = json.value(0, idPath, 0, &valBuf);
         if (!db && !gid) break;
         if (db && strcmp(db, "GenomeAccession") == 0 && gid) {
-            return dst->printf("%s", gid);
+            if (dst) {
+                dst->cut(0);
+                dst->printf("%s", gid);
+                return dst->ptr();
+            } else {
+                return gid;
+            }
         }
     }
 
@@ -945,8 +1785,8 @@ const char * sHIVENCBI::mapUniProtID(const char *proteomeID, sStr *dst) {
 }
 
 
+
+
     
-
-
 
 

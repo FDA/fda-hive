@@ -499,7 +499,7 @@ idx sPopul::fill( idx refill,idx * relativeTo )
             m=uncompressMM.ptr();
         }
 
-        idx extFrame=(m[2*(hdr->lenAlign()-1)] - m[0]) -win_size();
+        idx extFrame=(m[2*(hdr->lenAlign()-1)] - m[0]+1) -win_size();
         if(extFrame>0){
             resize(extFrame);
             getCloneBoundaries(_POS,win_size());

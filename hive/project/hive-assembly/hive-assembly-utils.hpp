@@ -40,6 +40,17 @@
 using namespace slib;
 
 namespace ha_utils {
+
+    struct CloneInfo 
+    {
+        idx objId; idx procId;
+        const char * procName;
+        const char * procFolder;
+        const char * hoxID;
+    };
     
     void mapAcc2Tier2DB(const char* fileName, sVar * pAccToDBName);
+    idx getCloneCount(sUsr * user, idx clonalAnalysisObjId);
+    void composeIDLineClones(sStr & outbuf, const char * readId, const char * refId, idx refIdLen, CloneInfo & curClones);
+    void fixIdLineClones(const char * hitTableFilePath, CloneInfo & curClones, sUsr * user, const char * outname, sStr & outpath);
 }

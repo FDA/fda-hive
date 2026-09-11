@@ -190,7 +190,7 @@ idx sCmdLine::exec(sCmdLine::exeCommand * cmds, sVar * externalVars, sStr * appl
         for(iCmd=1; (cmd=cmds[iCmd].cmd)!=0; ++iCmd){
             len = sLen(arg);
             const char * pe=strchr(arg,'=');if(pe)len=pe-arg;
-            if( !strncmp(arg,cmd ,len) && ( strcmp(cmd,"--set") == 0 || ((arg[len]=='=' || arg[len]=='.' || arg[len]==0) && (cmd[len] == 0 || arg[len] == 0 ) ) ) ){
+            if( !strncmp(arg,cmd ,len) && ( strcmp(cmd,"--set") == 0 || ((arg[len]=='=' || arg[len]=='.' || arg[len]==0) && cmd[len] == 0 ) ) ){
                 rCmd=arg;
                 cmd_cur=cmds+iCmd;
                 break;

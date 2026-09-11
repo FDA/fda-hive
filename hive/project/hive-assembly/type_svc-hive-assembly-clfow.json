@@ -1,5 +1,5 @@
 {
-    "264548": {
+    "346": {
         "_id": "$type.svc-hive-assembly-clfow",
         "_type": "type",
         "name": "svc-hive-assembly-clfow",
@@ -19,9 +19,9 @@
                 "field_title": "Reference Genome",
                 "field_type": "obj",
                 "field_order": 2,
+                "field_is_multi_fg": true,
                 "field_constraint": "type",
-                "field_constraint_data": "genome",
-                "field_is_multi_fg": true
+                "field_constraint_data": "genome"
             },
             "1.4": {
                 "field_name": "clone_params",
@@ -51,6 +51,11 @@
                 "field_parent": "clone_params",
                 "field_order": 3,
                 "field_default_value": "4"
+            },
+            "1.9": {
+                "field_name": "accession",
+                "field_type": "string",
+                "field_is_optional_fg": true
             }
         },
         "parent": {

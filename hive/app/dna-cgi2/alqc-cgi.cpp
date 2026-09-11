@@ -40,6 +40,9 @@
 #include <qlib/QPrideCGI.hpp>
 using namespace slib;
 
+#undef MALFORMED_JSON_TYPES
+#define MALFORMED_JSON_TYPES 1
+
 namespace {
 
     const char* const MISSING_VALUE = "missing";
@@ -92,8 +95,9 @@ namespace {
             return;
         }
 
-        auto val = src[name];
-        dst.printf("%s%s", val.ok() ? val.operator const char*() : MISSING_VALUE, sep);
+        auto node = src[name];
+        auto val = node.ok() ? node.operator const char*() : MISSING_VALUE;
+        dst.printf("%s%s", val, sep);
     }
 
     void copyNcbiMetaValue(const char* name, std::vector<std::unique_ptr<sJson>>& src, sFil& dst, const char* sep = "\t")
@@ -181,6 +185,13 @@ namespace {
         for(idx i = 0; i < refseq.dim(); ++i)
         {
             JSNode& seq = refseq[i];
+        #if MALFORMED_JSON_TYPES
+            if(seq.dim() == 1)
+            {
+                seq = seq[0LL];
+            }
+        #endif
+
             copyNcbiMetaValue("organism_name", ncbiMeta, tbl);
             copyNcbiMetaValue("strain", ncbiMeta, tbl);
             copyValue("assembled_genome_acc", seq, tbl);
@@ -308,6 +319,13 @@ namespace {
         for(idx i = 0; i < ngsqc.dim(); ++i)
         {
             JSNode& qc = ngsqc[i];
+        #if MALFORMED_JSON_TYPES
+            if(qc.dim() == 1)
+            {
+                qc = qc[0LL];
+            }
+        #endif
+
             copyNcbiMetaValue("organism_name", ncbiMeta, tbl);
             copyNcbiMetaValue("strain", ncbiMeta, tbl);
             copyNcbiMetaValue("accession", ncbiMeta, tbl);
@@ -344,6 +362,13 @@ namespace {
             copyValue("non_complexity_percent", qc, tbl);
             copyValue("stdev_quality", qc, tbl);
             JSNode& bases = qc["bases"];
+        #if MALFORMED_JSON_TYPES
+            if(bases.dim() == 1)
+            {
+                bases = bases[0LL];
+            }
+        #endif
+
             copyValue("avg_quality_a", bases, tbl);
             copyValue("avg_quality_t", bases, tbl);
             copyValue("avg_quality_g", bases, tbl);
@@ -500,6 +525,19 @@ idx DnaCGI::CmdAlqc(idx cmd)
         }
     };
 
+    auto composeCommaSeparatedList = [] (sStr& out, const char* value)
+    {
+        if(value && value[0])
+        {
+            if(out.length())
+            {
+                out.addString(",");
+            }
+
+            out.addString(value);
+        }
+    };
+
     switch(cmd)
     {
     case eAlqcGetTsv:
@@ -521,6 +559,7 @@ idx DnaCGI::CmdAlqc(idx cmd)
             }
 
 
+            sStr invIds, invTypes;
             int index{-1};
             std::unordered_set<udx> inputFiles[INPUT_COUNT];
             for(idx i = 0; i < objIds.dim(); ++i)
@@ -529,12 +568,14 @@ idx DnaCGI::CmdAlqc(idx cmd)
                 sUsrObj obj(m_User, sHiveId(objId, 0));
                 if(!obj.Id().valid())
                 {
+                    composeCommaSeparatedList(invIds, obj.IdStr());
                     continue;
                 }
 
                 index = getInputIndex(obj.getTypeName());
                 if(index == -1)
                 {
+                    composeCommaSeparatedList(invTypes, obj.getTypeName());
                     continue;
                 }
 
@@ -543,7 +584,9 @@ idx DnaCGI::CmdAlqc(idx cmd)
 
             if(inputFiles[BIOSAMPLE_META].empty())
             {
-                printError("At least Biosample Meta object Id must be provided");
+                sStr errMsg;
+                errMsg.printf("At least Biosample Meta object Id must be provided. Inaccessible Ids: %s, invalid types: %s", invIds.ptr(), invTypes.ptr());
+                printError(errMsg.ptr());
                 break;
             }
 
