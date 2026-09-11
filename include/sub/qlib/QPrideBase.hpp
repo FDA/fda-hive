@@ -120,6 +120,33 @@ namespace slib
                 real capacity;
             };
 
+            enum HostUpdateFields {
+                HOST_UPDATE_IP4 = 1,
+                HOST_UPDATE_HTYPE = 2,
+                HOST_UPDATE_CATEGORY = 4,
+                HOST_UPDATE_ENABLED = 8,
+                HOST_UPDATE_CAPACITY = 16,
+                HOST_UPDATE_CORES = 32,
+                HOST_UPDATE_MEMORY = 64,
+                HOST_UPDATE_ALL = HOST_UPDATE_IP4 | HOST_UPDATE_HTYPE | HOST_UPDATE_CATEGORY | HOST_UPDATE_ENABLED | HOST_UPDATE_CAPACITY | HOST_UPDATE_CORES | HOST_UPDATE_MEMORY
+            };
+
+            struct Host {
+                Host() {
+                    sSet(this);
+                }
+
+                char name[128];
+                char ip4[16];
+                char htype[16];
+                char category[128];
+                idx enabled;
+                idx mdate;
+                real capacity;
+                idx cores;
+                idx memory;
+                idx updateMask;
+            };
 
             struct Request
             {
@@ -289,6 +316,7 @@ namespace slib
         public:
             char * configGet(sStr * str , sVar * pForm, const char * par, const char * defval, const char * fmt, ... ) __attribute__((format(scanf, 6, 7)));
             char * configGetAll( sStr * vals00, const char * pars00);
+            char * configGetAllClean( sStr * vals00, const char * pars00);
             bool configSet(const char * par, const char * fmt, ... ) __attribute__((format(printf, 3, 4)));
             void flushCache();
             sVar * getVars(sStr * dst=0, const char * src=0, idx len=0);
@@ -322,6 +350,9 @@ namespace slib
             idx serviceScanf(Service * Svc, const char * str, const char * end, sVec < Service > * SvcVec, const char * forceHost=0);
             idx serviceUp(const char * svc, idx mask);
             idx serviceList(sStr * lst00=0, sVec < Service > * svclist=0) ;
+            idx hostList(sStr * lst00=0, sVec < Host > * hostlist=0) ;
+            idx hostGet(Host * host=0, const char * hostName=0, idx hostId=0, sVec < Host > * hostVec=0);
+            idx hostSet(Host * host, idx cnt=1, sStr * out=0);
 
             void servicePurgeOld(sVec<idx> * reqList, const char * service = 0, idx limit = -1, bool no_delete=false);
             idx servicePath2Clean(sVarSet & res);
