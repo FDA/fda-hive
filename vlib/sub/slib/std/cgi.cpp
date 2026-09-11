@@ -491,7 +491,15 @@ void sCGI::voutBinUncached(const void * buf, idx len, const char * etag, bool as
     bool extended=pForm->boolvalue("ext",false);
     const char * cols=pForm->value("cols",0);
 
+    idx countOnly=pForm->ivalue("countOnly",0);
+    sDic <idx> countByVal;
+
     const char * prefix=pForm->value("prefix",0);
+    const char * separator = pForm->value("sep",",");
+    if (separator[0]=='t') {
+        separator = "\t";
+    }
+
     sStr bufpref;
     if(prefix){prefix=bufpref.printf("%s,",prefix);}
     idx lprefix=prefix ? sLen(prefix) : 0;
@@ -535,12 +543,20 @@ void sCGI::voutBinUncached(const void * buf, idx len, const char * etag, bool as
     }
 
 
-    if(cnt || start || srch || (var && val) || nohdr || prefix) {
+    if(cnt || start || srch || (var && val) || nohdr || prefix || (countOnly==2 && var && *var)) {
         const char * puf=(const char*)buf;
         idx varcol=-1,f;
         idx col=0;
+        idx cntFound=0, cntFoundInLine=0;
         for( idx i=0,ln=-1,lnin=-1,e=0,s=0; i<len; ++i) {
-            if(puf[i]!='\n') { continue; col=0;}
+            if(puf[i]!='\n') {                
+                continue;        
+            }
+           
+            if (cntFoundInLine) {
+                cntFound++;
+                cntFoundInLine=0;
+            }
             e=i;
             idx found=0,quote;
             ++ln;
@@ -555,11 +571,11 @@ void sCGI::voutBinUncached(const void * buf, idx len, const char * etag, bool as
                         if( cmp!=-1) {
                             if(tolower(puf[s+f])!=tolower(var[k])) cmp=-1;
                             else ++k;
-                            if(var[k]==0 && (f==e-s-1 || puf[s+f+1]==','))break;
+                            if(var[k]==0 && (f==e-s-1 || puf[s+f+1]==separator[0]))break;
                         }
 
 
-                        if(!quote && puf[s+f]==','){++varcol;cmp=f; k=0;}
+                        if(!quote && puf[s+f]==separator[0]){++varcol;cmp=f; k=0;}
                     }
                     if(f==e-s)varcol=-1;
                 }
@@ -576,7 +592,7 @@ void sCGI::voutBinUncached(const void * buf, idx len, const char * etag, bool as
                         }
                     }
                 }
-                if(var && val ){
+                if(var && (val || countOnly==2)){
                     if (!found ) {
                         f=0;col=0;quote=0;
                         for(idx k=0,kk=0; f<e-s; ++f) {
@@ -586,36 +602,50 @@ void sCGI::voutBinUncached(const void * buf, idx len, const char * etag, bool as
 
                             if(varcol==-1 || col==varcol) {
                                 idx l=0;
+                                if (countOnly==2) {
+                                    idx ic=0;
+                                    for ( ;(s+f+ic) < e && puf[s+f+ic]!=separator[0] && puf[s+f+ic]!=';'; ++ic) {}
+                                    if (ic) {
+                                        idx *pcnt = countByVal.get(puf+s+f, ic);
+                                        if (!pcnt) pcnt = countByVal.set(puf+s+f, ic);
+                                        ++(*pcnt);
+                                    }
+                                    break;
+                                }
                                 for ( kk=0;val[kk] ; ) {
                                     l=sLen(val+kk);
-                                    for (k=0;val[kk+k] && val[kk+k]!=',' && tolower(val[kk+k])==tolower(puf[s+f+k]);++k)
+                                    for (k=0;val[kk+k] && val[kk+k]!=separator[0] && tolower(val[kk+k])==tolower(puf[s+f+k]);++k)
                                         {}
-                                    if(val[kk+k]==',' && ((f==e-s || puf[s+f+k]==',' )) )
+                                    if(val[kk+k]==separator[0] && ((f==e-s || puf[s+f+k]==separator[0] )) )
                                         break;
                                     if(!val[kk+k]) {
                                         if(!exact)found=1;
                                         break;
                                     }
-                                    if(val[kk+k]!=','){
-                                        for (kk=kk+k ;val[kk] && val[kk]!=',';++kk){}
+                                    if(val[kk+k]!=separator[0]){
+                                        for (kk=kk+k ;val[kk] && val[kk]!=separator[0];++kk){}
                                     }else kk=kk+k;
                                     if(val[kk])++kk;
                                 }
-                                if((val[kk+k]==0 || val[kk+k]==',')) {
+
+                                if((val[kk+k]==0 || val[kk+k]==separator[0])) {
                                     if(found)
                                         break;
-                                    if (exact && k==l  &&(f==e-s || (puf[s+f+k]==',' && !quote) || (quote && puf[s+f+k]==quote) )) {
+                                    if (exact && k==l  &&(f==e-s || (puf[s+f+k]==separator[0] && !quote) || (quote && puf[s+f+k]==quote) )) {
                                         found=1;
                                         break;
                                     }
                                     if(exact)
                                         break;
+                                    ++col;
+                                    if(varcol!=-1 && col>varcol)break;
                                     continue;
                                 }
+
                                 break;
                             }
 
-                            if(!quote && puf[s+f]==','){++col;if(varcol!=-1 && col>varcol)break;}
+                            if(!quote && puf[s+f]==separator[0]){++col;if(varcol!=-1 && col>varcol)break;}
                         }
                     }
                 }
@@ -639,10 +669,26 @@ void sCGI::voutBinUncached(const void * buf, idx len, const char * etag, bool as
                 if(ln==0){out_fwrite("prefix,", 7,1,flOut);}
                 else {out_fwrite(prefix, lprefix,1,flOut);}
             }
-            out_fwrite(puf+s, e-s,1,flOut);
-            out_fwrite("\n", 1,1,flOut);
+            if (found) {
+                cntFoundInLine++;
+            }
+            if (!countOnly){
+                out_fwrite(puf+s, e-s,1,flOut);
+                out_fwrite("\n", 1,1,flOut);               
+            }
             s=e+1;
 
+        }
+        if(countOnly==1){
+            dataForm.printf("%" DEC "\n", cntFound);
+        }
+        if (countOnly==2 && var && *var) {
+            dataForm.printf(0,"%s,count\n",var);
+            for (idx i=0, iLen=0; i<countByVal.dim(); ++i) {
+                const char * val = (const char *)countByVal.id(i,&iLen);
+                idx * cnt = countByVal.get(val,iLen);
+                dataForm.printf("%.*s,%" DEC "\n", (int)iLen, val, *cnt);
+            }
         }
     } else {
         out_fwrite(buf, len,1,flOut);
@@ -709,32 +755,34 @@ idx sCGI::Cmd(const char *)
         if( !filename ) {
             filename = pForm->value("F", 0);
         }
+        bool isGlob = pForm->boolvalue("glob", false);
         sStr buf;
         bool valid_name = false;
-        if( sDir::aliasResolve(buf, "qapp.cfg", "[CGI]", filename, true, false) ) {
+        if( sDir::aliasResolve(buf, "qapp.cfg", "[CGI]", filename, true, isGlob) ) {
             valid_name = true;
             for( const char * resolved_name = buf; resolved_name; resolved_name = sString::next00(resolved_name) ) {
                 if( resolved_name[0] == '/' || strstr(resolved_name, "../") ) {
                     valid_name = false;
                     break;
                 }
-            }
-
-            if( valid_name ) {
-                if( pForm->ivalue("nameonly", 0) ) {
-                    for(const char * p = buf; p; p = sString::next00(p)) {
-                        dataForm.printf("%s\n", p);
-                    }
-                    outHtml();
-                } else if( !outFile(buf, pForm->boolvalue("attachment"), "%s", filename) ) {
-                    buf.cut(0);
+                if( valid_name ) {
+                    if( pForm->ivalue("nameonly", 0) ) {
+                            dataForm.printf("%s\n", resolved_name);
+                        outHtml();
+                    } else {
+                        if (pForm->boolvalue("countOnly", 0)) {
+                            dataForm.printf("%s,", resolved_name);
+                        }
+                        bool isok = outFile(resolved_name, pForm->boolvalue("attachment"), "%s", filename);
+                       
+                        
+                    } 
+                    
                 }
             }
+              
         }
-        if( !valid_name ) {
-            headerSet("Status", "404");
-            outHtml();
-        }
+       outHtml();
 
         return 1;
     }
