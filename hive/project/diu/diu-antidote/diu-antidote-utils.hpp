@@ -51,7 +51,7 @@ namespace diu_utils {
     const char * closeDbFiles(sStr & list,sDic<Tier2DB>& dbNameToFileDic);
 
     idx createEventJson(const char * fl, JSNode & resinf, sStr & b, idx & cntEvents, idx & highestSeverity, bool isTax=true, sVar * acc2DB=0);
-    idx createDIEventJson(const char * fl, JSNode & resinf, sStr & b, idx & cntEvents, sVar * acc2DB=0);
+    idx createDIEventJson(const char * fl, JSNode & resinf, sStr & b, idx & cntEvents, idx & highestSeverity, sVar * acc2DB=0);
 
     struct  LLNL_BULL_INFO {
         idx refIdLen, linLen, detailsLen;
