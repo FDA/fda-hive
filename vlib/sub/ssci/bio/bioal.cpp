@@ -458,6 +458,7 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
     }
     sStr compStr;
     idx ia=iAlStart, iAlStart2End = iAlEnd - iAlStart;
+    sVec<idx> uncompressMM;
     for (idx iAlCnt = 0 ; ia<iAlEnd; ++ia, ++iAlCnt) {
         idx iAl=0;
         if(randInds){
@@ -481,8 +482,14 @@ idx sBioal::iterateAlignments(idx * piVis, idx start, idx cnt, idx iSub, typeCal
             ::printf("SUB=%s\n",Sub->id(thisSub));
         }
         idx * m=getMatch(iAl);
-        if (m==sBioseqAlignment::zeroAlignment) {
+        if (m==sBioseqAlignment::zeroAlignment && !hdr->lenAlign()) {
             continue;
+        }
+        if (m==sBioseqAlignment::zeroAlignment) {
+            uncompressMM.cut(0);
+            uncompressMM.resize(hdr->lenAlign()*2+1);
+            sBioseqAlignment::uncompressAlignment(hdr, 0, uncompressMM.ptr());
+            m = uncompressMM.ptr();
         }
 
         bool isok=true;
