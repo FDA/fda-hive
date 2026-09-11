@@ -1,0 +1,91 @@
+{
+    "2441": {
+        "_id": "$type.argos_srr_metadata",
+        "_type": "type",
+        "name": "argos_srr_metadata",
+        "title": "SRR metadata",
+        "fields": {
+            "1.0": {
+                "field_name": "readMeta",
+                "field_title": "read Metadata",
+                "field_type": "array",
+                "field_is_multi_fg": true
+            },
+            "1.2": {
+                "field_name": "instrument_model",
+                "field_title": "Instrument Model",
+                "field_type": "string",
+                "field_parent": "read_record"
+            },
+            "1.3": {
+                "field_name": "library_strategy",
+                "field_title": "Library Strategy",
+                "field_type": "string",
+                "field_parent": "read_record"
+            },
+            "1.4": {
+                "field_name": "library_source",
+                "field_title": "Library Source",
+                "field_type": "string",
+                "field_parent": "read_record"
+            },
+            "1.5": {
+                "field_name": "library_selection",
+                "field_title": "Library Selection",
+                "field_type": "string",
+                "field_parent": "read_record"
+            },
+            "1.6": {
+                "field_name": "library_construction_protocol",
+                "field_title": "Library Construction Protocol",
+                "field_type": "string",
+                "field_parent": "read_record",
+                "field_is_optional_fg": true
+            },
+            "1.7": {
+                "field_name": "srr_id",
+                "field_title": "SRR ID",
+                "field_type": "string",
+                "field_parent": "read_record"
+            },
+            "1.8": {
+                "field_name": "argos_objID",
+                "field_title": "argos object ID",
+                "field_type": "string"
+            },
+            "1.9": {
+                "field_name": "biosample",
+                "field_title": "biosample",
+                "field_type": "string"
+            },
+            "1.11": {
+                "field_name": "read_record",
+                "field_title": "read record",
+                "field_type": "array",
+                "field_parent": "readMeta",
+                "field_is_multi_fg": false
+            }
+        },
+        "parent": {
+            "7": "$type.argos_Base_Data"
+        },
+        "_perm": [
+            {
+                "party": "/system/",
+                "act": {
+                    "browse": true,
+                    "read": true,
+                    "write": true,
+                    "exec": true,
+                    "del": true,
+                    "admin": true,
+                    "share": true,
+                    "download": true
+                },
+                "_infect": {
+                    "party": [ "member" ]
+                }
+            }
+        ]
+    }
+}
